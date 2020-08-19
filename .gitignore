@@ -117,6 +117,9 @@ out
 # Yarn lockfile
 yarn.lock
 
+# Npm lockfile
+package-lock.json
+
 # Generated project files
 lib
 es
