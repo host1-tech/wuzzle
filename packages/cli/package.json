@@ -1,0 +1,28 @@
+{
+  "name": "@wuzzle/cli",
+  "version": "0.1.0",
+  "description": "Wuzzle CLI",
+  "keywords": [],
+  "license": "MIT",
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "bin": {
+    "wuzzle": "bin/wuzzle.js"
+  },
+  "scripts": {},
+  "engines": {
+    "node": ">=10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/host1-tech/wuzzle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/host1-tech/wuzzle/issues"
+  },
+  "dependencies": {
+    "v8-compile-cache": "^2.1.1"
+  }
+}

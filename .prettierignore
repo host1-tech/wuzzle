@@ -1,15 +1,13 @@
 .*
 *.log
-*.svg
-*.sh
-*.snap
 
-dist/
 lib/
 es/
+dist/
 coverage/
 
 CNAME
 LICENSE
 
 yarn.lock
+tsconfig.tsbuildinfo

@@ -1,9 +1,20 @@
 {
   "name": "wuzzle",
   "description": "",
-  "private": true,
   "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/host1-tech/wuzzle.git"
+  },
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
+    "build": "tsc --build",
+    "watch": "tsc --build --watch",
+    "clean": "rimraf '**/tsconfig.tsbuildinfo' 'packages/*/lib'",
+    "clear": "lerna clean --yes && rimraf node_modules",
     "format": "prettier --write '**/*'"
   },
   "lint-staged": {
@@ -18,12 +29,18 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
+  "workspaces": [
+    "./packages/*"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.2",
     "husky": "^4.2.5",
     "lerna": "^3.22.1",
     "lint-staged": "^10.2.11",
-    "prettier": "^2.0.5"
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "typescript": "^3.9.7"
   }
 }
