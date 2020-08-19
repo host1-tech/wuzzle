@@ -1,0 +1,15 @@
+.*
+*.log
+*.svg
+*.sh
+*.snap
+
+dist/
+lib/
+es/
+coverage/
+
+CNAME
+LICENSE
+
+yarn.lock
