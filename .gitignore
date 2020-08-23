@@ -107,6 +107,9 @@ out
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# Stores VSCode project-level configs
+.vscode
+
 # Yarn v2
 .yarn/cache
 .yarn/unplugged

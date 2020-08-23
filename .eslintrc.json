@@ -1,29 +1,44 @@
 {
-  "env": {
-    "es2020": true,
-    "node": true
-  },
+  "root": true,
+  "plugins": ["react", "json"],
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier",
-    "prettier/@typescript-eslint"
+    "plugin:react/recommended",
+    "plugin:json/recommended",
+    "prettier"
   ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module"
+  "env": {
+    "es2020": true,
+    "node": true,
+    "browser": true,
+    "jest": true
   },
-  "plugins": ["@typescript-eslint"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "rules": {
     "no-undef": "error",
-    "@typescript-eslint/no-empty-function": "off"
+    "no-empty": "off",
+    "no-unused-vars": "warn",
+    "json/*": ["warn", "allowComments"]
   },
   "overrides": [
     {
-      "files": ["**/__tests__/**/*.[jt]s", "**/?(*.)+(spec|test).[jt]s"],
-      "env": {
-        "jest": true
+      "files": ["**/*.ts?(x)"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "extends": ["plugin:@typescript-eslint/recommended", "prettier/@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-empty-interface": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off"
       }
     }
   ]

@@ -1,13 +1,29 @@
 {
-  "exclude": ["node_modules", "lib", "es", "dist"],
-  "include": ["src"],
-  "references": [{ "path": "packages/cli" }],
-  "compilerOptions": {
-    /* Visit https://aka.ms/tsconfig.json to read more about this file */
+  /* Visit https://www.typescriptlang.org/tsconfig to read more about this file */
 
+  "references": [
+    /* Specify projects to reference for '--build' mode. */
+    { "path": "packages/cli" },
+    { "path": "packages/helpers" }
+  ],
+
+  "exclude": [
+    /* Specify an array of filenames or patterns that should be skipped when resolving include. */
+    "**/node_modules",
+    "**/lib",
+    "**/es",
+    "**/dist",
+    "**/__tests__",
+    "**/*.spec.*",
+    "**/*.test.*"
+  ],
+
+  "files": [] /* Specify an allowlist of files to include in the program. */,
+
+  "compilerOptions": {
     /* Basic Options */
-    // "incremental": true,                   /* Enable incremental compilation */
-    "target": "es6" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
+    // "incremental": true,                   /* Enable incremental compilation. */
+    "target": "es5" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
     "module": "commonjs" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
     // "lib": [],                             /* Specify library files to be included in the compilation. */
     "allowJs": true /* Allow javascript files to be compiled. */,
@@ -19,7 +35,7 @@
     // "outFile": ".",                        /* Concatenate and emit output to single file. */
     // "outDir": ".",                         /* Redirect output structure to the directory. */
     // "rootDir": ".",                        /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-    "composite": true /* Enable project compilation */,
+    "composite": true /* Enable project compilation. */,
     // "tsBuildInfoFile": ".",                /* Specify file to store incremental compilation information */
     // "removeComments": true,                /* Do not emit comments to output. */
     // "noEmit": true,                        /* Do not emit outputs. */
@@ -62,12 +78,12 @@
     // "inlineSources": true,                 /* Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set. */
 
     /* Experimental Options */
-    // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
-    // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
+    // "experimentalDecorators": true,        /* Enable experimental support for ES7 decorators. */
+    // "emitDecoratorMetadata": true,         /* Enable experimental support for emitting type metadata for decorators. */
 
     /* Advanced Options */
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
-    "resolveJsonModule": true /* Allows importing modules with a ‘.json’ extension, which is a common practice in node projects. */
+    "resolveJsonModule": true /* Allow importing modules with a ‘.json’ extension, which is a common practice in node projects. */
   }
 }
