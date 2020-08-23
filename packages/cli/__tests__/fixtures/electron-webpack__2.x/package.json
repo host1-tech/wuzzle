@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "electron-webpack": "^2.8.2",
+    "webpack": "^4.44.1"
+  }
+}

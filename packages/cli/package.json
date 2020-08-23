@@ -1,7 +1,7 @@
 {
   "name": "@wuzzle/cli",
   "version": "0.1.0",
-  "description": "Wuzzle CLI",
+  "description": "Wuzzle command line.",
   "keywords": [],
   "license": "MIT",
   "files": [
@@ -11,7 +11,9 @@
   "bin": {
     "wuzzle": "bin/wuzzle.js"
   },
-  "scripts": {},
+  "scripts": {
+    "fixtures:install": "./scripts/fixtures.ts install"
+  },
   "engines": {
     "node": ">=10"
   },
@@ -23,6 +25,24 @@
     "url": "https://github.com/host1-tech/wuzzle/issues"
   },
   "dependencies": {
+    "@babel/generator": "^7.11.4",
+    "@babel/parser": "^7.11.4",
+    "@babel/traverse": "^7.11.0",
+    "@babel/types": "^7.11.0",
+    "chalk": "^4.1.0",
+    "debug": "^4.1.1",
+    "find-up": "^5.0.0",
+    "lodash": "^4.17.20",
+    "pirates": "^4.0.1",
+    "semver": "^7.3.2",
+    "shelljs": "^0.8.4",
     "v8-compile-cache": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/lodash": "^4.14.159",
+    "@types/semver": "^7.3.3",
+    "@types/shelljs": "^0.8.8",
+    "@types/webpack": "^4.41.21"
   }
 }
