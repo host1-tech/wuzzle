@@ -27,6 +27,10 @@ switch (commandName) {
     launchElectronWebpack();
     break;
 
+  case 'next':
+    launchNext();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -70,4 +74,13 @@ function launchElectronWebpack() {
   shelljs.exec(
     `${nodePath} -r ${webpackRegisterPath} ${electronWebpackCommandPath} ${args.join(' ')}`
   );
+}
+
+function launchNext() {
+  const { bin } = require(path.resolve(projectPath, 'node_modules/next/package.json'));
+
+  const nextCommandPath = path.resolve(projectPath, 'node_modules/next', bin['next']);
+  const webpackRegisterPath = require.resolve(`../registers/webpack__4.x`);
+
+  shelljs.exec(`${nodePath} -r ${webpackRegisterPath} ${nextCommandPath} ${args.join(' ')}`);
 }
