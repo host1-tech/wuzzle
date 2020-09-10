@@ -4,7 +4,10 @@ export default function jsonStringify(o: any, space: number = 2): string {
 
 function jsonReplacer(k: string, v: any): any {
   if (v instanceof RegExp) {
-    return `#RegExp ${v.toString()}`;
+    return `#RegExp ${encodeURIComponent(v.toString())}`;
+  }
+  if (v instanceof Function) {
+    return `#Function ${encodeURIComponent(v.toString())}`;
   }
   return v;
 }
@@ -12,6 +15,16 @@ function jsonReplacer(k: string, v: any): any {
 function stringFormat(v: string): string {
   return v
     .split('\n')
-    .map(l => l.replace(/"#RegExp (.+)"/, 'new RegExp("$1")'))
+    .map(l => {
+      const matchRegExp = l.match(/"#RegExp (.+)"/);
+      if (matchRegExp) {
+        return decodeURIComponent(matchRegExp[1]);
+      }
+      const matchFunction = l.match(/"#Function (.+)"/);
+      if (matchFunction) {
+        return decodeURIComponent(matchFunction[1]);
+      }
+      return l;
+    })
     .join('\n');
 }

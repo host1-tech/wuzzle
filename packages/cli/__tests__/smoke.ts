@@ -19,7 +19,7 @@ describe('@wuzzle/cli - smoke testing', () => {
     const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} webpack`);
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBeTruthy();
+    expect(shelljs.test('-d', 'dist')).toBe(true);
   });
 
   it('should work with webpack 5.x', () => {
@@ -30,7 +30,7 @@ describe('@wuzzle/cli - smoke testing', () => {
     const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} webpack`);
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBeTruthy();
+    expect(shelljs.test('-d', 'dist')).toBe(true);
   });
 
   it('should work with react-scripts 3.x', () => {
@@ -43,7 +43,7 @@ describe('@wuzzle/cli - smoke testing', () => {
     );
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'build')).toBeTruthy();
+    expect(shelljs.test('-d', 'build')).toBe(true);
   });
 
   it('should work with electron-webpack 2.x', () => {
@@ -56,7 +56,7 @@ describe('@wuzzle/cli - smoke testing', () => {
     );
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBeTruthy();
+    expect(shelljs.test('-d', 'dist')).toBe(true);
   });
 
   it('should work with next 9.x', () => {
@@ -67,6 +67,17 @@ describe('@wuzzle/cli - smoke testing', () => {
     const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} next build`);
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', '.next')).toBeTruthy();
+    expect(shelljs.test('-d', '.next')).toBe(true);
+  });
+
+  it('should work with built-in transpile', () => {
+    if (!minimatch('wuzzle-transpile', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
+    shelljs.cd(fixturePath);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} transpile src/**/*.js -d out`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(shelljs.test('-d', 'out')).toBe(true);
   });
 });

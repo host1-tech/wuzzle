@@ -31,6 +31,10 @@ switch (commandName) {
     launchNext();
     break;
 
+  case 'transpile':
+    launchTranspile();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -83,4 +87,10 @@ function launchNext() {
   const webpackRegisterPath = require.resolve(`../registers/webpack__4.x`);
 
   shelljs.exec(`${nodePath} -r ${webpackRegisterPath} ${nextCommandPath} ${args.join(' ')}`);
+}
+
+function launchTranspile() {
+  process.argv[1] = require.resolve('./wuzzle-transpile');
+  process.argv.splice(2, 1);
+  require('./wuzzle-transpile');
 }

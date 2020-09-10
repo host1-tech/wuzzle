@@ -1,4 +1,4 @@
-import type { Configuration } from 'webpack';
+import type webpack from 'webpack';
 import findUp from 'find-up';
 import { stringify, diff } from '@wuzzle/helpers';
 
@@ -6,7 +6,7 @@ const debug = require('debug')('@wuzzle/cli:applyConfig');
 
 export interface WuzzleConfig {}
 
-function applyConfig(webpackConfig: Configuration): Configuration {
+function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuration {
   debug('Wuzzle process mounted in CWD:', process.cwd());
   const webpackConfigOldSnapshot = stringify(webpackConfig);
 
