@@ -11,6 +11,7 @@ describe('@wuzzle/cli - transpile', () => {
     const inputCode = shelljs.cat('src/index.js').stdout;
     const outputCode = await transpile({ inputCode });
     expect(outputCode).toContain('console.log');
+    expect(outputCode).not.toContain('Hi, WT.');
   });
 
   it('should convert code to file', async () => {
@@ -20,12 +21,14 @@ describe('@wuzzle/cli - transpile', () => {
     expect(shelljs.test('-f', outputPath)).toBeTruthy();
     const outputCode = shelljs.cat(outputPath).stdout;
     expect(outputCode).toContain('console.log');
+    expect(outputCode).not.toContain('Hi, WT.');
   });
 
   it('should convert file to code', async () => {
     const inputPath = 'src/index.js';
     const outputCode = await transpile({ inputPath });
     expect(outputCode).toContain('console.log');
+    expect(outputCode).not.toContain('Hi, WT.');
   });
 
   it('should convert file to file', async () => {
@@ -34,5 +37,6 @@ describe('@wuzzle/cli - transpile', () => {
     expect(shelljs.test('-f', outputPath)).toBeTruthy();
     const outputCode = shelljs.cat(outputPath).stdout;
     expect(outputCode).toContain('console.log');
+    expect(outputCode).not.toContain('Hi, WT.');
   });
 });
