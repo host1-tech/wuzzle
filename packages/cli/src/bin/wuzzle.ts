@@ -109,7 +109,7 @@ async function launchNode() {
 
     extraProg
       .option(
-        `--ext <string>', 'Specify file extensions for resolving. ` +
+        `--ext <string>', 'Specify file extensions for resolving, splitted by comma. ` +
           `(default: "${exts.join(',')}")`
       )
       .helpOption('-h, --help', 'Output usage information.');

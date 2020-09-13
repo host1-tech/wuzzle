@@ -19,7 +19,7 @@ const piratesOptions = {
   exts: [
     <% exts.forEach(ext => { %>'<%=ext%>', <% }); %>
   ],
-  ignoreNodeModules: false,
+  ignoreNodeModules: true,
 };
 
 addHook(transform, piratesOptions);
@@ -47,14 +47,14 @@ function ensureTmplRender() {
 }
 
 async function cleanOldRegisterFiles() {
-  const oldRegisterPaths: string[] = await pify(glob)(
+  const oldRegisterFiles: string[] = await pify(glob)(
     path.resolve(nodeRegisterBasePath, '**/*.js')
   );
 
-  const oldRegisterPathsToClean = await pFilter(oldRegisterPaths, async p => {
+  const oldRegisterFilesToClean = await pFilter(oldRegisterFiles, async p => {
     const s = await fs.stat(p);
     return Date.now() - s.birthtime.getTime() > 30 * 1000;
   });
 
-  await pMap(oldRegisterPathsToClean, p => fs.unlink(p));
+  await pMap(oldRegisterFilesToClean, p => fs.unlink(p));
 }

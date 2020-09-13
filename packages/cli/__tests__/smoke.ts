@@ -80,4 +80,15 @@ describe('@wuzzle/cli - smoke testing', () => {
     expect(stderr).toContain('Wuzzle process mounted');
     expect(shelljs.test('-d', 'out')).toBe(true);
   });
+
+  it('should work with node execution', () => {
+    if (!minimatch('node', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+    shelljs.cd(fixturePath);
+    const { stdout, stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} node src/index.js`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(stdout).toContain('Hi, Node.');
+  });
 });
