@@ -3,8 +3,8 @@
 
   "references": [
     /* Specify projects to reference for '--build' mode. */
-    { "path": "packages/cli" },
-    { "path": "packages/helpers" }
+    { "path": "packages/helpers" },
+    { "path": "packages/cli" }
   ],
 
   "exclude": [
