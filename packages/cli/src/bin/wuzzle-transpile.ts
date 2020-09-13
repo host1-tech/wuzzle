@@ -1,4 +1,5 @@
 import { longestCommonPrefix } from '@wuzzle/helpers';
+import { green, grey, yellow } from 'chalk';
 import { Command } from 'commander';
 import glob from 'glob';
 import { uniq } from 'lodash';
@@ -38,6 +39,7 @@ program
     'Generate source map. One of "none", "file", or "inline". (default: "none", or ' +
       '"file" if specified without value)'
   )
+  .option('-V, --verbose', 'Show more details.')
   .helpOption('-h, --help', 'Output usage information.')
   .version(require('../../package.json').version, '-v, --version', 'Output the version number.');
 
@@ -48,7 +50,8 @@ launchExec();
 
 function ensureArgs() {
   if (!program.args.length) {
-    program.help();
+    console.error('error: input globs not specified');
+    process.exit(1);
   }
 
   if (!Array.isArray(program.ignore)) {
@@ -90,6 +93,7 @@ async function launchExec() {
 
   const outDir = path.resolve(program.outDir);
   const maxConcurrency = parseInt(program.maxConcurrency) || os.cpus().length;
+  const verbose = program.verbose;
 
   const webpackMode = program.production ? 'production' : 'development';
   const webpackTarget = program.target;
@@ -106,16 +110,28 @@ async function launchExec() {
 
   // Organize transpile action
   async function action(inputPath: string) {
-    await transpile({
-      inputPath,
-      outputPath: path.resolve(outDir, path.relative(basePath, inputPath)),
-      webpackConfig: {
-        mode: webpackMode,
-        target: webpackTarget,
-        devtool: webpackDevtool,
-      },
-    });
+    try {
+      await transpile({
+        inputPath,
+        outputPath: path.resolve(outDir, path.relative(basePath, inputPath)),
+        webpackConfig: {
+          mode: webpackMode,
+          target: webpackTarget,
+          devtool: webpackDevtool,
+        },
+      });
+    } catch (e) {
+      console.log(yellow(`File \`${inputPath}\` compilation failed.`));
+      console.error(e);
+      process.exit(1);
+    }
+    if (verbose) {
+      console.log(grey(`File \`${inputPath}\` compiled.`));
+    }
   }
 
   await pMap(inputPaths, action, { concurrency: maxConcurrency });
+  if (verbose) {
+    console.log(green('All files compiled.'));
+  }
 }
