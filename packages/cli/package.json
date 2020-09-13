@@ -43,7 +43,6 @@
     "pirates": "^4.0.1",
     "semver": "^7.3.2",
     "shelljs": "^0.8.4",
-    "uuid": "^8.3.0",
     "v8-compile-cache": "^2.1.1",
     "webpack": "^4.44.1"
   },
@@ -54,7 +53,6 @@
     "@types/memory-fs": "^0.3.2",
     "@types/pify": "^3.0.2",
     "@types/semver": "^7.3.3",
-    "@types/shelljs": "^0.8.8",
-    "@types/uuid": "^8.3.0"
+    "@types/shelljs": "^0.8.8"
   }
 }

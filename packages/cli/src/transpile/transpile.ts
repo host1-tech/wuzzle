@@ -3,56 +3,55 @@ import MemoryFileSystem from 'memory-fs';
 import path from 'path';
 import pify from 'pify';
 import shelljs from 'shelljs';
-import { v4 as uuidv4 } from 'uuid';
 import webpack from 'webpack';
 import applyConfig from '../applyConfig';
 
-const mfs = new MemoryFileSystem();
-
 export interface TranspileOptions {
-  inputCode?: string;
-  inputCodeBasename?: string;
   inputPath?: string;
+  inputCode?: string;
+  inputCodePath?: string;
   outputPath?: string;
-  outputCodeBasename?: string;
+  outputCodePath?: string;
   webpackConfig?: webpack.Configuration;
 }
 
 const transpileDefaultOptions: TranspileOptions = {
   inputCode: '',
-  inputCodeBasename: 'index.js',
-  outputCodeBasename: 'index.js',
+  inputCodePath: 'index.js',
+  outputCodePath: 'index.js',
   webpackConfig: { target: 'node', mode: 'development' },
 };
 
 async function transpile(options: TranspileOptions): Promise<string> {
   options = merge({}, transpileDefaultOptions, options);
 
-  const shouldReadFromFile = Boolean(options.inputPath);
-  const shouldWriteToFile = Boolean(options.outputPath);
+  const willReadFromFile = Boolean(options.inputPath);
+  const willWriteToFile = Boolean(options.outputPath);
 
-  // Create transpilation webpack config and adjust
-  const webpackConfig = cloneDeep(options.webpackConfig!);
+  const imfs = !willReadFromFile ? new MemoryFileSystem() : null;
+  const omfs = !willWriteToFile ? new MemoryFileSystem() : null;
+
+  // Create webpack config and apply wuzzle config
+  const webpackConfig = cloneDeep(options.webpackConfig || {});
 
   let inputPath: string;
-  if (shouldReadFromFile) {
+  if (willReadFromFile) {
     inputPath = path.resolve(options.inputPath!);
     if (!shelljs.test('-f', inputPath)) {
       throw new Error(`Cannot find inputPath \`${options.inputPath}\`.`);
     }
   } else {
-    inputPath = `/${uuidv4()}/${options.inputCodeBasename}`;
-    mfs.mkdirpSync(path.dirname(inputPath));
-    mfs.writeFileSync(inputPath, options.inputCode!);
+    inputPath = path.resolve(options.inputCodePath!);
+    imfs?.mkdirpSync(path.dirname(inputPath));
+    imfs?.writeFileSync(inputPath, options.inputCode!);
   }
-  webpackConfig.context = path.dirname(inputPath);
   webpackConfig.entry = inputPath;
 
   let outputPath: string;
-  if (shouldWriteToFile) {
+  if (willWriteToFile) {
     outputPath = path.resolve(options.outputPath!);
   } else {
-    outputPath = `/${uuidv4()}/${options.outputCodeBasename}`;
+    outputPath = path.resolve(options.outputCodePath!);
   }
   webpackConfig.output = {
     libraryTarget: 'umd',
@@ -72,26 +71,27 @@ async function transpile(options: TranspileOptions): Promise<string> {
 
   applyConfig(webpackConfig);
 
-  // Create transpilation webpack compiler and run
+  // Create webpack compiler and execute
   const webpackCompiler = pify(webpack(webpackConfig));
-  if (!shouldReadFromFile) {
-    webpackCompiler.inputFileSystem = mfs;
+  if (!willReadFromFile) {
+    webpackCompiler.inputFileSystem = imfs;
   }
-
-  if (!shouldWriteToFile) {
-    webpackCompiler.outputFileSystem = mfs;
+  if (!willWriteToFile) {
+    webpackCompiler.outputFileSystem = omfs;
   }
 
   await webpackCompiler.run();
 
-  if (!shouldReadFromFile) {
-    mfs.unlinkSync(inputPath);
-  }
+  const outputCode = willWriteToFile ? '' : omfs?.readFileSync(outputPath).toString();
 
-  let outputCode = '';
-  if (!shouldWriteToFile) {
-    outputCode = mfs.readFileSync(outputPath).toString();
-    mfs.unlinkSync(outputPath);
+  // Destroy memory file system if created
+  if (!willReadFromFile) {
+    imfs?.unlinkSync(inputPath);
+    delete imfs?.data;
+  }
+  if (!willWriteToFile) {
+    omfs?.unlinkSync(outputPath);
+    delete omfs?.data;
   }
 
   return outputCode;
