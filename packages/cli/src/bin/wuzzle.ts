@@ -100,29 +100,37 @@ function launchTranspile() {
 }
 
 async function launchNode() {
-  const doubleDashIndex = args.indexOf('--');
   const exts = ['.js'];
 
-  if (doubleDashIndex >= 0) {
-    const extraArgs = args.slice(doubleDashIndex + 1);
+  const extraOptions = {
+    Ext: '--ext',
+    Help: '-H,--Help',
+  };
+
+  const willParseExtraOptions = Object.values(extraOptions).some(option =>
+    args.some(arg => option.split(',').includes(arg))
+  );
+
+  if (willParseExtraOptions) {
     const extraProg = new Command();
 
     extraProg
       .option(
-        `--ext <string>', 'Specify file extensions for resolving, splitted by comma. ` +
+        `${extraOptions.Ext} <string>`,
+        'Specify file extensions for resolving, splitted by comma. ' +
           `(default: "${exts.join(',')}")`
       )
-      .helpOption('-h, --help', 'Output usage information.');
+      .helpOption(extraOptions.Help, 'Output usage information.')
+      .allowUnknownOption();
 
-    extraProg.parse([nodePath, 'wuzzle-node', ...extraArgs]);
+    extraProg.parse([nodePath, 'wuzzle-node', ...args]);
 
     exts.splice(0, exts.length, ...extraProg.ext.split(','));
-
-    // Clean process args after double dash
-    args.splice(doubleDashIndex, args.length - doubleDashIndex);
+    args.splice(0, args.length, ...extraProg.args);
   }
 
   const nodeRegisterPath = await createNodeRegister(exts);
+
   execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
 }
 
