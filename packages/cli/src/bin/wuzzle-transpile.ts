@@ -1,8 +1,9 @@
 import { longestCommonPrefix } from '@wuzzle/helpers';
-import { green, grey, yellow } from 'chalk';
+import { blue, green, grey, yellow } from 'chalk';
+import chokidar from 'chokidar';
 import { Command } from 'commander';
 import glob from 'glob';
-import { uniq } from 'lodash';
+import { noop, uniq } from 'lodash';
 import os from 'os';
 import pMap from 'p-map';
 import path from 'path';
@@ -23,7 +24,7 @@ program
       '(default: longest common path of input files)'
   )
   .option(
-    '-c, --max-concurrency <number>',
+    '-c, --concurrency <number>',
     'Prevent compiling more than specific amount of files at the same time. ' +
       '(default: os.cpus().length)'
   )
@@ -39,6 +40,7 @@ program
     'Generate source map. One of "none", "file", or "inline". (default: "none", or ' +
       '"file" if specified without value)'
   )
+  .option('--no-clean', 'Prevent cleaning out directory.')
   .option('-V, --verbose', 'Show more details.')
   .helpOption('-h, --help', 'Output usage information.')
   .version(require('../../package.json').version, '-v, --version', 'Output the version number.');
@@ -82,9 +84,11 @@ function ensureArgs() {
 
 async function launchExec() {
   // Calculate input options
+  const { verbose, clean, watch, ignore, args: inputGlobs } = program;
+
   const inputPaths = uniq(
-    program.args
-      .map(g => glob.sync(g, { ignore: program.ignore }))
+    inputGlobs
+      .map(g => glob.sync(g, { ignore }))
       .reduce((m, p) => (m.push(...p.map(p => path.resolve(p))), m), [])
   );
 
@@ -92,8 +96,7 @@ async function launchExec() {
   if (!shelljs.test('-d', basePath)) basePath = path.dirname(basePath);
 
   const outDir = path.resolve(program.outDir);
-  const maxConcurrency = parseInt(program.maxConcurrency) || os.cpus().length;
-  const verbose = program.verbose;
+  const concurrency = parseInt(program.concurrency) || os.cpus().length;
 
   const webpackMode = program.production ? 'production' : 'development';
   const webpackTarget = program.target;
@@ -108,30 +111,70 @@ async function launchExec() {
         : 'inline-cheap-module-source-map'
       : undefined;
 
-  // Organize transpile action
+  const verboseLog = verbose ? console.log : noop;
+  const forceLog = console.log;
+  const errorLog = console.error;
+
+  // Check to clean output dir
+  if (clean) {
+    shelljs.rm('-fr', outDir);
+    verboseLog(grey(`Directory \`${path.relative(process.cwd(), outDir)}\` cleaned`));
+  }
+
+  // Organize transpile tasks
+  const inputPathsCompiled: Record<string, boolean> = {};
+
   async function action(inputPath: string) {
+    inputPath = path.resolve(inputPath);
+    const outputPath = path.resolve(outDir, path.relative(basePath, inputPath));
     try {
       await transpile({
         inputPath,
-        outputPath: path.resolve(outDir, path.relative(basePath, inputPath)),
+        outputPath,
         webpackConfig: {
           mode: webpackMode,
           target: webpackTarget,
           devtool: webpackDevtool,
         },
       });
+      if (inputPathsCompiled[inputPath]) {
+        forceLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` recompiled.`));
+      } else {
+        forceLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` compiled.`));
+        inputPathsCompiled[inputPath] = true;
+      }
     } catch (e) {
-      console.log(yellow(`File \`${inputPath}\` compilation failed.`));
-      console.error(e);
-      process.exit(1);
-    }
-    if (verbose) {
-      console.log(grey(`File \`${inputPath}\` compiled.`));
+      forceLog(yellow(`File \`${path.relative(process.cwd(), inputPath)}\` compilation failed.`));
+      errorLog(e);
+      watch || process.exit(1);
     }
   }
 
-  await pMap(inputPaths, action, { concurrency: maxConcurrency });
-  if (verbose) {
-    console.log(green('All files compiled.'));
+  function remove(inputPath: string) {
+    inputPath = path.resolve(inputPath);
+    const outputPath = path.resolve(outDir, path.relative(basePath, inputPath));
+    shelljs.rm('-f', outputPath);
+    inputPathsCompiled[inputPath] = false;
+    verboseLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` removed.`));
+  }
+
+  forceLog(blue(`Start compiling \`${inputGlobs.join('` `')}\`.`));
+  await pMap(inputPaths, action, { concurrency });
+  forceLog(green('All files compiled.'));
+
+  // Create watcher for recompiling
+  if (watch) {
+    forceLog(blue(`Start watching \`${inputGlobs.join('` `')}\``));
+
+    const watchOptions = {
+      ignored: ignore,
+      ignoreInitial: true,
+    };
+
+    chokidar
+      .watch(inputGlobs, watchOptions)
+      .on('add', action)
+      .on('change', action)
+      .on('unlink', remove);
   }
 }
