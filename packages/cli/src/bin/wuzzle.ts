@@ -41,6 +41,10 @@ switch (commandName) {
     launchNode();
     break;
 
+  case 'mocha':
+    launchMocha();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -132,6 +136,17 @@ async function launchNode() {
   const nodeRegisterPath = await createNodeRegister(exts);
 
   execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
+}
+
+async function launchMocha() {
+  const exts = ['.js'];
+
+  const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
+
+  const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
+  const mochaRegisterPath = await createNodeRegister(exts);
+
+  execSync(nodePath, [mochaCommandPath, '-r', mochaRegisterPath, ...args]);
 }
 
 // Helpers

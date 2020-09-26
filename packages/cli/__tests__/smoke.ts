@@ -91,4 +91,26 @@ describe('@wuzzle/cli - smoke testing', () => {
     expect(stderr).toContain('Wuzzle process mounted');
     expect(stdout).toContain('Hi, Node.');
   });
+
+  it('should work with mocha 8.x', () => {
+    if (!minimatch('mocha', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__8.x');
+    shelljs.cd(fixturePath);
+    const { stdout, stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} mocha src/index.test.js`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(stdout).toContain('should contain greetings');
+  });
+
+  it('should work with mocha 7.x', () => {
+    if (!minimatch('mocha', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__7.x');
+    shelljs.cd(fixturePath);
+    const { stdout, stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} mocha src/index.test.js`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(stdout).toContain('should contain greetings');
+  });
 });
