@@ -106,6 +106,49 @@ function launchTranspile() {
 async function launchNode() {
   const exts = ['.js'];
 
+  applyNodeLikeExtraOptions({ name: 'wuzzle-node', exts });
+
+  const nodeRegisterPath = await createNodeRegister(exts);
+
+  execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
+}
+
+async function launchMocha() {
+  const exts = ['.js'];
+
+  applyNodeLikeExtraOptions({ name: 'wuzzle-mocha', exts });
+
+  const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
+
+  const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
+  const mochaRegisterPath = await createNodeRegister(exts);
+
+  execSync(nodePath, [mochaCommandPath, '-r', mochaRegisterPath, ...args]);
+}
+
+// Helpers
+
+function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
+  try {
+    return execa.sync(file, args, { stdio: 'inherit' });
+  } catch {
+    process.exitCode = 2;
+  }
+}
+
+interface NodeLikeExtraOptions {
+  name: string;
+  exts: string[];
+}
+
+/**
+ * Parse extra options from process args if they exist. The param `options` is input for
+ * controls and default values. And it is also output for holding results values. In the
+ * end, the param `options` is returned.
+ */
+function applyNodeLikeExtraOptions(options: NodeLikeExtraOptions): NodeLikeExtraOptions {
+  const { name, exts } = options;
+
   const extraOptions = {
     Ext: '--ext',
     Help: '-H,--Help',
@@ -127,34 +170,11 @@ async function launchNode() {
       .helpOption(extraOptions.Help, 'Output usage information.')
       .allowUnknownOption();
 
-    extraProg.parse([nodePath, 'wuzzle-node', ...args]);
+    extraProg.parse([nodePath, name, ...args]);
 
     exts.splice(0, exts.length, ...extraProg.ext.split(','));
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  const nodeRegisterPath = await createNodeRegister(exts);
-
-  execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
-}
-
-async function launchMocha() {
-  const exts = ['.js'];
-
-  const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
-
-  const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
-  const mochaRegisterPath = await createNodeRegister(exts);
-
-  execSync(nodePath, [mochaCommandPath, '-r', mochaRegisterPath, ...args]);
-}
-
-// Helpers
-
-function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
-  try {
-    return execa.sync(file, args, { stdio: 'inherit' });
-  } catch {
-    process.exitCode = 2;
-  }
+  return options;
 }
