@@ -4,7 +4,6 @@ import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
-import createNodeRegister from '../registers/node/create';
 
 const packageJsonPath = findUp.sync('package.json');
 
@@ -104,26 +103,20 @@ function launchTranspile() {
 }
 
 async function launchNode() {
-  const exts = ['.js'];
-
-  applyNodeLikeExtraOptions({ name: 'wuzzle-node', exts });
-
-  const nodeRegisterPath = await createNodeRegister(exts);
-
+  applyNodeLikeExtraOptions('wuzzle-node');
+  const nodeRegisterPath = require.resolve('../registers/node');
   execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
 }
 
 async function launchMocha() {
-  const exts = ['.js'];
-
-  applyNodeLikeExtraOptions({ name: 'wuzzle-mocha', exts });
+  applyNodeLikeExtraOptions('wuzzle-node');
 
   const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
 
   const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
-  const mochaRegisterPath = await createNodeRegister(exts);
+  const nodeRegisterPath = require.resolve('../registers/node');
 
-  execSync(nodePath, [mochaCommandPath, '-r', mochaRegisterPath, ...args]);
+  execSync(nodePath, [mochaCommandPath, '-r', nodeRegisterPath, ...args]);
 }
 
 // Helpers
@@ -136,8 +129,7 @@ function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
   }
 }
 
-interface NodeLikeExtraOptions {
-  name: string;
+export interface NodeLikeExtraOptions {
   exts: string[];
 }
 
@@ -146,8 +138,9 @@ interface NodeLikeExtraOptions {
  * controls and default values. And it is also output for holding results values. In the
  * end, the param `options` is returned.
  */
-function applyNodeLikeExtraOptions(options: NodeLikeExtraOptions): NodeLikeExtraOptions {
-  const { name, exts } = options;
+function applyNodeLikeExtraOptions(name: string) {
+  const options: NodeLikeExtraOptions = { exts: [] };
+  const { exts } = options;
 
   const extraOptions = {
     Ext: '--ext',
@@ -176,5 +169,5 @@ function applyNodeLikeExtraOptions(options: NodeLikeExtraOptions): NodeLikeExtra
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  return options;
+  process.env.WUZZLE_NODE_LIKE_EXTRA_OPTIONS = JSON.stringify(options);
 }
