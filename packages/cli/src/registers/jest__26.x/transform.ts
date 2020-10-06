@@ -25,7 +25,7 @@ export function transform(code: string): string {
             )
         );
 
-        const { program } = parse(`console.log('@@@@', configs);`); // TODO
+        const { program } = parse(``); // TODO
 
         targetPath.insertAfter(program.body[0]);
       }

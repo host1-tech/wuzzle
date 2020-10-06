@@ -44,6 +44,10 @@ switch (commandName) {
     launchMocha();
     break;
 
+  case 'jest':
+    launchJest();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -117,6 +121,15 @@ async function launchMocha() {
   const nodeRegisterPath = require.resolve('../registers/node');
 
   execSync(nodePath, [mochaCommandPath, '-r', nodeRegisterPath, ...args]);
+}
+
+function launchJest() {
+  const { bin } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
+
+  const jestCommandPath = path.resolve(projectPath, 'node_modules/jest', bin);
+  const jestRegisterPath = require.resolve('../registers/jest__26.x');
+
+  execSync(nodePath, ['-r', jestRegisterPath, jestCommandPath, ...args]);
 }
 
 // Helpers
