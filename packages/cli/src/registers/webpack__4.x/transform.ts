@@ -3,7 +3,7 @@ import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 
-export const match = /[\\/]node_modules[\\/]webpack[\\/]lib[\\/]webpack\.js$/;
+export const match = /node_modules[\\/]webpack[\\/]lib[\\/]webpack\.js$/;
 
 export function transform(code: string): string {
   const ast = parse(code);

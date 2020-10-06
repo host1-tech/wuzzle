@@ -4,8 +4,8 @@ import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 
 export const matches = {
-  runnerJs: /[\\/]node_modules[\\/]webpack-cli[\\/]lib[\\/]runner\.js$/,
-  webpackJs: /[\\/]node_modules[\\/]webpack[\\/]lib[\\/]webpack\.js$/,
+  runnerJs: /node_modules[\\/]webpack-cli[\\/]lib[\\/]runner\.js$/,
+  webpackJs: /node_modules[\\/]webpack[\\/]lib[\\/]webpack\.js$/,
 };
 
 export function transform(code: string, filepath: string): string {
