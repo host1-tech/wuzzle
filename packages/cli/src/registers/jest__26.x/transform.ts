@@ -25,7 +25,11 @@ export function transform(code: string): string {
             )
         );
 
-        const { program } = parse(``); // TODO
+        const transformerPath = require.resolve('./transformer');
+
+        const { program } = parse(
+          `configs.forEach(config => config.transform.splice(0, config.transform.length, ['.', '${transformerPath}', {}]));`
+        );
 
         targetPath.insertAfter(program.body[0]);
       }
