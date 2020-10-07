@@ -1,7 +1,7 @@
 import { merge } from 'lodash';
 import { addHook } from 'pirates';
-import type { NodeLikeExtraOptions } from '../../bin/wuzzle';
 import { transform } from './transform';
+import { NodeLikeExtraOptions } from './types';
 
 const nodeLikeExtraOptions: NodeLikeExtraOptions = {
   exts: ['.js'],

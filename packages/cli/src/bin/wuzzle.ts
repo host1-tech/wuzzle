@@ -4,6 +4,7 @@ import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
+import { NodeLikeExtraOptions } from '../registers/node/types';
 
 const packageJsonPath = findUp.sync('package.json');
 
@@ -140,10 +141,6 @@ function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
   } catch {
     process.exitCode = 2;
   }
-}
-
-export interface NodeLikeExtraOptions {
-  exts: string[];
 }
 
 /**
