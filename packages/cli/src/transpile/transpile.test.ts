@@ -80,33 +80,29 @@ describe('src/transpile', () => {
     });
   });
 
-  describe.each(['code', 'file'])('when converting %s', inputMethod => {
-    const isCodeInput = inputMethod == 'code';
-    const inputPath = 'src/index.js';
-    const outputPath = 'lib/index.js';
+  describe('when given same input content', () => {
+    it('always outputs same content', async () => {
+      const inputPath = 'src/index.js';
+      const outputPath = 'lib/index.js';
+      const inputCode = shelljs.cat(inputPath).stdout;
+      const inputCodePath = inputPath;
+      const outputCodePath = outputPath;
 
-    let baseTranspileOptions: TranspileOptions;
+      const outputContents: string[] = [];
 
-    beforeAll(() => {
-      baseTranspileOptions = {};
+      outputContents.push(await transpile({ inputCode, inputCodePath, outputCodePath }));
 
-      if (isCodeInput) {
-        const inputCode = shelljs.cat(inputPath).stdout;
-        const inputCodePath = inputPath;
-        Object.assign(baseTranspileOptions, { inputCode, inputCodePath });
-      } else {
-        Object.assign(baseTranspileOptions, { inputPath });
-      }
+      outputContents.push(await transpile({ inputPath, outputCodePath }));
 
       shelljs.rm('-f', outputPath);
-    });
+      await transpile({ inputCode, inputCodePath, outputPath });
+      outputContents.push(shelljs.cat(outputPath).stdout);
 
-    it('outputs the same content in code or file', async () => {
-      const outputCodePath = outputPath;
-      const outputCode = await transpile(Object.assign({ outputCodePath }, baseTranspileOptions));
-      await transpile(Object.assign({ outputPath }, baseTranspileOptions));
+      shelljs.rm('-f', outputPath);
+      await transpile({ inputPath, outputPath });
+      outputContents.push(shelljs.cat(outputPath).stdout);
 
-      expect(shelljs.cat(outputPath).stdout).toEqual(outputCode);
+      outputContents.reduce((c1, c2) => (expect(c1 == c2).toBe(true), c2));
     });
   });
 });
