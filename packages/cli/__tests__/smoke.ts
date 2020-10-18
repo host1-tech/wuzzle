@@ -113,4 +113,15 @@ describe('@wuzzle/cli - smoke testing', () => {
     expect(stderr).toContain('Wuzzle process mounted');
     expect(stdout).toContain('should contain greetings');
   });
+
+  it('should work with jest 26.x', () => {
+    if (!minimatch('jest', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__26.x');
+    shelljs.cd(fixturePath);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} jest src/index.test.js`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(stderr).toContain('should contain greetings');
+  });
 });
