@@ -1,15 +1,12 @@
-import deasync from 'deasync';
-import { callbackify } from 'util';
-import transpile from '../../transpile';
+import execa from 'execa';
+import path from 'path';
 
 export function transform(code: string, file: string): string {
-  return deasync(callbackify(transpile))({
-    inputCode: code,
-    inputCodePath: file,
-    webpackConfig: {
-      mode: 'development',
-      target: 'node',
-      devtool: 'inline-cheap-module-source-map',
-    },
-  });
+  const transformCliPath = require.resolve('./transform-cli');
+  const { ext } = path.parse(transformCliPath);
+  const nodePath = ext == '.ts' ? 'ts-node' : process.argv0;
+  const args = [require.resolve('./transform-cli'), file];
+  const { stdout, stderr } = execa.sync(nodePath, args, { input: code });
+  process.stderr.write(stderr);
+  return stdout;
 }
