@@ -14,7 +14,7 @@
     "build": "tsc --build",
     "watch": "tsc --build --watch",
     "clean": "shx rm -fr '**/tsconfig.tsbuildinfo' 'packages/*/lib'",
-    "clear": "shx rm -fr '**/node_modules'",
+    "clear": "run-s clean && shx rm -fr '**/node_modules'",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint '**/*.@([jt]s?(x)|json)'",
