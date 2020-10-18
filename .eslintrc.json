@@ -24,6 +24,7 @@
     "no-undef": "error",
     "no-empty": "off",
     "no-unused-vars": "warn",
+    "prefer-const": "warn",
     "json/*": ["warn", "allowComments"]
   },
   "overrides": [
@@ -33,6 +34,7 @@
       "plugins": ["@typescript-eslint"],
       "extends": ["plugin:@typescript-eslint/recommended", "prettier/@typescript-eslint"],
       "rules": {
+        "prefer-const": "warn",
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-empty-interface": "off",
@@ -40,7 +42,8 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/ban-ts-comment": "off",
-        "@typescript-eslint/no-non-null-assertion": "off"
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": "warn"
       }
     }
   ]
