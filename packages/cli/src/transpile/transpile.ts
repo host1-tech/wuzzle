@@ -1,9 +1,9 @@
 import { cloneDeep, merge } from 'lodash';
 import MemoryFileSystem from 'memory-fs';
 import path from 'path';
-import Bluebird from 'bluebird';
 import shelljs from 'shelljs';
 import webpack from 'webpack';
+import pify from 'pify';
 import applyConfig from '../applyConfig';
 
 export interface TranspileOptions {
@@ -22,11 +22,7 @@ const transpileDefaultOptions: TranspileOptions = {
   webpackConfig: { target: 'node', mode: 'development' },
 };
 
-interface WebpackCompilerAsync extends webpack.Compiler {
-  runAsync(): Promise<webpack.Stats>;
-}
-
-async function transpile(options: TranspileOptions): Bluebird<string> {
+async function transpile(options: TranspileOptions = {}): Promise<string> {
   options = merge({}, transpileDefaultOptions, options);
 
   const imfs = !options.inputPath && new MemoryFileSystem();
@@ -39,7 +35,7 @@ async function transpile(options: TranspileOptions): Bluebird<string> {
   if (imfs) {
     inputPath = path.resolve(options.inputCodePath!);
     imfs.mkdirpSync(path.dirname(inputPath));
-    imfs.writeFileSync(inputPath, options.inputCode!);
+    imfs.writeFileSync(inputPath, options.inputCode!, 'utf8');
   } else {
     inputPath = path.resolve(options.inputPath!);
     if (!shelljs.test('-f', inputPath)) {
@@ -73,7 +69,7 @@ async function transpile(options: TranspileOptions): Bluebird<string> {
   applyConfig(webpackConfig);
 
   // Create webpack compiler and execute
-  const webpackCompiler = Bluebird.promisifyAll(webpack(webpackConfig)) as WebpackCompilerAsync;
+  const webpackCompiler = pify(webpack(webpackConfig));
   if (imfs) {
     webpackCompiler.inputFileSystem = imfs;
   }
@@ -81,7 +77,7 @@ async function transpile(options: TranspileOptions): Bluebird<string> {
     webpackCompiler.outputFileSystem = omfs;
   }
 
-  await webpackCompiler.runAsync();
+  await webpackCompiler.run();
 
   const outputCode = omfs ? omfs.readFileSync(outputPath).toString() : '';
 
