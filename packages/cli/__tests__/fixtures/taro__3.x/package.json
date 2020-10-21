@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@babel/runtime": "^7.7.7",
+    "@tarojs/components": "^3.0.14",
+    "@tarojs/react": "^3.0.14",
+    "@tarojs/runtime": "^3.0.14",
+    "@tarojs/taro": "^3.0.14",
+    "react": "^16.10.0",
+    "react-dom": "^16.10.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.0",
+    "@tarojs/cli": "^3.0.14",
+    "@tarojs/mini-runner": "^3.0.14",
+    "@tarojs/webpack-runner": "^3.0.14",
+    "babel-preset-taro": "^3.0.14"
+  }
+}

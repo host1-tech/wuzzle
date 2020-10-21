@@ -49,6 +49,10 @@ switch (commandName) {
     launchJest();
     break;
 
+  case 'taro':
+    launchTaro();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -131,6 +135,15 @@ function launchJest() {
   const jestRegisterPath = require.resolve('../registers/jest__26.x');
 
   execSync(nodePath, ['-r', jestRegisterPath, jestCommandPath, ...args]);
+}
+
+function launchTaro() {
+  const { bin } = require(path.resolve(projectPath, 'node_modules/@tarojs/cli/package.json'));
+
+  const taroCommandPath = path.resolve(projectPath, 'node_modules/@tarojs/cli', bin['taro']);
+  const taroRegisterPath = require.resolve('../registers/taro__3.x');
+
+  execSync(nodePath, ['-r', taroRegisterPath, taroCommandPath, ...args]);
 }
 
 // Helpers
