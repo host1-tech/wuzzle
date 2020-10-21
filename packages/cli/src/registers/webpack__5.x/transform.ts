@@ -8,8 +8,8 @@ export const matches = {
   webpackJs: /node_modules[\\/]webpack[\\/]lib[\\/]webpack\.js$/,
 };
 
-export function transform(code: string, filepath: string): string {
-  if (matches.webpackJs.test(filepath)) {
+export function transform(code: string, file: string): string {
+  if (matches.webpackJs.test(file)) {
     const ast = parse(code);
 
     traverse(ast, {
@@ -36,7 +36,7 @@ export function transform(code: string, filepath: string): string {
     });
 
     code = generate(ast).code;
-  } else if (matches.runnerJs.test(filepath)) {
+  } else if (matches.runnerJs.test(file)) {
     const ast = parse(code);
     const [nodePath] = process.argv;
 
