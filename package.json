@@ -18,7 +18,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint '**/*.@([jt]s?(x)|json)'",
-    "format": "prettier --write '**/*.@([jt]s?(x)|json)'"
+    "lint:fix": "eslint --fix '**/*.@([jt]s?(x)|json)'",
+    "format": "prettier --write '**/*.@([jt]s?(x)|json)'",
+    "format:check": "prettier --check '**/*.@([jt]s?(x)|json)'"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
@@ -53,6 +55,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-json": "^2.1.2",
     "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "find-up": "^5.0.0",
     "husky": "^4.2.5",
     "jest": "^26.4.0",
