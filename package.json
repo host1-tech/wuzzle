@@ -25,7 +25,7 @@
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
       "eslint",
-      "prettier --write"
+      "prettier --check"
     ]
   },
   "commitlint": {
