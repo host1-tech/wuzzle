@@ -124,4 +124,15 @@ describe('@wuzzle/cli - smoke testing', () => {
     expect(stderr).toContain('Wuzzle process mounted');
     expect(stderr).toContain('should contain greetings');
   });
+
+  it.each(['weapp', 'h5'])('should work with taro 3.x build type %s', buildType => {
+    if (!minimatch('taro', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
+    shelljs.cd(fixturePath);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} taro build --type=${buildType}`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(shelljs.test('-d', 'dist')).toBe(true);
+  });
 });
