@@ -141,9 +141,9 @@ function launchTaro() {
   const { bin } = require(path.resolve(projectPath, 'node_modules/@tarojs/cli/package.json'));
 
   const taroCommandPath = path.resolve(projectPath, 'node_modules/@tarojs/cli', bin['taro']);
-  const taroRegisterPath = require.resolve('../registers/taro__3.x');
+  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
 
-  execSync(nodePath, ['-r', taroRegisterPath, taroCommandPath, ...args]);
+  execSync(nodePath, ['-r', webpackRegisterPath, taroCommandPath, ...args]);
 }
 
 // Helpers
