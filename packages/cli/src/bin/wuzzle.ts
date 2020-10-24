@@ -53,6 +53,10 @@ switch (commandName) {
     launchTaro();
     break;
 
+  case 'razzle':
+    launchRazzle();
+    break;
+
   default:
     console.log(yellow(`Command '${commandName}' not supported yet.`));
     break;
@@ -144,6 +148,15 @@ function launchTaro() {
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
 
   execSync(nodePath, ['-r', webpackRegisterPath, taroCommandPath, ...args]);
+}
+
+function launchRazzle() {
+  const { bin } = require(path.resolve(projectPath, 'node_modules/razzle/package.json'));
+
+  const razzleCommandPath = path.resolve(projectPath, 'node_modules/razzle', bin['razzle']);
+  const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
+
+  execSync(nodePath, ['-r', razzleRegisterPath, razzleCommandPath, ...args]);
 }
 
 // Helpers
