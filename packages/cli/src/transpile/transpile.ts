@@ -35,7 +35,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   if (imfs) {
     inputPath = path.resolve(options.inputCodePath!);
     imfs.mkdirpSync(path.dirname(inputPath));
-    imfs.writeFileSync(inputPath, options.inputCode!, 'utf8');
+    imfs.writeFileSync(inputPath, options.inputCode!, 'utf-8');
   } else {
     inputPath = path.resolve(options.inputPath!);
     if (!shelljs.test('-f', inputPath)) {
