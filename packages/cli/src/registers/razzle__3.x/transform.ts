@@ -29,7 +29,11 @@ export function transform(code: string): string {
       ) {
         path.parent.elements.unshift(
           t.stringLiteral('-r'),
-          t.stringLiteral(require.resolve('../webpack__4.x'))
+          t.stringLiteral(
+            process.argv[2] == 'test'
+              ? require.resolve('../jest__24.x')
+              : require.resolve('../webpack__4.x')
+          )
         );
       }
     },
