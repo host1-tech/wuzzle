@@ -133,10 +133,15 @@ async function launchMocha() {
 }
 
 function launchJest() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
+  const { bin, version } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
+  const majorVersion = semver.parse(version)?.major || 26;
 
-  const jestCommandPath = path.resolve(projectPath, 'node_modules/jest', bin);
-  const jestRegisterPath = require.resolve('../registers/jest__26.x');
+  const jestCommandPath = path.resolve(
+    projectPath,
+    'node_modules/jest',
+    majorVersion == 26 ? bin : bin['jest']
+  );
+  const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
 
   execSync(nodePath, ['-r', jestRegisterPath, jestCommandPath, ...args]);
 }
