@@ -146,4 +146,25 @@ describe('@wuzzle/cli - smoke testing', () => {
     expect(stderr).toContain('Wuzzle process mounted');
     expect(shelljs.test('-d', 'dist')).toBe(true);
   });
+
+  it('should work with razzle 3.x build', () => {
+    if (!minimatch('razzle', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+    shelljs.cd(fixturePath);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} razzle build`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+    expect(shelljs.test('-d', 'build')).toBe(true);
+  });
+
+  it('should work with razzle 3.x test', () => {
+    if (!minimatch('razzle', SMOKE_TESTING)) return;
+
+    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+    shelljs.cd(fixturePath);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} razzle test --coverage`);
+
+    expect(stderr).toContain('Wuzzle process mounted');
+  });
 });
