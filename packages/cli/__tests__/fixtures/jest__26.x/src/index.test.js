@@ -1,3 +1,3 @@
 it('should contain greetings', () => {
-  expect('Hi, Mocha.').toBeTruthy();
+  expect('Hi, Jest.').toBeTruthy();
 });
