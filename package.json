@@ -8,7 +8,8 @@
     "url": "https://github.com/host1-tech/wuzzle.git"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=10",
+    "yarn": ">=1"
   },
   "scripts": {
     "build": "tsc --build",
