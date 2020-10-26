@@ -16,6 +16,9 @@ const projectPath = path.dirname(packageJsonPath);
 
 const [nodePath, , commandName, ...args] = process.argv;
 
+// Set command name as an env variable to help wuzzle user config setup
+process.env.WUZZLE_COMMAND_NAME = commandName;
+
 switch (commandName) {
   case 'webpack':
     launchWebpack();
