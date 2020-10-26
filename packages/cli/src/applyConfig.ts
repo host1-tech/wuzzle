@@ -1,10 +1,14 @@
-import type webpack from 'webpack';
+import { diff, stringify } from '@wuzzle/helpers';
 import findUp from 'find-up';
-import { stringify, diff } from '@wuzzle/helpers';
+import type webpack from 'webpack';
 
 const debug = require('debug')('@wuzzle/cli:applyConfig');
 
-export interface WuzzleConfig {}
+const WUZZLE_CONFIG_JS = 'wuzzle.config.js';
+
+export interface WuzzleConfig {
+  modify?(webpackConfig: webpack.Configuration): webpack.Configuration | undefined;
+}
 
 function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuration {
   debug('Wuzzle process mounted in CWD:', process.cwd());
@@ -12,11 +16,20 @@ function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuratio
 
   let wuzzleConfig: WuzzleConfig = {};
   try {
-    wuzzleConfig = require(findUp.sync('wuzzle.config.js') || '');
+    const wuzzleConfigPath = require.resolve(findUp.sync(WUZZLE_CONFIG_JS)!);
+    delete require.cache[wuzzleConfigPath];
+    wuzzleConfig = require(wuzzleConfigPath);
   } catch {}
   debug('Wuzzle config to apply:', stringify(wuzzleConfig));
 
-  // TODO use wuzzle config
+  if (wuzzleConfig.modify) {
+    try {
+      const newWebpackConfig = wuzzleConfig.modify(webpackConfig);
+      if (newWebpackConfig) {
+        webpackConfig = newWebpackConfig;
+      }
+    } catch {}
+  }
 
   const webpackConfigNewSnapshot = stringify(webpackConfig);
 
