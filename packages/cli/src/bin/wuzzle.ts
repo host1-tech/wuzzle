@@ -58,7 +58,7 @@ switch (commandName) {
     break;
 
   default:
-    console.log(yellow(`Command '${commandName}' not supported yet.`));
+    console.log(yellow(`Command '${commandName}' is not supported yet.`));
     break;
 }
 
@@ -175,9 +175,7 @@ function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
 }
 
 /**
- * Parse extra options from process args if they exist. The param `options` is input for
- * controls and default values. And it is also output for holding results values. In the
- * end, the param `options` is returned.
+ * Parse extra options from process args if they exist and store them as an env variable.
  */
 function applyNodeLikeExtraOptions(name: string) {
   const options: NodeLikeExtraOptions = { exts: [] };
