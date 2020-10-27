@@ -4,7 +4,7 @@ import path from 'path';
 import shelljs from 'shelljs';
 import webpack from 'webpack';
 import pify from 'pify';
-import applyConfig from '../applyConfig';
+import applyConfig from './applyConfig';
 
 export interface TranspileOptions {
   inputPath?: string;

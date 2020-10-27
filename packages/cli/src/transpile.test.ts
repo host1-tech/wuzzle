@@ -1,7 +1,7 @@
 import findUp from 'find-up';
 import path from 'path';
 import shelljs from 'shelljs';
-import transpile, { TranspileOptions } from '.';
+import transpile, { TranspileOptions } from './transpile';
 
 const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
 const projectPath = path.dirname(packageJsonPath);
