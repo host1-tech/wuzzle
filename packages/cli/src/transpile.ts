@@ -39,7 +39,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   } else {
     inputPath = path.resolve(options.inputPath!);
     if (!shelljs.test('-f', inputPath)) {
-      throw new Error(`Cannot find inputPath \`${options.inputPath}\`.`);
+      throw new Error(`Cannot find inputPath '${options.inputPath}'.`);
     }
   }
   webpackConfig.entry = inputPath;

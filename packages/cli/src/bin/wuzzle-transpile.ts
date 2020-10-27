@@ -118,7 +118,7 @@ async function launchExec() {
   // Check to clean output dir
   if (clean) {
     shelljs.rm('-fr', outDir);
-    verboseLog(grey(`Directory \`${path.relative(process.cwd(), outDir)}\` cleaned`));
+    verboseLog(grey(`Directory '${path.relative(process.cwd(), outDir)}' cleaned`));
   }
 
   // Organize transpile tasks
@@ -138,13 +138,13 @@ async function launchExec() {
         },
       });
       if (inputPathsCompiled[inputPath]) {
-        forceLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` recompiled.`));
+        forceLog(grey(`File '${path.relative(process.cwd(), inputPath)}' recompiled.`));
       } else {
-        forceLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` compiled.`));
+        forceLog(grey(`File '${path.relative(process.cwd(), inputPath)}' compiled.`));
         inputPathsCompiled[inputPath] = true;
       }
     } catch (e) {
-      forceLog(yellow(`File \`${path.relative(process.cwd(), inputPath)}\` compilation failed.`));
+      forceLog(yellow(`File '${path.relative(process.cwd(), inputPath)}' compilation failed.`));
       errorLog(e);
       watch || process.exit(1);
     }
@@ -155,16 +155,16 @@ async function launchExec() {
     const outputPath = path.resolve(outDir, path.relative(basePath, inputPath));
     shelljs.rm('-f', outputPath);
     inputPathsCompiled[inputPath] = false;
-    verboseLog(grey(`File \`${path.relative(process.cwd(), inputPath)}\` removed.`));
+    verboseLog(grey(`File '${path.relative(process.cwd(), inputPath)}' removed.`));
   }
 
-  forceLog(blue(`Start compiling \`${inputGlobs.join('` `')}\`.`));
+  forceLog(blue(`Start compiling '${inputGlobs.join(`' '`)}'.`));
   await pMap(inputPaths, action, { concurrency });
   forceLog(green('All files compiled.'));
 
   // Create watcher for recompiling
   if (watch) {
-    forceLog(blue(`Start watching \`${inputGlobs.join('` `')}\``));
+    forceLog(blue(`Start watching '${inputGlobs.join(`' '`)}'`));
 
     const watchOptions = {
       ignored: ignore,
