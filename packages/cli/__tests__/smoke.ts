@@ -5,7 +5,7 @@ import minimatch from 'minimatch';
 
 const packageJsonPath = findUp.sync('package.json', { cwd: __filename }) || '';
 const projectPath = path.dirname(packageJsonPath);
-const wuzzlePath = path.resolve(projectPath, 'src/bin/wuzzle.ts');
+const wuzzlePath = require.resolve('../src/bin/wuzzle');
 const tsNodeExec = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ts-node`;
 
 const { SMOKE_TESTING = '' } = process.env;
