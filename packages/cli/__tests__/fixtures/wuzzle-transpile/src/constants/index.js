@@ -1,0 +1,1 @@
+exports.greeting = 'Hi, WT.';

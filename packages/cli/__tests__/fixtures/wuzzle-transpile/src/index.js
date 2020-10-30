@@ -1,4 +1,4 @@
-const message = require('./message');
+const { greeting } = require('./constants');
 const chalk = require('chalk');
 
-console.log(chalk.green(message));
+console.log(chalk.green(greeting));
