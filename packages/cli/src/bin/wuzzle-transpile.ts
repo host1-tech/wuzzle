@@ -17,7 +17,10 @@ program
   .arguments('<globs...>')
   .requiredOption('-d, --out-dir <dir>', 'Compile input files into output directory.')
   .option('-w, --watch', 'Recompile files on changes.')
-  .option('--ignore <globs...>', 'List of globs not to compile.', '**/node_modules/**/*')
+  .option(
+    '--ignore <globs...>',
+    `List of globs not to compile. (default: '**/node_modules/**/*' '**/<outDir>/**/*')`
+  )
   .option(
     '-b, --base-path <path>',
     'Resolve input files relative to base path for output subpaths in output directory. ' +
@@ -56,8 +59,11 @@ function ensureArgs() {
     process.exit(1);
   }
 
-  if (!Array.isArray(program.ignore)) {
-    program.ignore = [program.ignore];
+  if (!program.ignore) {
+    program.ignore = [
+      '**/node_modules/**/*',
+      `${path.isAbsolute(program.outDir) ? '' : '**/'}${program.outDir}/**/*`,
+    ];
   }
 
   if (
