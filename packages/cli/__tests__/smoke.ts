@@ -75,10 +75,10 @@ describe('@wuzzle/cli - smoke testing', () => {
 
     const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
     shelljs.cd(fixturePath);
-    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} transpile src/**/*.js -d out`);
+    const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzlePath} transpile src/**/*.js -d lib`);
 
     expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'out')).toBe(true);
+    expect(shelljs.test('-d', 'lib')).toBe(true);
   });
 
   it('should work with node execution', () => {
