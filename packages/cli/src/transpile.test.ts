@@ -70,7 +70,7 @@ describe('src/transpile', () => {
     });
 
     it('keeps string literals', () => {
-      expect(outputContent).toMatch(/["']\.\/message["']/);
+      expect(outputContent).toMatch(/["']\.\/constants["']/);
       expect(outputContent).toMatch(/["']chalk["']/);
     });
 
