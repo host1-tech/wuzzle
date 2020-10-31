@@ -121,7 +121,7 @@ async function launchExec() {
   // Check to clean output dir
   if (clean) {
     shelljs.rm('-fr', outDir);
-    verboseLog(grey(`Directory '${path.relative(process.cwd(), outDir)}' cleaned`));
+    verboseLog(grey(`Directory '${path.relative(process.cwd(), outDir)}' cleaned.`));
   }
 
   // Organize transpile tasks
@@ -167,7 +167,7 @@ async function launchExec() {
 
   // Create watcher for recompiling
   if (watch) {
-    forceLog(blue(`Start watching '${inputGlobs.join(`' '`)}'`));
+    forceLog(blue(`Start watching '${inputGlobs.join(`' '`)}'.`));
 
     const watchOptions = {
       ignored: ignore,
