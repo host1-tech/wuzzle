@@ -19,7 +19,7 @@ program
   .option('-w, --watch', 'Recompile files on changes.')
   .option(
     '--ignore <globs...>',
-    `List of globs not to compile. (default: '**/node_modules/**/*' '**/<outDir>/**/*')`
+    `List of globs not to compile. (default: 'node_modules/**/*' '<outDir>/**/*')`
   )
   .option(
     '-b, --base-path <path>',
@@ -60,10 +60,7 @@ function ensureArgs() {
   }
 
   if (!program.ignore) {
-    program.ignore = [
-      '**/node_modules/**/*',
-      `${path.isAbsolute(program.outDir) ? '' : '**/'}${program.outDir}/**/*`,
-    ];
+    program.ignore = ['node_modules/**/*', `${path.resolve(program.outDir)}/**/*`];
   }
 
   if (
