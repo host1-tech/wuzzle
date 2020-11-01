@@ -9,9 +9,10 @@ import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 import type webpack from 'webpack';
-import transpile from '../transpile';
+import transpile from '../../transpile';
 
-const program = new Command();
+const program = new Command('wuzzle-transpile');
+const version = require('../../../package.json').version;
 
 program
   .arguments('<globs...>')
@@ -46,7 +47,7 @@ program
   .option('--no-clean', 'Prevent cleaning out directory.')
   .option('-V, --verbose', 'Show more details.')
   .helpOption('-h, --help', 'Output usage information.')
-  .version(require('../../package.json').version, '-v, --version', 'Output the version number.');
+  .version(version, '-v, --version', 'Output the version number.');
 
 program.parse(process.argv);
 
