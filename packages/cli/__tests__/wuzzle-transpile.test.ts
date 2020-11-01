@@ -7,7 +7,7 @@ import shelljs from 'shelljs';
 const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
 const projectPath = path.dirname(packageJsonPath);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
-const wuzzleTranspilePath = require.resolve('./wuzzle-transpile');
+const wuzzleTranspilePath = require.resolve('../src/bin/wuzzle-transpile');
 
 const tsNodeExec = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ts-node`;
 
