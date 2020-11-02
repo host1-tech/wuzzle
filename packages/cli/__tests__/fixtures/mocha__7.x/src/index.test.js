@@ -1,5 +1,5 @@
 const assert = require('assert');
 
-it('should contain greetings', () => {
+it('contains greetings', () => {
   assert('Hi, Mocha.');
 });

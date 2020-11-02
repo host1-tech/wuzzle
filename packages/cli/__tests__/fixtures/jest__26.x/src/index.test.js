@@ -1,3 +1,3 @@
-it('should contain greetings', () => {
+it('contains greetings', () => {
   expect('Hi, Jest.').toBeTruthy();
 });
