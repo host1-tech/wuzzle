@@ -1,0 +1,11 @@
+{
+  "reporter": [
+    "json",
+    "lcov",
+    "text",
+    "clover"
+  ],
+  "include": [
+    "**/@(bin|src)/**/*.[jt]s?(x)"
+  ]
+}
