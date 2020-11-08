@@ -76,10 +76,14 @@ function ensureArgs() {
       'webworker',
     ].includes(program.target)
   ) {
-    program.target = 'node';
+    console.error(`error: option '-t, --target ${program.target}' not supported.`);
+    process.exit(1);
   }
 
-  if (![true, 'none', 'file', 'inline'].includes(program.sourceMap)) {
+  if (![undefined, true, 'none', 'file', 'inline'].includes(program.sourceMap)) {
+    console.error(`error: option '-s, --source-map ${program.sourceMap}' not supported.`);
+    process.exit(1);
+  } else if (program.sourceMap === undefined) {
     program.sourceMap = 'none';
   } else if (program.sourceMap === true) {
     program.sourceMap = 'file';
