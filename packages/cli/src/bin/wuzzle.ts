@@ -142,7 +142,7 @@ function launchJest() {
   const jestCommandPath = path.resolve(
     projectPath,
     'node_modules/jest',
-    majorVersion == 26 ? bin : bin['jest']
+    majorVersion >= 25 ? bin : bin['jest']
   );
   const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
 
