@@ -1,4 +1,5 @@
 import { ChildProcess } from 'child_process';
+import { resolve } from 'dns';
 import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
@@ -8,38 +9,31 @@ const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
 const projectPath = path.dirname(packageJsonPath);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
 const wuzzleTranspilePath = require.resolve('../src/bin/wuzzle-transpile');
-
-const tsNodeExec = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ts-node`;
+const wuzzleTranspileExec = `cross-env TS_NODE_TYPE_CHECK=false ts-node ${wuzzleTranspilePath}`;
 
 describe('src/bin/wuzzle-transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
 
   describe('when executing with help option', () => {
     it.each(['-h', '--help'])(`prints help info with '%s'`, option => {
-      const { stdout } = shelljs.exec(`${tsNodeExec} ${wuzzleTranspilePath} ${option}`, {
-        silent: true,
-      });
+      const { stdout } = shelljs.exec(`${wuzzleTranspileExec} ${option}`);
       expect(stdout).toContain('Usage: wuzzle-transpile [options] <globs...>');
     });
   });
 
   describe('when executing with input absence', () => {
     it(`prints error message with no input`, () => {
-      const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzleTranspilePath}`, { silent: true });
+      const { stderr } = shelljs.exec(wuzzleTranspileExec);
       expect(stderr).toContain(`error: required option '-d, --out-dir <dir>' not specified`);
     });
 
     it(`prints error message with input globs only`, () => {
-      const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzleTranspilePath} 'src/**/*.js'`, {
-        silent: true,
-      });
+      const { stderr } = shelljs.exec(`${wuzzleTranspileExec} 'src/**/*.js'`);
       expect(stderr).toContain(`error: required option '-d, --out-dir <dir>' not specified`);
     });
 
     it.each(['-d', '--out-dir'])(`prints error message with '%s' only`, option => {
-      const { stderr } = shelljs.exec(`${tsNodeExec} ${wuzzleTranspilePath} ${option} out`, {
-        silent: true,
-      });
+      const { stderr } = shelljs.exec(`${wuzzleTranspileExec} ${option} lib`);
       expect(stderr).toContain('error: input globs not specified');
     });
   });
@@ -55,103 +49,89 @@ describe('src/bin/wuzzle-transpile', () => {
     let commandProc: ChildProcess;
     let stdout: string;
 
-    describe(`'src/**/*.js' -d out`, () => {
+    describe(`'src/**/*.js' -d lib`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir}`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'**/*.js' -d out`, () => {
+    describe(`'**/*.js' -d lib`, () => {
       beforeAll(() => {
         inputGlobs = '**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir}`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
-      itIgnoresDirNodeModules();
     });
 
-    describe(`'src/constants/**/*.js' -d out`, () => {
+    describe(`'src/constants/**/*.js' -d lib`, () => {
       beforeAll(() => {
-        inputGlobs = '**/*.js';
+        inputGlobs = 'src/constants/**/*.js';
         inputFiles = ['src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir}`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/constants/**/*.js' -d out -b src`, () => {
+    describe(`'src/constants/**/*.js' -d lib -b src`, () => {
       beforeAll(() => {
-        inputGlobs = '**/*.js';
+        inputGlobs = 'src/constants/**/*.js';
         inputFiles = ['src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -b src`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -b src`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out --ignore 'src/constants/**/*.js'`, () => {
+    describe(`'src/**/*.js' -d lib --ignore 'src/constants/**/*.js'`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js'];
-        commandExec =
-          `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} ` +
-          `--ignore 'src/constants/**/*.js'`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} --ignore 'src/constants/**/*.js'`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
-      itIgnoresDirSrcConstants();
     });
 
     describe(`'src/**/*.js' -d out -p`, () => {
@@ -160,108 +140,104 @@ describe('src/bin/wuzzle-transpile', () => {
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -p`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsProdFiles();
       itDoesNotCreateSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -s`, () => {
+    describe(`'src/**/*.js' -d lib -s`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
-        outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -s`;
+        outputFiles = [
+          'lib/index.js',
+          'lib/index.js.map',
+          'lib/constants/index.js',
+          'lib/constants/index.js.map',
+        ];
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
-      itCreatesSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -s inline`, () => {
+    describe(`'src/**/*.js' -d lib -s inline`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -s inline`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s inline`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsDevFiles();
       itDoesNotCreateSourceMapFiles();
       itCreatesInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -p -s`, () => {
+    describe(`'src/**/*.js' -d lib -p -s`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
-        outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -p -s`;
+        outputFiles = [
+          'lib/index.js',
+          'lib/index.js.map',
+          'lib/constants/index.js',
+          'lib/constants/index.js.map',
+        ];
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsProdFiles();
-      itCreatesSourceMapFiles();
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -p -s inline`, () => {
+    describe(`'src/**/*.js' -d lib -p -s inline`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -p -s inline`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s inline`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itOutputsProdFiles();
       itDoesNotCreateSourceMapFiles();
       itCreatesInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -V`, () => {
+    describe(`'src/**/*.js' -d lib -V`, () => {
       beforeAll(() => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -V`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -V`;
         shelljs.rm('-fr', outputDir);
-        stdout = shelljs.exec(commandExec, { silent: true }).stdout;
       });
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itPrintsCleanMessage();
       itOutputsDevFiles();
@@ -269,7 +245,7 @@ describe('src/bin/wuzzle-transpile', () => {
       itDoesNotCreateInlineSourceMaps();
     });
 
-    describe(`'src/**/*.js' -d out -w -V`, () => {
+    describe(`'src/**/*.js' -d lib -w -V`, () => {
       beforeAll(async () => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
@@ -277,26 +253,13 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         outputTempFile = 'lib/temp.js';
-        commandExec = `${tsNodeExec} ${wuzzleTranspilePath} '${inputGlobs}' -d ${outputDir} -w -V`;
+        commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -w -V`;
         shelljs.rm('-fr', outputDir, inputTempFile);
-        commandProc = shelljs.exec(commandExec, { silent: true, async: true });
-
-        stdout = await new Promise(resolve => {
-          const outputLines: string[] = [];
-          commandProc.stdout?.on('data', function onData(outputLine) {
-            outputLines.push(outputLine);
-            if (outputLine.includes('Start watching')) {
-              commandProc.stdout?.off('data', onData);
-              resolve(outputLines.join(''));
-            }
-          });
-        });
       });
 
       afterAll(() => commandProc.kill());
 
-      itCreatesOutputDir();
-      itKeepsDirStructure();
+      itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
       itPrintsWatchMessage();
       itOutputsDevFiles();
@@ -307,16 +270,40 @@ describe('src/bin/wuzzle-transpile', () => {
       itRemovesOutputFileOnInputFileRemoved();
     });
 
-    function itCreatesOutputDir() {
-      it('creates output dir', () => {
-        expect(shelljs.test('-d', outputDir)).toBe(true);
-      });
-    }
+    function itExecutesAndCreatesOutputFiles() {
+      it('executes and creates output files', async () => {
+        commandProc = shelljs.exec(commandExec, { async: true });
 
-    function itKeepsDirStructure() {
-      it('keeps input hierarchy in output dir', () => {
-        inputFiles.forEach(inputFile => {
-          const outputFile = inputFile.replace('src', outputDir);
+        stdout = await new Promise((resolve, reject) => {
+          let isResolved = false;
+          const outputLines: string[] = [];
+          const { stdout } = commandProc;
+
+          if (!stdout) return reject(new Error('Cannot find `stdout` on command process.'));
+
+          stdout.on('data', function onData(outputLine) {
+            outputLines.push(outputLine);
+            if (outputLine.includes('Start watching')) {
+              stdout.off('data', onData);
+              resolveOutput();
+            }
+          });
+          stdout.on('end', resolveOutput);
+
+          function resolveOutput() {
+            if (isResolved) return;
+            isResolved = true;
+            resolve(outputLines.join(''));
+          }
+        });
+
+        const outputFilesCount = shelljs
+          .ls('-R', outputDir)
+          .filter(file => shelljs.test('-f', path.resolve(outputDir, file))).length;
+
+        expect(outputFilesCount).toBe(outputFiles.length);
+
+        outputFiles.forEach(outputFile => {
           expect(shelljs.test('-f', outputFile)).toBe(true);
         });
       });
@@ -346,25 +333,21 @@ describe('src/bin/wuzzle-transpile', () => {
 
     function itOutputsDevFiles() {
       it('it outputs dev files', () => {
-        outputFiles.forEach(outputFile => {
-          expect(shelljs.cat(outputFile).stdout).toContain('__webpack_require__');
-        });
+        outputFiles
+          .filter(outputFile => outputFile.endsWith('.js'))
+          .forEach(outputFile => {
+            expect(shelljs.cat(outputFile).stdout).toContain('__webpack_require__');
+          });
       });
     }
 
     function itOutputsProdFiles() {
       it('it outputs prod files', () => {
-        outputFiles.forEach(outputFile => {
-          expect(shelljs.cat(outputFile).stdout).not.toContain('__webpack_require__');
-        });
-      });
-    }
-
-    function itCreatesSourceMapFiles() {
-      it('does not create source map files', () => {
-        outputFiles.forEach(outputFile => {
-          expect(shelljs.test('-f', `${outputFile}.map`)).toBe(true);
-        });
+        outputFiles
+          .filter(outputFile => outputFile.endsWith('.js'))
+          .forEach(outputFile => {
+            expect(shelljs.cat(outputFile).stdout).not.toContain('__webpack_require__');
+          });
       });
     }
 
@@ -398,9 +381,12 @@ describe('src/bin/wuzzle-transpile', () => {
 
     function itCreatesOutputFileOnInputFileCreated() {
       it('creates output file on input file created', async () => {
+        const { stdout } = commandProc;
+        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
+
         const stdoutLine = await new Promise(resolve => {
-          commandProc.stdout?.on('data', function onData(outputLine) {
-            commandProc.stdout?.off('data', onData);
+          stdout.on('data', function onData(outputLine) {
+            stdout.off('data', onData);
             resolve(outputLine);
           });
           shelljs.touch(inputTempFile);
@@ -412,10 +398,13 @@ describe('src/bin/wuzzle-transpile', () => {
 
     function itUpdatesOutputFileOnInputFileUpdated() {
       it('updates output file on input file updated', async () => {
+        const { stdout } = commandProc;
+        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
+
         const newContent = 'console.log()';
         const stdoutLine = await new Promise(resolve => {
-          commandProc.stdout?.on('data', function onData(outputLine) {
-            commandProc.stdout?.off('data', onData);
+          stdout.on('data', function onData(outputLine) {
+            stdout.off('data', onData);
             resolve(outputLine);
           });
           fs.writeFileSync(inputTempFile, newContent);
@@ -427,29 +416,18 @@ describe('src/bin/wuzzle-transpile', () => {
 
     function itRemovesOutputFileOnInputFileRemoved() {
       it('removes output file on input file removed', async () => {
+        const { stdout } = commandProc;
+        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
+
         const stdoutLine = await new Promise(resolve => {
-          commandProc.stdout?.on('data', function onData(outputLine) {
-            commandProc.stdout?.off('data', onData);
+          stdout.on('data', function onData(outputLine) {
+            stdout.off('data', onData);
             resolve(outputLine);
           });
           shelljs.rm('-f', inputTempFile);
         });
         expect(stdoutLine).toContain(`File '${inputTempFile}' removed`);
         expect(shelljs.test('-f', outputTempFile)).toBe(false);
-      });
-    }
-
-    function itIgnoresDirNodeModules() {
-      it(`ignores dir 'node_modules'`, () => {
-        expect(stdout).not.toContain(`File 'node_modules`);
-        expect(shelljs.test('-d', `${outputDir}/node_modules`)).toBe(false);
-      });
-    }
-
-    function itIgnoresDirSrcConstants() {
-      it(`ignores dir 'src/constants'`, () => {
-        expect(stdout).not.toContain(`File 'src/constants`);
-        expect(shelljs.test('-d', `${outputDir}/constants`)).toBe(false);
       });
     }
   });
