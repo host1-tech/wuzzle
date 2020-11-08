@@ -9,10 +9,10 @@ import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 import type webpack from 'webpack';
-import transpile from '../../transpile';
+import transpile from '../transpile';
 
 const program = new Command('wuzzle-transpile');
-const version = require('../../../package.json').version;
+const version = require('../../package.json').version;
 
 program
   .arguments('<globs...>')
