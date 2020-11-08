@@ -1,5 +1,4 @@
 import { ChildProcess } from 'child_process';
-import { resolve } from 'dns';
 import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +7,7 @@ import shelljs from 'shelljs';
 const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
 const projectPath = path.dirname(packageJsonPath);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
-const wuzzleTranspilePath = require.resolve('../src/bin/wuzzle-transpile');
+const wuzzleTranspilePath = require.resolve('./wuzzle-transpile');
 const wuzzleTranspileExec = `cross-env TS_NODE_TYPE_CHECK=false ts-node ${wuzzleTranspilePath}`;
 
 describe('src/bin/wuzzle-transpile', () => {
