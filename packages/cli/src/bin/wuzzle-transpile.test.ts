@@ -21,12 +21,12 @@ describe('src/bin/wuzzle-transpile', () => {
   });
 
   describe('when executing with input absence', () => {
-    it(`prints error message with no input`, () => {
+    it('prints error message with no input', () => {
       const { stderr } = shelljs.exec(wuzzleTranspileExec);
       expect(stderr).toContain(`error: required option '-d, --out-dir <dir>' not specified`);
     });
 
-    it(`prints error message with input globs only`, () => {
+    it('prints error message with input globs only', () => {
       const { stderr } = shelljs.exec(`${wuzzleTranspileExec} 'src/**/*.js'`);
       expect(stderr).toContain(`error: required option '-d, --out-dir <dir>' not specified`);
     });
@@ -34,6 +34,22 @@ describe('src/bin/wuzzle-transpile', () => {
     it.each(['-d', '--out-dir'])(`prints error message with '%s' only`, option => {
       const { stderr } = shelljs.exec(`${wuzzleTranspileExec} ${option} lib`);
       expect(stderr).toContain('error: input globs not specified');
+    });
+  });
+
+  describe('when executing with unsupported option', () => {
+    it.each(['-t', '--target'])(`prints error message with '%s unknown'`, option => {
+      const { stderr } = shelljs.exec(
+        `${wuzzleTranspileExec} 'src/**/*.js' -d lib ${option} unknown `
+      );
+      expect(stderr).toContain(`error: option '-t, --target unknown' not supported.`);
+    });
+
+    it.each(['-s', '--source-map'])(`prints error message with '%s unknown'`, option => {
+      const { stderr } = shelljs.exec(
+        `${wuzzleTranspileExec} 'src/**/*.js' -d lib ${option} unknown `
+      );
+      expect(stderr).toContain(`error: option '-s, --source-map unknown' not supported.`);
     });
   });
 
