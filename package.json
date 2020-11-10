@@ -20,7 +20,7 @@
     "clean:installed": "rimraf '**/node_modules'",
     "test": "jest",
     "test:watch": "jest --watch",
-    "coverage": "./scripts/coverage.ts --coverage",
+    "coverage": "./scripts/coverage.ts",
     "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "eslint '**/*.@([jt]s?(x)|json)'",
     "lint:prettier": "prettier --check '**/*.@([jt]s?(x)|json)'",
