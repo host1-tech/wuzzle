@@ -1,10 +1,9 @@
-import { values } from 'lodash';
 import { addHook } from 'pirates';
-import { matches, transform } from './transform';
+import { match, transform } from './transform';
 
 const piratesOptions = {
   exts: ['.js'],
-  matcher: (filepath: string) => values(matches).some(m => m.test(filepath)),
+  matcher: (filepath: string) => match.test(filepath),
   ignoreNodeModules: false,
 };
 
