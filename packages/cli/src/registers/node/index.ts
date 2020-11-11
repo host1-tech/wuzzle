@@ -1,15 +1,12 @@
-import { merge } from 'lodash';
 import { addHook } from 'pirates';
 import { transform } from './transform';
-import { NodeLikeExtraOptions } from './types';
+import { mergeNodeLikeExtraOptionsFromEnv, NodeLikeExtraOptions } from './utils';
 
 const nodeLikeExtraOptions: NodeLikeExtraOptions = {
   exts: ['.js'],
 };
 
-try {
-  merge(nodeLikeExtraOptions, JSON.parse(process.env.WUZZLE_NODE_LIKE_EXTRA_OPTIONS || '{}'));
-} catch {}
+mergeNodeLikeExtraOptionsFromEnv(nodeLikeExtraOptions);
 
 const piratesOptions = {
   ...nodeLikeExtraOptions,

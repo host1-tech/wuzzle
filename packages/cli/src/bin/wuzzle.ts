@@ -4,7 +4,7 @@ import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
-import { NodeLikeExtraOptions } from '../registers/node/types';
+import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../registers/node/utils';
 
 const packageJsonPath = findUp.sync('package.json');
 
@@ -211,5 +211,5 @@ function applyNodeLikeExtraOptions(name: string) {
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  process.env.WUZZLE_NODE_LIKE_EXTRA_OPTIONS = JSON.stringify(options);
+  process.env[NODE_LIKE_EXTRA_OPTIONS_ENV_KEY] = JSON.stringify(options);
 }
