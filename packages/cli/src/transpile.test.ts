@@ -5,7 +5,7 @@ import transpile, { TranspileOptions } from './transpile';
 
 const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
 const projectPath = path.dirname(packageJsonPath);
-const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
+const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-api');
 
 describe('src/transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));

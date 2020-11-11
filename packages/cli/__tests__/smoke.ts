@@ -80,7 +80,7 @@ describe('@wuzzle/cli - smoke testing', () => {
   it('works with built-in transpile', () => {
     if (!minimatch('wuzzle-transpile', SMOKE_TESTING)) return;
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} transpile src/**/*.js -d lib`;
+    const execCommand = `${tsNodeExec} ${wuzzlePath} transpile 'src/**/*.js' -d lib`;
     const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
 
     shelljs.cd(fixturePath);
