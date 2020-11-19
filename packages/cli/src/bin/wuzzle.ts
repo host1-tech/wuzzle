@@ -1,4 +1,4 @@
-import { yellow } from 'chalk';
+import { red, yellow } from 'chalk';
 import { Command } from 'commander';
 import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
@@ -9,7 +9,8 @@ import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../regist
 const packageJsonPath = findUp.sync('package.json');
 
 if (!packageJsonPath) {
-  throw new Error('Cannot resolve location of package.');
+  console.log(red('error: package.json not located.'));
+  process.exit(1);
 }
 
 const projectPath = path.dirname(packageJsonPath);
@@ -61,8 +62,12 @@ switch (commandName) {
     break;
 
   default:
-    console.log(yellow(`Command '${commandName}' is not supported yet.`));
-    break;
+    if (commandName) {
+      console.log(yellow(`error: command '${commandName}' not supported.`));
+    } else {
+      console.log(yellow('error: command name not specified.'));
+    }
+    process.exit(1);
 }
 
 // Entries
@@ -173,7 +178,7 @@ function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
   try {
     return execa.sync(file, args, { stdio: 'inherit' });
   } catch {
-    process.exitCode = 2;
+    process.exit(2);
   }
 }
 
