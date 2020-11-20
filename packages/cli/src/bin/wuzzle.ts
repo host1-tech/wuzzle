@@ -130,7 +130,7 @@ async function launchNode() {
 }
 
 async function launchMocha() {
-  applyNodeLikeExtraOptions('wuzzle-node');
+  applyNodeLikeExtraOptions('wuzzle-mocha');
 
   const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
 
