@@ -1,4 +1,4 @@
-import { red, yellow } from 'chalk';
+import { yellow } from 'chalk';
 import { Command } from 'commander';
 import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
@@ -9,7 +9,7 @@ import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../regist
 const packageJsonPath = findUp.sync('package.json');
 
 if (!packageJsonPath) {
-  console.log(red('error: package.json not located.'));
+  console.error(yellow('error: package.json not located.'));
   process.exit(1);
 }
 
@@ -63,9 +63,9 @@ switch (commandName) {
 
   default:
     if (commandName) {
-      console.log(yellow(`error: command '${commandName}' not supported.`));
+      console.error(yellow(`error: command '${commandName}' not supported.`));
     } else {
-      console.log(yellow('error: command name not specified.'));
+      console.error(yellow('error: command name not specified.'));
     }
     process.exit(1);
 }
