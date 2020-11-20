@@ -4,13 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 
-const packageJsonPath = findUp.sync('package.json', { cwd: __filename })!;
-const projectPath = path.dirname(packageJsonPath);
+const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-bin');
-const wuzzleTranspilePath = require.resolve('./wuzzle-transpile');
-const wuzzleTranspileExec = `cross-env TS_NODE_TYPE_CHECK=false ts-node ${wuzzleTranspilePath}`;
+const wuzzleTranspileExec =
+  `cross-env TS_NODE_TYPE_CHECK=false ts-node ` +
+  `${require.resolve('../src/bin/wuzzle-transpile')}`;
 
-describe('src/bin/wuzzle-transpile', () => {
+describe('@wuzzle/cli - wuzzle-transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
 
   describe('when executing with help option', () => {

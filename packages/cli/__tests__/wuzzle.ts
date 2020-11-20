@@ -8,7 +8,7 @@ const wuzzleExec =
   `ts-node ${require.resolve('../src/bin/wuzzle')}`;
 const execOptions: shelljs.ExecOptions = {};
 
-describe('@wuzzle/cli - smoke testing', () => {
+describe('@wuzzle/cli - wuzzle', () => {
   it('prints error message when no command specified', () => {
     const execCommand = wuzzleExec;
     const { stderr } = shelljs.exec(execCommand, execOptions);
