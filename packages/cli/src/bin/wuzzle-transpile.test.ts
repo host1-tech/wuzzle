@@ -71,7 +71,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -88,7 +87,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -105,7 +103,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -122,7 +119,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -b src`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -139,7 +135,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} --ignore 'src/constants/**/*.js'`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -156,7 +151,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -178,7 +172,6 @@ describe('src/bin/wuzzle-transpile', () => {
           'lib/constants/index.js.map',
         ];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -194,7 +187,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s inline`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -216,7 +208,6 @@ describe('src/bin/wuzzle-transpile', () => {
           'lib/constants/index.js.map',
         ];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -232,7 +223,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s inline`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -249,7 +239,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -V`;
-        shelljs.rm('-fr', outputDir);
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -269,7 +258,6 @@ describe('src/bin/wuzzle-transpile', () => {
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         outputTempFile = 'lib/temp.js';
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -w -V`;
-        shelljs.rm('-fr', outputDir, inputTempFile);
       });
 
       afterAll(() => commandProc.kill());
@@ -287,8 +275,9 @@ describe('src/bin/wuzzle-transpile', () => {
 
     function itExecutesAndCreatesOutputFiles() {
       it('executes and creates output files', async () => {
-        commandProc = shelljs.exec(commandExec, { async: true });
+        shelljs.rm('-fr', outputDir, inputTempFile);
 
+        commandProc = shelljs.exec(commandExec, { async: true });
         stdout = await new Promise((resolve, reject) => {
           let isResolved = false;
           const outputLines: string[] = [];
