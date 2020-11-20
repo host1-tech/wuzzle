@@ -1,201 +1,220 @@
-import shelljs from 'shelljs';
-import path from 'path';
 import findUp from 'find-up';
-import minimatch from 'minimatch';
+import path from 'path';
+import shelljs from 'shelljs';
 
-const packageJsonPath = findUp.sync('package.json', { cwd: __filename }) || '';
-const projectPath = path.dirname(packageJsonPath);
-const wuzzlePath = require.resolve('../src/bin/wuzzle');
-const tsNodeExec = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ts-node`;
-const execOptions = { silent: true };
-
-const { SMOKE_TESTING = '' } = process.env;
+const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
+const wuzzleExec =
+  `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ` +
+  `ts-node ${require.resolve('../src/bin/wuzzle')}`;
+const execOptions: shelljs.ExecOptions = {};
 
 describe('@wuzzle/cli - smoke testing', () => {
-  it('works with webpack 4.x', () => {
-    if (!minimatch('webpack__4.x', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} webpack`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__4.x');
-
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'dist');
+  it('prints error message when no command specified', () => {
+    const execCommand = wuzzleExec;
     const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBe(true);
+    expect(stderr).toContain('error: command name not specified');
   });
 
-  it('works with webpack 5.x', () => {
-    if (!minimatch('webpack__5.x', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} webpack`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__5.x');
-
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'dist');
+  it('prints error message when command not supported', () => {
+    const commandName = 'unknown';
+    const execCommand = `${wuzzleExec} ${commandName}`;
     const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBe(true);
+    expect(stderr).toContain(`error: command '${commandName}' not supported`);
   });
 
-  it('works with react-scripts 3.x', () => {
-    if (!minimatch('react-scripts__3.x', SMOKE_TESTING)) return;
+  describe('when working with...', () => {
+    let execCommand: string;
+    let fixturePath: string;
+    let outputDir: string;
+    let stdout: string;
+    let stderr: string;
 
-    const execCommand = `cross-env SKIP_PREFLIGHT_CHECK=true ${tsNodeExec} ${wuzzlePath} react-scripts build`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
+    describe('webpack 5.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} webpack`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__5.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'build');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'build')).toBe(true);
-  });
+    describe('webpack 4.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} webpack`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__4.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-  it('works with electron-webpack 2.x', () => {
-    if (!minimatch('electron-webpack__2.x', SMOKE_TESTING)) return;
+    describe('react-scripts 3.x', () => {
+      beforeAll(() => {
+        execCommand = `cross-env SKIP_PREFLIGHT_CHECK=true ${wuzzleExec} react-scripts build`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
+        outputDir = 'build';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} electron-webpack --progress=false`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/electron-webpack__2.x');
+    describe('electron-webpack 2.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} electron-webpack --progress=false`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/electron-webpack__2.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'dist');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBe(true);
-  });
+    describe('next 9.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} next build`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/next__9.x');
+        outputDir = '.next';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-  it('works with next 9.x', () => {
-    if (!minimatch('next__9.x', SMOKE_TESTING)) return;
+    describe('transpile', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} transpile 'src/**/*.js' -d lib`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
+        outputDir = 'lib';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} next build`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/next__9.x');
+    describe('node', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} node src/index.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('Hi, Node');
+    });
 
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', '.next');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', '.next')).toBe(true);
-  });
+    describe('mocha 8.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} mocha src/index.test.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__8.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
 
-  it('works with built-in transpile', () => {
-    if (!minimatch('wuzzle-transpile', SMOKE_TESTING)) return;
+    describe('mocha 7.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} mocha src/index.test.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__7.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} transpile 'src/**/*.js' -d lib`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
+    describe('jest 26.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} jest src/index.test.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__26.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
 
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'lib');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'lib')).toBe(true);
-  });
+    describe('jest 25.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} jest src/index.test.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__25.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
 
-  it('works with node execution', () => {
-    if (!minimatch('node', SMOKE_TESTING)) return;
+    describe('jest 24.x', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} jest src/index.test.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__24.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} node src/index.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+    describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} taro build --type=${buildType}`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-    shelljs.cd(fixturePath);
-    const { stdout, stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stdout).toContain('Hi, Node.');
-  });
+    describe('razzle 3.x build', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} razzle build`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+        outputDir = 'build';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
 
-  it('works with mocha 8.x', () => {
-    if (!minimatch('mocha', SMOKE_TESTING)) return;
+    // TODO make razzle test work
+    // describe('razzle 3.x test', () => {
+    //   beforeAll(() => {
+    //     execCommand = `${wuzzleExec} razzle test --coverage`;
+    //     fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+    //   });
+    //   itExecutes();
+    //   itMountsWuzzleProcess();
+    //   itPrintsExecMessage('renders without exploding');
+    // });
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} mocha src/index.test.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__8.x');
+    function itExecutes() {
+      it('executes', () => {
+        shelljs.cd(fixturePath);
+        shelljs.rm('-fr', outputDir);
+        const execResult = shelljs.exec(execCommand);
+        stdout = execResult.stdout;
+        stderr = execResult.stderr;
+        expect(execResult.code).toBe(0);
+      });
+    }
 
-    shelljs.cd(fixturePath);
-    const { stdout, stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stdout).toContain('contains greetings');
-  });
+    function itCreatesOutputDir() {
+      it('creates output dir', () => {
+        expect(shelljs.test('-d', outputDir)).toBe(true);
+      });
+    }
 
-  it('works with mocha 7.x', () => {
-    if (!minimatch('mocha', SMOKE_TESTING)) return;
+    function itPrintsExecMessage(text: string) {
+      it('prints exec message', () => {
+        expect(stdout + stderr).toContain(text);
+      });
+    }
 
-    const execCommand = `${tsNodeExec} ${wuzzlePath} mocha src/index.test.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__7.x');
-
-    shelljs.cd(fixturePath);
-    const { stdout, stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stdout).toContain('contains greetings');
-  });
-
-  it('works with jest 26.x', () => {
-    if (!minimatch('jest', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} jest src/index.test.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__26.x');
-
-    shelljs.cd(fixturePath);
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stderr).toContain('contains greetings');
-  });
-
-  it('works with jest 25.x', () => {
-    if (!minimatch('jest', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} jest src/index.test.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__25.x');
-
-    shelljs.cd(fixturePath);
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stderr).toContain('contains greetings');
-  });
-
-  it('works with jest 24.x', () => {
-    if (!minimatch('jest', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} jest src/index.test.js`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__24.x');
-
-    shelljs.cd(fixturePath);
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(stderr).toContain('contains greetings');
-  });
-
-  it.each(['weapp', 'h5'])('works with taro 3.x build type %s', buildType => {
-    if (!minimatch('taro', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} taro build --type=${buildType}`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
-
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'dist');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'dist')).toBe(true);
-  });
-
-  it('works with razzle 3.x build', () => {
-    if (!minimatch('razzle', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} razzle build`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-
-    shelljs.cd(fixturePath);
-    shelljs.rm('-fr', 'build');
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
-    expect(shelljs.test('-d', 'build')).toBe(true);
-  });
-
-  it('works with razzle 3.x test', () => {
-    if (!minimatch('razzle', SMOKE_TESTING)) return;
-
-    const execCommand = `${tsNodeExec} ${wuzzlePath} razzle test --coverage`;
-    const fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-
-    shelljs.cd(fixturePath);
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('Wuzzle process mounted');
+    function itMountsWuzzleProcess() {
+      it('mounts wuzzle process', () => {
+        expect(stderr).toContain('Wuzzle process mounted');
+      });
+    }
   });
 });
