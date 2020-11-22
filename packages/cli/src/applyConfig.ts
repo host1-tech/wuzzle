@@ -1,30 +1,38 @@
 import { diff, stringify } from '@wuzzle/helpers';
-import findUp from 'find-up';
+import { cosmiconfigSync } from 'cosmiconfig';
 import type webpack from 'webpack';
 
 const debug = require('debug')('@wuzzle/cli:applyConfig');
 
-const WUZZLE_CONFIG_JS = 'wuzzle.config.js';
+const configExplorer = cosmiconfigSync('wuzzle');
 
-export interface WuzzleConfig {
-  modify?(webpackConfig: webpack.Configuration): webpack.Configuration | undefined;
+export type WuzzleConfigModify = (
+  webpackConfig: webpack.Configuration
+) => webpack.Configuration | void;
+
+export interface WuzzleConfigOptions {
+  modify?: WuzzleConfigModify;
 }
+
+export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
 function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuration {
   debug('Wuzzle process mounted in CWD:', process.cwd());
   const webpackConfigOldSnapshot = stringify(webpackConfig);
 
-  let wuzzleConfig: WuzzleConfig = {};
-  try {
-    const wuzzleConfigPath = require.resolve(findUp.sync(WUZZLE_CONFIG_JS)!);
-    delete require.cache[wuzzleConfigPath];
-    wuzzleConfig = require(wuzzleConfigPath);
-  } catch {}
-  debug('Wuzzle config to apply:', stringify(wuzzleConfig));
+  const optionsToUse: WuzzleConfigOptions = {};
 
-  if (wuzzleConfig.modify) {
+  const configLoaded = configExplorer.search()?.config || {};
+  if (typeof configLoaded == 'function') {
+    optionsToUse.modify = configLoaded;
+  } else {
+    Object.assign(optionsToUse, configLoaded);
+  }
+  debug('Wuzzle config to apply:', stringify(configLoaded));
+
+  if (optionsToUse.modify) {
     try {
-      const newWebpackConfig = wuzzleConfig.modify(webpackConfig);
+      const newWebpackConfig = optionsToUse.modify(webpackConfig);
       if (newWebpackConfig) {
         webpackConfig = newWebpackConfig;
       }
