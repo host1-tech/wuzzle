@@ -15,7 +15,7 @@ describe('@wuzzle/cli - wuzzle', () => {
     let stdout: string;
     let stderr: string;
 
-    describe('anchor not found', () => {
+    describe('anchor not located', () => {
       beforeAll(() => {
         execCommand = `cross-env WUZZLE_ANCHOR_NAME='inexistent_anchor_name' ${wuzzleExec}`;
         fixturePath = '';
@@ -153,6 +153,17 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('Hi, Node');
     });
 
+    describe('node src/throw-error.js', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} node src/throw-error.js`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 2 });
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('src/throw-error.js:2');
+    });
+
     describe('mocha 8.x', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} mocha src/index.test.js`;
@@ -265,7 +276,7 @@ describe('@wuzzle/cli - wuzzle', () => {
     }
 
     function itPrintsExecMessage(text: string) {
-      it('prints exec message', () => {
+      it(`prints exec message '${text.substring(0, 7)}...'`, () => {
         expect(stdout + stderr).toContain(text);
       });
     }

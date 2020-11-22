@@ -1,4 +1,3 @@
-import { yellow } from 'chalk';
 import { Command } from 'commander';
 import execa, { ExecaSyncReturnValue } from 'execa';
 import findUp from 'find-up';
@@ -10,7 +9,7 @@ const anchorName = process.env.WUZZLE_ANCHOR_NAME || 'package.json';
 const anchorPath = findUp.sync(anchorName);
 
 if (!anchorPath) {
-  console.error(yellow(`error: '${anchorName}' not located.`));
+  console.error(`error: '${anchorName}' not located.`);
   process.exit(1);
 }
 
@@ -64,9 +63,9 @@ switch (commandName) {
 
   default:
     if (commandName) {
-      console.error(yellow(`error: command '${commandName}' not supported.`));
+      console.error(`error: command '${commandName}' not supported.`);
     } else {
-      console.error(yellow('error: command name not specified.'));
+      console.error('error: command name not specified.');
     }
     process.exit(1);
 }
