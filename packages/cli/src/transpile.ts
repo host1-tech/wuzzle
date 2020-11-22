@@ -19,7 +19,13 @@ const transpileDefaultOptions: TranspileOptions = {
   inputCode: '',
   inputCodePath: 'index.js',
   outputCodePath: 'index.js',
-  webpackConfig: { target: 'node', mode: 'development' },
+  webpackConfig: {
+    output: {
+      devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+    },
+    target: 'node',
+    mode: 'development',
+  },
 };
 
 async function transpile(options: TranspileOptions = {}): Promise<string> {
@@ -50,11 +56,11 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   } else {
     outputPath = path.resolve(options.outputPath!);
   }
-  webpackConfig.output = {
+  Object.assign(webpackConfig.output, {
     libraryTarget: 'umd',
     path: path.dirname(outputPath),
     filename: path.basename(outputPath),
-  };
+  });
 
   webpackConfig.externals = [
     (context, request, callback) => {
