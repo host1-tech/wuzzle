@@ -74,7 +74,7 @@ switch (commandName) {
 
 function launchWebpack() {
   const { bin, version } = require(path.resolve(projectPath, 'node_modules/webpack/package.json'));
-  const majorVersion = semver.parse(version)?.major || 4;
+  const majorVersion = semver.parse(version)!.major;
 
   const webpackCommandPath = path.resolve(projectPath, 'node_modules/webpack', bin);
   const webpackRegisterPath = require.resolve(`../registers/webpack__${majorVersion}.x`);
@@ -142,7 +142,7 @@ async function launchMocha() {
 
 function launchJest() {
   const { bin, version } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
-  const majorVersion = semver.parse(version)?.major || 26;
+  const majorVersion = semver.parse(version)!.major;
 
   const jestCommandPath = path.resolve(
     projectPath,

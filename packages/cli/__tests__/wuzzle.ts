@@ -105,6 +105,34 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('Hi, Node');
     });
 
+    describe('node -H', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} node -H`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+      });
+      itExecutes();
+      itPrintsExecMessage('Usage: wuzzle-node [options]');
+    });
+
+    describe(`node src/print`, () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} node src/print`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+      });
+      itExecutes({ exitCode: 2 });
+      itPrintsExecMessage('Cannot find module');
+    });
+
+    describe(`node --ext '...' src/print`, () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} node --ext '.es' src/print`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('Hi, Node');
+    });
+
     describe('mocha 8.x', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} mocha src/index.test.js`;
@@ -188,14 +216,20 @@ describe('@wuzzle/cli - wuzzle', () => {
     //   itPrintsExecMessage('renders without exploding');
     // });
 
-    function itExecutes() {
+    function itExecutes(options = { exitCode: 0 }) {
       it('executes', () => {
         shelljs.cd(fixturePath);
         shelljs.rm('-fr', outputDir);
         const execResult = shelljs.exec(execCommand);
         stdout = execResult.stdout;
         stderr = execResult.stderr;
-        expect(execResult.code).toBe(0);
+        expect(execResult.code).toBe(options.exitCode);
+      });
+    }
+
+    function itMountsWuzzleProcess() {
+      it('mounts wuzzle process', () => {
+        expect(stderr).toContain('Wuzzle process mounted');
       });
     }
 
@@ -208,12 +242,6 @@ describe('@wuzzle/cli - wuzzle', () => {
     function itPrintsExecMessage(text: string) {
       it('prints exec message', () => {
         expect(stdout + stderr).toContain(text);
-      });
-    }
-
-    function itMountsWuzzleProcess() {
-      it('mounts wuzzle process', () => {
-        expect(stderr).toContain('Wuzzle process mounted');
       });
     }
   });
