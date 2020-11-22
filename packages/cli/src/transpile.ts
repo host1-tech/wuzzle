@@ -29,7 +29,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   const omfs = !options.outputPath && new MemoryFileSystem();
 
   // Create webpack config and apply wuzzle config
-  const webpackConfig = cloneDeep(options.webpackConfig || {});
+  const webpackConfig = cloneDeep(options.webpackConfig!);
 
   let inputPath: string;
   if (imfs) {

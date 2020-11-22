@@ -10,6 +10,22 @@ const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpi
 describe('src/transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
 
+  it('outputs code when giving default options', async () => {
+    const outputCode = await transpile();
+    expect(outputCode).toContain('__webpack_require__');
+  });
+
+  it('throws error when input path not found', async () => {
+    const inputPath = 'inexistent/input/path.js';
+    let error;
+    try {
+      await transpile({ inputPath });
+    } catch (e) {
+      error = e;
+    }
+    expect(error?.message).toContain(`Cannot find inputPath '${inputPath}'`);
+  });
+
   describe.each([
     ['code', 'code'],
     ['code', 'file'],
@@ -24,7 +40,7 @@ describe('src/transpile', () => {
     let outputCode: string;
     let outputContent: string;
 
-    beforeAll(async () => {
+    it('executes', async () => {
       const transpileOptions: TranspileOptions = {};
 
       if (isCodeInput) {
