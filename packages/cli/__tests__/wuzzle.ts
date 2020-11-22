@@ -6,28 +6,44 @@ const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename }
 const wuzzleExec =
   `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ` +
   `ts-node ${require.resolve('../src/bin/wuzzle')}`;
-const execOptions: shelljs.ExecOptions = {};
 
 describe('@wuzzle/cli - wuzzle', () => {
-  it('prints error message when no command specified', () => {
-    const execCommand = wuzzleExec;
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain('error: command name not specified');
-  });
-
-  it('prints error message when command not supported', () => {
-    const commandName = 'unknown';
-    const execCommand = `${wuzzleExec} ${commandName}`;
-    const { stderr } = shelljs.exec(execCommand, execOptions);
-    expect(stderr).toContain(`error: command '${commandName}' not supported`);
-  });
-
   describe('when working with...', () => {
     let execCommand: string;
     let fixturePath: string;
     let outputDir: string;
     let stdout: string;
     let stderr: string;
+
+    describe('anchor not found', () => {
+      beforeAll(() => {
+        execCommand = `cross-env WUZZLE_ANCHOR_NAME='inexistent_anchor_name' ${wuzzleExec}`;
+        fixturePath = '';
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 1 });
+      itPrintsExecMessage(`error: 'inexistent_anchor_name' not located`);
+    });
+
+    describe('no command', () => {
+      beforeAll(() => {
+        execCommand = wuzzleExec;
+        fixturePath = '';
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 1 });
+      itPrintsExecMessage('error: command name not specified');
+    });
+
+    describe('unknown command', () => {
+      beforeAll(() => {
+        execCommand = `${wuzzleExec} unknown`;
+        fixturePath = '';
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 1 });
+      itPrintsExecMessage(`error: command 'unknown' not supported`);
+    });
 
     describe('webpack 5.x', () => {
       beforeAll(() => {
@@ -99,6 +115,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} node src/index.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -109,6 +126,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} node -H`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+        outputDir = '';
       });
       itExecutes();
       itPrintsExecMessage('Usage: wuzzle-node [options]');
@@ -118,6 +136,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} node src/print`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+        outputDir = '';
       });
       itExecutes({ exitCode: 2 });
       itPrintsExecMessage('Cannot find module');
@@ -127,6 +146,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} node --ext '.es' src/print`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -137,6 +157,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} mocha src/index.test.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__8.x');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -147,6 +168,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} mocha src/index.test.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__7.x');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -157,6 +179,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} jest src/index.test.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__26.x');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -167,6 +190,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} jest src/index.test.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__25.x');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -177,6 +201,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} jest src/index.test.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__24.x');
+        outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
@@ -218,8 +243,8 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     function itExecutes(options = { exitCode: 0 }) {
       it('executes', () => {
-        shelljs.cd(fixturePath);
-        shelljs.rm('-fr', outputDir);
+        fixturePath && shelljs.cd(fixturePath);
+        outputDir && shelljs.rm('-fr', outputDir);
         const execResult = shelljs.exec(execCommand);
         stdout = execResult.stdout;
         stderr = execResult.stderr;

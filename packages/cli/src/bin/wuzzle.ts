@@ -6,14 +6,15 @@ import path from 'path';
 import semver from 'semver';
 import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../registers/node/utils';
 
-const packageJsonPath = findUp.sync('package.json');
+const anchorName = process.env.WUZZLE_ANCHOR_NAME || 'package.json';
+const anchorPath = findUp.sync(anchorName);
 
-if (!packageJsonPath) {
-  console.error(yellow('error: package.json not located.'));
+if (!anchorPath) {
+  console.error(yellow(`error: '${anchorName}' not located.`));
   process.exit(1);
 }
 
-const projectPath = path.dirname(packageJsonPath);
+const projectPath = path.dirname(anchorPath);
 
 const [nodePath, , commandName, ...args] = process.argv;
 
