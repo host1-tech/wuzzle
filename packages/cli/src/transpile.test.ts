@@ -95,7 +95,7 @@ describe('src/transpile', () => {
     });
   });
 
-  describe('when given same input content', () => {
+  describe('when giving same input content', () => {
     it('always outputs same content', async () => {
       const inputPath = 'src/index.js';
       const outputPath = 'lib/index.js';
