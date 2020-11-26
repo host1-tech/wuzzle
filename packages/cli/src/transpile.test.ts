@@ -1,10 +1,20 @@
 import findUp from 'find-up';
 import path from 'path';
 import shelljs from 'shelljs';
+import { RawSourceMap } from 'source-map';
+import webpack from 'webpack';
 import transpile, { TranspileOptions } from './transpile';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-api');
+
+const inputPath = 'src/index.js';
+const outputPath = 'lib/index.js';
+
+enum IOMethod {
+  CODE = 'code',
+  FILE = 'file',
+}
 
 describe('src/transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
@@ -26,15 +36,13 @@ describe('src/transpile', () => {
   });
 
   describe.each([
-    ['code', 'code'],
-    ['code', 'file'],
-    ['file', 'code'],
-    ['file', 'file'],
+    [IOMethod.CODE, IOMethod.CODE],
+    [IOMethod.CODE, IOMethod.FILE],
+    [IOMethod.FILE, IOMethod.CODE],
+    [IOMethod.FILE, IOMethod.FILE],
   ])('when converting %s to %s', (inputMethod, outputMethod) => {
-    const isCodeInput = inputMethod == 'code';
-    const isCodeOutput = outputMethod == 'code';
-    const inputPath = 'src/index.js';
-    const outputPath = 'lib/index.js';
+    const isCodeInput = inputMethod == IOMethod.CODE;
+    const isCodeOutput = outputMethod == IOMethod.CODE;
 
     let outputCode: string;
     let outputContent: string;
@@ -118,6 +126,47 @@ describe('src/transpile', () => {
       outputContents.push(shelljs.cat(outputPath).stdout);
 
       outputContents.reduce((c1, c2) => (expect(c1 == c2).toBe(true), c2));
+    });
+  });
+
+  describe.each<[IOMethod, webpack.Options.Devtool]>([
+    [IOMethod.CODE, 'source-map'],
+    [IOMethod.CODE, 'inline-source-map'],
+    [IOMethod.FILE, 'source-map'],
+    [IOMethod.FILE, 'inline-source-map'],
+  ])('when outputing %s with %s', (outputMethod, devtool) => {
+    const isCodeOutput = outputMethod == IOMethod.CODE;
+    const isInline = typeof devtool == 'string' && devtool.includes('inline');
+
+    let rawSourceMap: RawSourceMap;
+
+    it('executes', async () => {
+      const transpileOptions: TranspileOptions = { webpackConfig: { devtool } };
+
+      if (isCodeOutput) {
+        const outputCodePath = outputPath;
+        Object.assign(transpileOptions, { outputCodePath });
+      } else {
+        Object.assign(transpileOptions, { outputPath });
+      }
+
+      const outputCode = await transpile(transpileOptions);
+      const outputContent = isCodeOutput ? outputCode : shelljs.cat(outputPath).stdout;
+
+      if (isInline) {
+        rawSourceMap = JSON.parse(
+          Buffer.from(
+            outputContent.substring(outputContent.lastIndexOf('\n')).split('base64,')[1],
+            'base64'
+          ).toString('utf-8')
+        );
+      } else {
+        rawSourceMap = JSON.parse(shelljs.cat(outputPath + '.map').stdout);
+      }
+    });
+
+    it('removes redundant source map items', () => {
+      expect(rawSourceMap.sources.some(source => source.startsWith('webpack/'))).toBe(false);
     });
   });
 });
