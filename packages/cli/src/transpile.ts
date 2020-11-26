@@ -1,9 +1,11 @@
+import fs from 'fs';
 import { cloneDeep, merge } from 'lodash';
 import MemoryFileSystem from 'memory-fs';
 import path from 'path';
-import shelljs from 'shelljs';
-import webpack from 'webpack';
 import pify from 'pify';
+import shelljs from 'shelljs';
+import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
+import webpack from 'webpack';
 import applyConfig from './applyConfig';
 
 export interface TranspileOptions {
@@ -85,7 +87,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
 
   await webpackCompiler.run();
 
-  const outputCode = omfs ? omfs.readFileSync(outputPath).toString() : '';
+  let outputCode: string = omfs ? omfs.readFileSync(outputPath, 'utf-8') : '';
 
   // Destroy memory file system if created
   if (imfs) {
@@ -96,6 +98,73 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
     omfs.unlinkSync(outputPath);
     delete omfs.data;
   }
+
+  // Normalize source map when available
+  try {
+    const devtool = webpackConfig.devtool;
+
+    if (typeof devtool != 'string' || !devtool.includes('source-map') || devtool.includes('eval')) {
+      throw 0;
+    }
+
+    const isInline = devtool.includes('inline');
+
+    if (omfs && !isInline) {
+      throw 0;
+    }
+
+    const inputSource: string = omfs ? outputCode : await pify(fs).readFile(outputPath, 'utf-8');
+
+    // Read raw source map
+    let rawSourceMap: RawSourceMap;
+    if (isInline) {
+      rawSourceMap = JSON.parse(
+        Buffer.from(
+          inputSource.substring(inputSource.lastIndexOf('\n')).split('base64,')[1],
+          'base64'
+        ).toString('utf-8')
+      );
+    } else {
+      rawSourceMap = JSON.parse(await pify(fs).readFile(outputPath + '.map', 'utf-8'));
+    }
+
+    // Make new source map
+    const newSourceMap = await SourceMapConsumer.with(rawSourceMap, null, async consumer => {
+      const generator = new SourceMapGenerator({
+        file: rawSourceMap.file,
+        sourceRoot: rawSourceMap.sourceRoot,
+        skipValidation: true,
+      });
+      consumer.eachMapping(m => {
+        if (m.source?.startsWith('webpack/')) {
+          return;
+        }
+        generator.addMapping({
+          source: m.source,
+          name: m.name,
+          generated: { line: m.generatedLine, column: m.generatedColumn },
+          original: { line: m.originalLine, column: m.originalColumn },
+        });
+      });
+      return generator.toString();
+    });
+
+    // Write new source map
+    if (isInline) {
+      const outputSource =
+        inputSource.substring(
+          0,
+          inputSource.indexOf('base64,', inputSource.lastIndexOf('\n')) + 7
+        ) + Buffer.from(newSourceMap, 'utf-8').toString('base64');
+      if (omfs) {
+        outputCode = outputSource;
+      } else {
+        await pify(fs).writeFile(outputPath, outputSource);
+      }
+    } else {
+      await pify(fs).writeFile(outputPath + '.map', newSourceMap);
+    }
+  } catch {}
 
   return outputCode;
 }
