@@ -45,21 +45,10 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage(`error: command 'unknown' not supported`);
     });
 
-    describe('webpack 5.x', () => {
+    describe.each(['5.x', '4.x'])('webpack %s', version => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} webpack`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__5.x');
-        outputDir = 'dist';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
-    });
-
-    describe('webpack 4.x', () => {
-      beforeAll(() => {
-        execCommand = `${wuzzleExec} webpack`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/webpack__4.x');
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/webpack__${version}`);
         outputDir = 'dist';
       });
       itExecutes();
@@ -164,10 +153,10 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('src/throw-error.js:2');
     });
 
-    describe('mocha 8.x', () => {
+    describe.each(['8.x', '7.x'])('mocha %s', version => {
       beforeAll(() => {
         execCommand = `${wuzzleExec} mocha src/index.test.js`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__8.x');
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/mocha__${version}`);
         outputDir = '';
       });
       itExecutes();
@@ -175,48 +164,16 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('contains greetings');
     });
 
-    describe('mocha 7.x', () => {
+    describe.each(['26.x', '25.x', '24.x'])('jest %s', version => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} mocha src/index.test.js`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/mocha__7.x');
+        execCommand = `${wuzzleExec} jest --coverage`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__${version}`);
         outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
       itPrintsExecMessage('contains greetings');
-    });
-
-    describe('jest 26.x', () => {
-      beforeAll(() => {
-        execCommand = `${wuzzleExec} jest src/index.test.js`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__26.x');
-        outputDir = '';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itPrintsExecMessage('contains greetings');
-    });
-
-    describe('jest 25.x', () => {
-      beforeAll(() => {
-        execCommand = `${wuzzleExec} jest src/index.test.js`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__25.x');
-        outputDir = '';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itPrintsExecMessage('contains greetings');
-    });
-
-    describe('jest 24.x', () => {
-      beforeAll(() => {
-        execCommand = `${wuzzleExec} jest src/index.test.js`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/jest__24.x');
-        outputDir = '';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itPrintsExecMessage('contains greetings');
+      itReportsCoverageProperly();
     });
 
     describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
@@ -278,6 +235,13 @@ describe('@wuzzle/cli - wuzzle', () => {
     function itPrintsExecMessage(text: string) {
       it(`prints exec message '${text.substring(0, 7)}...'`, () => {
         expect(stdout + stderr).toContain(text);
+      });
+    }
+
+    function itReportsCoverageProperly() {
+      it('reports coverage properly', () => {
+        expect(stdout).not.toContain('webpack');
+        expect(stdout).toMatch(/index.js.+\d+.+\d+.+\d+.+\d+/);
       });
     }
   });

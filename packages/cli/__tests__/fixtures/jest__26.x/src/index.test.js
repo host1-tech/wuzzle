@@ -1,3 +1,5 @@
+const { getGreeting } = require('.');
+
 it('contains greetings', () => {
-  expect('Hi, Jest.').toBeTruthy();
+  expect(getGreeting()).toBeTruthy();
 });
