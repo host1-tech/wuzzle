@@ -1,10 +1,13 @@
 #!/usr/bin/env ts-node
 
 import execa from 'execa';
+import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 
-const coverageReporters = ['json', 'text', 'lcov', 'clover'];
+const nycrc = JSON.parse(fs.readFileSync(path.resolve('.nycrc'), 'utf-8'));
+const coverageExclude: string[] = nycrc.coverageExclude;
+const coverageReporters: string[] = nycrc.coverageReporters;
 const coverageDir = path.resolve('coverage');
 const coverageJestDir = path.join(coverageDir, 'jest');
 const coverageNycDir = path.join(coverageDir, 'nyc');
@@ -52,7 +55,8 @@ execa.sync(
     'report',
     '--report-dir',
     coverageDir,
-    ...coverageReporters.reduce((a, s) => (a.push('--reporter', s), a), [] as string[]),
+    ...coverageExclude.reduce<string[]>((a, s) => (a.push('--exclude', s), a), []),
+    ...coverageReporters.reduce<string[]>((a, s) => (a.push('--reporter', s), a), []),
   ],
   { stdio: 'inherit' }
 );

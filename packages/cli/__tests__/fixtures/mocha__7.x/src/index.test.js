@@ -1,5 +1,6 @@
 const assert = require('assert');
+const { getGreeting } = require('.');
 
 it('contains greetings', () => {
-  assert('Hi, Mocha.');
+  assert(getGreeting() == 'Hi, Mocha.');
 });

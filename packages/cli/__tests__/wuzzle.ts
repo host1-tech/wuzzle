@@ -155,13 +155,14 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe.each(['8.x', '7.x'])('mocha %s', version => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} mocha src/index.test.js`;
+        execCommand = `nyc -n '**/mocha__${version}/**/*.js' ${wuzzleExec} mocha src/index.test.js`;
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/mocha__${version}`);
         outputDir = '';
       });
       itExecutes();
       itMountsWuzzleProcess();
       itPrintsExecMessage('contains greetings');
+      itReportsCoverageProperly();
     });
 
     describe.each(['26.x', '25.x', '24.x'])('jest %s', version => {

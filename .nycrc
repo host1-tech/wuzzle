@@ -1,5 +1,17 @@
 {
   "include": [
     "**/@(bin|src)/**/*.[jt]s?(x)"
+  ],
+  "exclude": [
+    "**/?(*.)+(spec|test).[jt]s?(x)"
+  ],
+  "coverageExclude": [
+    "**/__tests__/**/*.[jt]s?(x)"
+  ],
+  "coverageReporters": [
+    "json",
+    "text",
+    "lcov",
+    "clover"
   ]
 }
