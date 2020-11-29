@@ -3,12 +3,14 @@ import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
+import treeKill from 'tree-kill';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-bin');
-const wuzzleTranspileExec =
-  `cross-env TS_NODE_TYPE_CHECK=false ts-node ` +
-  `${require.resolve('../src/bin/wuzzle-transpile')}`;
+const envOptions = `cross-env TS_NODE_TYPE_CHECK=false`;
+const wuzzleTranspileExec = `${envOptions} ts-node ${require.resolve(
+  '../src/bin/wuzzle-transpile'
+)}`;
 
 describe('@wuzzle/cli - wuzzle-transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
@@ -260,7 +262,10 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -w -V`;
       });
 
-      afterAll(() => commandProc.kill());
+      afterAll(() => {
+        commandProc.kill();
+        treeKill(commandProc.pid);
+      });
 
       itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
@@ -278,12 +283,10 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         shelljs.rm('-fr', outputDir, inputTempFile);
 
         commandProc = shelljs.exec(commandExec, { async: true });
-        stdout = await new Promise((resolve, reject) => {
+        stdout = await new Promise(resolve => {
           let isResolved = false;
           const outputLines: string[] = [];
-          const { stdout } = commandProc;
-
-          if (!stdout) return reject(new Error('Cannot find `stdout` on command process.'));
+          const stdout = commandProc.stdout!;
 
           stdout.on('data', function onData(outputLine) {
             outputLines.push(outputLine);
@@ -310,7 +313,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         outputFiles.forEach(outputFile => {
           expect(shelljs.test('-f', outputFile)).toBe(true);
         });
-      });
+      }, 30000);
     }
 
     function itPrintsProgressDetails() {
@@ -385,9 +388,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
 
     function itCreatesOutputFileOnInputFileCreated() {
       it('creates output file on input file created', async () => {
-        const { stdout } = commandProc;
-        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
-
+        const stdout = commandProc.stdout!;
         const stdoutLine = await new Promise(resolve => {
           stdout.on('data', function onData(outputLine) {
             stdout.off('data', onData);
@@ -402,10 +403,8 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
 
     function itUpdatesOutputFileOnInputFileUpdated() {
       it('updates output file on input file updated', async () => {
-        const { stdout } = commandProc;
-        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
-
         const newContent = 'console.log()';
+        const stdout = commandProc.stdout!;
         const stdoutLine = await new Promise(resolve => {
           stdout.on('data', function onData(outputLine) {
             stdout.off('data', onData);
@@ -420,9 +419,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
 
     function itRemovesOutputFileOnInputFileRemoved() {
       it('removes output file on input file removed', async () => {
-        const { stdout } = commandProc;
-        if (!stdout) throw new Error('Cannot find `stdout` on command process.');
-
+        const stdout = commandProc.stdout!;
         const stdoutLine = await new Promise(resolve => {
           stdout.on('data', function onData(outputLine) {
             stdout.off('data', onData);
