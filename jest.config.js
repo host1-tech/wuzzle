@@ -6,5 +6,4 @@ module.exports = {
   modulePathIgnorePatterns: ['/node_modules/', '/fixtures/'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testTimeout: 15000,
 };
