@@ -1,15 +1,17 @@
+import { EventEmitter } from 'events';
 import findUp from 'find-up';
+import { merge } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
+import treeKill from 'tree-kill';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
-const wuzzleExec =
-  `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false ` +
-  `ts-node ${require.resolve('../src/bin/wuzzle')}`;
+const envOptions = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false`;
+const wuzzleExec = `${envOptions} ts-node ${require.resolve('../src/bin/wuzzle')}`;
 
 describe('@wuzzle/cli - wuzzle', () => {
   describe('when working with...', () => {
-    let execCommand: string;
+    let commandExec: string;
     let fixturePath: string;
     let outputDir: string;
     let stdout: string;
@@ -17,7 +19,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('anchor not located', () => {
       beforeAll(() => {
-        execCommand = `cross-env WUZZLE_ANCHOR_NAME='inexistent_anchor_name' ${wuzzleExec}`;
+        commandExec = `cross-env WUZZLE_ANCHOR_NAME='inexistent_anchor_name' ${wuzzleExec}`;
         fixturePath = '';
         outputDir = '';
       });
@@ -27,7 +29,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('no command', () => {
       beforeAll(() => {
-        execCommand = wuzzleExec;
+        commandExec = wuzzleExec;
         fixturePath = '';
         outputDir = '';
       });
@@ -37,7 +39,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('unknown command', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} unknown`;
+        commandExec = `${wuzzleExec} unknown`;
         fixturePath = '';
         outputDir = '';
       });
@@ -47,7 +49,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe.each(['5.x', '4.x'])('webpack %s', version => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} webpack`;
+        commandExec = `${wuzzleExec} webpack`;
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/webpack__${version}`);
         outputDir = 'dist';
       });
@@ -58,7 +60,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('react-scripts 3.x', () => {
       beforeAll(() => {
-        execCommand = `cross-env SKIP_PREFLIGHT_CHECK=true ${wuzzleExec} react-scripts build`;
+        commandExec = `cross-env SKIP_PREFLIGHT_CHECK=true ${wuzzleExec} react-scripts build`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
         outputDir = 'build';
       });
@@ -69,7 +71,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('electron-webpack 2.x', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} electron-webpack --progress=false`;
+        commandExec = `${wuzzleExec} electron-webpack --progress=false`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/electron-webpack__2.x');
         outputDir = 'dist';
       });
@@ -80,7 +82,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('next 9.x', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} next build`;
+        commandExec = `${wuzzleExec} next build`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/next__9.x');
         outputDir = '.next';
       });
@@ -91,7 +93,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('transpile', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} transpile 'src/**/*.js' -d lib`;
+        commandExec = `${wuzzleExec} transpile 'src/**/*.js' -d lib`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile');
         outputDir = 'lib';
       });
@@ -102,7 +104,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('node', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} node src/index.js`;
+        commandExec = `${wuzzleExec} node src/index.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
         outputDir = '';
       });
@@ -113,7 +115,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('node -H', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} node -H`;
+        commandExec = `${wuzzleExec} node -H`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
         outputDir = '';
       });
@@ -123,17 +125,17 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe(`node src/print`, () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} node src/print`;
+        commandExec = `${wuzzleExec} node src/print`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
         outputDir = '';
       });
-      itExecutes({ exitCode: 2 });
+      itExecutes({ exitCode: 1 });
       itPrintsExecMessage('Cannot find module');
     });
 
     describe(`node --ext '...' src/print`, () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} node --ext '.es' src/print`;
+        commandExec = `${wuzzleExec} node --ext '.es' src/print`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
         outputDir = '';
       });
@@ -144,19 +146,30 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('node src/throw-error.js', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} node src/throw-error.js`;
+        commandExec = `${wuzzleExec} node src/throw-error.js`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/node');
         outputDir = '';
       });
-      itExecutes({ exitCode: 2 });
+      itExecutes({ exitCode: 1 });
       itMountsWuzzleProcess();
       itPrintsExecMessage('src/throw-error.js:2');
     });
 
     describe.each(['8.x', '7.x'])('mocha %s', version => {
       beforeAll(() => {
-        execCommand = `nyc -n '**/mocha__${version}/**/*.js' ${wuzzleExec} mocha src/index.test.js`;
+        commandExec = `${wuzzleExec} mocha src/index.test.js`;
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/mocha__${version}`);
+        outputDir = '';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
+
+    describe('mocha 8.x coverage', () => {
+      beforeAll(() => {
+        commandExec = `nyc -n '**/*.js' ${wuzzleExec} mocha src/index.test.js`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/mocha__8.x`);
         outputDir = '';
       });
       itExecutes();
@@ -167,8 +180,19 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe.each(['26.x', '25.x', '24.x'])('jest %s', version => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} jest --coverage`;
+        commandExec = `${wuzzleExec} jest`;
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__${version}`);
+        outputDir = '';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('contains greetings');
+    });
+
+    describe('jest 26.x coverage', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest --coverage`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
         outputDir = '';
       });
       itExecutes();
@@ -177,9 +201,61 @@ describe('@wuzzle/cli - wuzzle', () => {
       itReportsCoverageProperly();
     });
 
+    describe('jest 26.x -H', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest -H`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
+        outputDir = '';
+      });
+      itExecutes();
+      itPrintsExecMessage('Usage: wuzzle-jest [options]');
+    });
+
+    describe('jest 26.x --inspect', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest --inspect`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
+        outputDir = '';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('Debugger listening on ws://');
+    });
+
+    describe('jest 26.x --inspect=9933', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest --inspect 9933`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
+        outputDir = '';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('Debugger listening on ws://127.0.0.1:9933');
+    });
+
+    describe('jest 26.x --inspect-brk', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest --inspect-brk`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 1, closeMsg: 'Debugger' });
+      itPrintsExecMessage('Debugger listening on ws://');
+    });
+
+    describe('jest 26.x --inspect-brk=9933', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} jest --inspect-brk=9933`;
+        fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
+        outputDir = '';
+      });
+      itExecutes({ exitCode: 1, closeMsg: 'Debugger' });
+      itPrintsExecMessage('Debugger listening on ws://127.0.0.1:9933');
+    });
+
     describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} taro build --type=${buildType}`;
+        commandExec = `${wuzzleExec} taro build --type=${buildType}`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
         outputDir = 'dist';
       });
@@ -190,7 +266,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('razzle 3.x build', () => {
       beforeAll(() => {
-        execCommand = `${wuzzleExec} razzle build`;
+        commandExec = `${wuzzleExec} razzle build`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
         outputDir = 'build';
       });
@@ -210,15 +286,44 @@ describe('@wuzzle/cli - wuzzle', () => {
     //   itPrintsExecMessage('renders without exploding');
     // });
 
-    function itExecutes(options = { exitCode: 0 }) {
-      it('executes', () => {
+    function itExecutes(options: Partial<{ exitCode: number; closeMsg: string }> = {}) {
+      options = merge({ exitCode: 0 }, options);
+
+      it('executes', async () => {
         fixturePath && shelljs.cd(fixturePath);
         outputDir && shelljs.rm('-fr', outputDir);
-        const execResult = shelljs.exec(execCommand);
-        stdout = execResult.stdout;
-        stderr = execResult.stderr;
-        expect(execResult.code).toBe(options.exitCode);
-      });
+
+        const commandProc = shelljs.exec(commandExec, { async: true });
+        const [_stdout, _stderr] = await new Promise(resolve => {
+          const stdoutLines: string[] = [];
+          const stdout = commandProc.stdout!;
+
+          const stderrLines: string[] = [];
+          const stderr = commandProc.stderr!;
+
+          handleStdData(stdout, stdoutLines);
+          handleStdData(stderr, stderrLines);
+
+          function handleStdData(
+            stream: EventEmitter & NodeJS.ReadableStream,
+            streamLines: string[]
+          ) {
+            stream.on('data', function onData(streamLine) {
+              streamLines.push(streamLine);
+              if (options.closeMsg && streamLine.includes(options.closeMsg)) {
+                commandProc.kill();
+                treeKill(commandProc.pid);
+              }
+            });
+          }
+
+          commandProc.on('exit', () => resolve([stdoutLines.join(''), stderrLines.join('')]));
+        });
+
+        stdout = _stdout;
+        stderr = _stderr;
+        expect(commandProc.exitCode).toBe(options.exitCode);
+      }, 60000);
     }
 
     function itMountsWuzzleProcess() {
