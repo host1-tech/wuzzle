@@ -1,8 +1,9 @@
 import { Command } from 'commander';
-import execa, { ExecaSyncReturnValue } from 'execa';
+import execa from 'execa';
 import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
+import shelljs from 'shelljs';
 import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../registers/node/utils';
 
 const anchorName = process.env.WUZZLE_ANCHOR_NAME || 'package.json';
@@ -79,7 +80,7 @@ function launchWebpack() {
   const webpackCommandPath = path.resolve(projectPath, 'node_modules/webpack', bin);
   const webpackRegisterPath = require.resolve(`../registers/webpack__${majorVersion}.x`);
 
-  execSync(nodePath, ['-r', webpackRegisterPath, webpackCommandPath, ...args]);
+  execNode(['-r', webpackRegisterPath, webpackCommandPath, ...args]);
 }
 
 function launchReactScripts() {
@@ -92,7 +93,7 @@ function launchReactScripts() {
   );
 
   const reactScriptsRegisterPath = require.resolve('../registers/react-scripts__3.x');
-  execSync(nodePath, ['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
+  execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
 }
 
 function launchElectronWebpack() {
@@ -105,7 +106,7 @@ function launchElectronWebpack() {
   );
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
 
-  execSync(nodePath, ['-r', webpackRegisterPath, electronWebpackCommandPath, ...args]);
+  execNode(['-r', webpackRegisterPath, electronWebpackCommandPath, ...args]);
 }
 
 function launchNext() {
@@ -114,7 +115,7 @@ function launchNext() {
   const nextCommandPath = path.resolve(projectPath, 'node_modules/next', bin['next']);
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
 
-  execSync(nodePath, ['-r', webpackRegisterPath, nextCommandPath, ...args]);
+  execNode(['-r', webpackRegisterPath, nextCommandPath, ...args]);
 }
 
 function launchTranspile() {
@@ -126,7 +127,7 @@ function launchTranspile() {
 async function launchNode() {
   applyNodeLikeExtraOptions('wuzzle-node');
   const nodeRegisterPath = require.resolve('../registers/node');
-  execSync(nodePath, ['-r', nodeRegisterPath, ...args]);
+  execNode(['-r', nodeRegisterPath, ...args]);
 }
 
 async function launchMocha() {
@@ -137,10 +138,62 @@ async function launchMocha() {
   const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
   const nodeRegisterPath = require.resolve('../registers/node');
 
-  execSync(nodePath, [mochaCommandPath, '-r', nodeRegisterPath, ...args]);
+  execNode([mochaCommandPath, '-r', nodeRegisterPath, ...args]);
 }
 
 function launchJest() {
+  const inspectNodeArgs: string[] = [];
+  const inspectJestArgs: string[] = [];
+
+  const extraOptions = {
+    Inspect: '--inspect',
+    InspectBrk: '--inspect-brk',
+    Help: '-H,--help',
+  };
+
+  if (willParseExtraOptions(extraOptions)) {
+    const extraProg = new Command();
+
+    extraProg
+      .option(`${extraOptions.Inspect} [string]`, 'activate inspector')
+      .option(
+        `${extraOptions.InspectBrk} [string]`,
+        'activate inspector and break at start of user scrip'
+      )
+      .helpOption(extraOptions.Help, 'Output usage information.')
+      .allowUnknownOption();
+
+    extraProg.parse([nodePath, 'wuzzle-jest', ...args]);
+
+    if (extraProg.inspect === true) {
+      extraProg.inspect = '';
+    }
+    if (typeof extraProg.inspect == 'string') {
+      inspectNodeArgs.splice(
+        0,
+        inspectNodeArgs.length,
+        extraProg.inspect ? `--inspect=${extraProg.inspect}` : '--inspect'
+      );
+    }
+
+    if (extraProg.inspectBrk === true) {
+      extraProg.inspectBrk = '';
+    }
+    if (typeof extraProg.inspectBrk == 'string') {
+      inspectNodeArgs.splice(
+        0,
+        inspectNodeArgs.length,
+        extraProg.inspectBrk ? `--inspect-brk=${extraProg.inspectBrk}` : '--inspect-brk'
+      );
+    }
+
+    if (inspectNodeArgs.length) {
+      inspectJestArgs.splice(0, inspectJestArgs.length, '--runInBand');
+    }
+
+    args.splice(0, args.length, ...extraProg.args);
+  }
+
   const { bin, version } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
   const majorVersion = semver.parse(version)!.major;
 
@@ -151,7 +204,7 @@ function launchJest() {
   );
   const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
 
-  execSync(nodePath, ['-r', jestRegisterPath, jestCommandPath, ...args]);
+  execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], inspectNodeArgs);
 }
 
 function launchTaro() {
@@ -160,7 +213,7 @@ function launchTaro() {
   const taroCommandPath = path.resolve(projectPath, 'node_modules/@tarojs/cli', bin['taro']);
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
 
-  execSync(nodePath, ['-r', webpackRegisterPath, taroCommandPath, ...args]);
+  execNode(['-r', webpackRegisterPath, taroCommandPath, ...args]);
 }
 
 function launchRazzle() {
@@ -169,21 +222,28 @@ function launchRazzle() {
   const razzleCommandPath = path.resolve(projectPath, 'node_modules/razzle', bin['razzle']);
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
 
-  execSync(nodePath, ['-r', razzleRegisterPath, razzleCommandPath, ...args]);
+  execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
 }
 
 // Helpers
 
-function execSync(file: string, args?: string[]): ExecaSyncReturnValue | void {
+function execNode(args: string[], nodeArgs: string[] = []): void {
+  let exec = nodePath;
+  if (nodePath.match(/ts-node$/)) {
+    exec = shelljs.which('node').stdout;
+    args.unshift(nodePath);
+  }
+
   try {
-    return execa.sync(file, args, { stdio: 'inherit' });
-  } catch {
-    process.exit(2);
+    execa.sync(exec, [...nodeArgs, ...args], { stdio: 'inherit' });
+  } catch (e) {
+    console.error(e.stack);
+    process.exit(1);
   }
 }
 
 /**
- * Parse extra options from process args if they exist and store them as an env variable.
+ * Parse node like extra options from process args if they exist and store them as an env variable.
  */
 function applyNodeLikeExtraOptions(name: string) {
   const options: NodeLikeExtraOptions = { exts: [] };
@@ -194,11 +254,7 @@ function applyNodeLikeExtraOptions(name: string) {
     Help: '-H,--Help',
   };
 
-  const willParseExtraOptions = Object.values(extraOptions).some(option =>
-    args.some(arg => option.split(',').includes(arg))
-  );
-
-  if (willParseExtraOptions) {
+  if (willParseExtraOptions(extraOptions)) {
     const extraProg = new Command();
 
     extraProg
@@ -217,4 +273,13 @@ function applyNodeLikeExtraOptions(name: string) {
   }
 
   process.env[NODE_LIKE_EXTRA_OPTIONS_ENV_KEY] = JSON.stringify(options);
+}
+
+/**
+ * Check whether to parse extra options or not by `extraOptions`.
+ */
+function willParseExtraOptions(extraOptions: Record<string, string>) {
+  return Object.values(extraOptions).some(option =>
+    args.some(arg => option.split(',').some(o => arg == o || arg.startsWith(`${o}=`)))
+  );
 }
