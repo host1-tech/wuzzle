@@ -1,8 +1,7 @@
 import { merge } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
-
-export const NODE_LIKE_EXTRA_OPTIONS_ENV_KEY = 'WUZZLE_NODE_LIKE_EXTRA_OPTIONS';
+import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../../constants';
 
 export interface NodeLikeExtraOptions {
   exts: string[];
@@ -12,7 +11,7 @@ export function mergeNodeLikeExtraOptionsFromEnv(
   nodeLikeExtraOptions: NodeLikeExtraOptions
 ): NodeLikeExtraOptions {
   try {
-    merge(nodeLikeExtraOptions, JSON.parse(process.env[NODE_LIKE_EXTRA_OPTIONS_ENV_KEY] || '{}'));
+    merge(nodeLikeExtraOptions, JSON.parse(process.env[EK_NODE_LIKE_EXTRA_OPTIONS] || '{}'));
   } catch {}
 
   return nodeLikeExtraOptions;

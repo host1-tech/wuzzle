@@ -4,9 +4,10 @@ import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
 import shelljs from 'shelljs';
-import { NodeLikeExtraOptions, NODE_LIKE_EXTRA_OPTIONS_ENV_KEY } from '../registers/node/utils';
+import { EK_ANCHOR_NAME, EK_COMMAND_NAME, EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
+import { NodeLikeExtraOptions } from '../registers/node/utils';
 
-const anchorName = process.env.WUZZLE_ANCHOR_NAME || 'package.json';
+const anchorName = process.env[EK_ANCHOR_NAME] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
 
 if (!anchorPath) {
@@ -19,7 +20,7 @@ const projectPath = path.dirname(anchorPath);
 const [nodePath, , commandName, ...args] = process.argv;
 
 // Set command name as an env variable to help wuzzle user config setup
-process.env.WUZZLE_COMMAND_NAME = commandName;
+process.env[EK_COMMAND_NAME] = commandName;
 
 switch (commandName) {
   case 'webpack':
@@ -272,7 +273,7 @@ function applyNodeLikeExtraOptions(name: string) {
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  process.env[NODE_LIKE_EXTRA_OPTIONS_ENV_KEY] = JSON.stringify(options);
+  process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(options);
 }
 
 /**

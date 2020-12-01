@@ -4,6 +4,7 @@ import { merge } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
 import treeKill from 'tree-kill';
+import { EK_ANCHOR_NAME } from '../src/constants';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const envOptions = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false`;
@@ -19,7 +20,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('anchor not located', () => {
       beforeAll(() => {
-        commandExec = `cross-env WUZZLE_ANCHOR_NAME='inexistent_anchor_name' ${wuzzleExec}`;
+        commandExec = `cross-env ${EK_ANCHOR_NAME}='inexistent_anchor_name' ${wuzzleExec}`;
         fixturePath = '';
         outputDir = '';
       });

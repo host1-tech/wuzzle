@@ -9,7 +9,11 @@ import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 import type webpack from 'webpack';
+import { EK_COMMAND_NAME } from '../constants';
 import transpile from '../transpile';
+
+// Keep command name env variable consistent with 'wuzzle transpile'
+process.env[EK_COMMAND_NAME] = 'transpile';
 
 const program = new Command('wuzzle-transpile');
 const version = require('../../package.json').version;
