@@ -31,7 +31,7 @@ export function transform(code: string): string {
     },
     StringLiteral(path) {
       if (path.node.value == 'node' && findParentSpawnSync(path)) {
-        path.replaceWithSourceString(`'${process.argv0}'`);
+        path.replaceWithSourceString(`'${process.argv[0]}'`);
       }
     },
   });

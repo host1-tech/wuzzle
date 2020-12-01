@@ -5,7 +5,7 @@ import path from 'path';
 import semver from 'semver';
 import shelljs from 'shelljs';
 import { EK_ANCHOR_NAME, EK_COMMAND_NAME, EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
-import { NodeLikeExtraOptions } from '../registers/node/utils';
+import type { NodeLikeExtraOptions } from '../registers/node';
 
 const anchorName = process.env[EK_ANCHOR_NAME] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -205,7 +205,9 @@ function launchJest() {
   );
   const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
 
-  execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], inspectNodeArgs);
+  execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], {
+    nodeArgs: inspectNodeArgs,
+  });
 }
 
 function launchTaro() {
@@ -228,7 +230,7 @@ function launchRazzle() {
 
 // Helpers
 
-function execNode(args: string[], nodeArgs: string[] = []): void {
+function execNode(args: string[], options: execa.SyncOptions & { nodeArgs?: string[] } = {}): void {
   let exec = nodePath;
   if (nodePath.match(/ts-node$/)) {
     exec = shelljs.which('node').stdout;
@@ -236,7 +238,7 @@ function execNode(args: string[], nodeArgs: string[] = []): void {
   }
 
   try {
-    execa.sync(exec, [...nodeArgs, ...args], { stdio: 'inherit' });
+    execa.sync(exec, [...(options.nodeArgs || []), ...args], { stdio: 'inherit', ...options });
   } catch (e) {
     console.error(e.stack);
     process.exit(1);
