@@ -4,10 +4,16 @@ import findUp from 'find-up';
 import path from 'path';
 import semver from 'semver';
 import shelljs from 'shelljs';
-import { EK_ANCHOR_NAME, EK_COMMAND_NAME, EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
+import {
+  EK_COMMAND_ARGS,
+  EK_COMMAND_NAME,
+  EK_INTERNAL_PRE_CONFIG,
+  EK_NODE_LIKE_EXTRA_OPTIONS,
+  EK_RPOJECT_ANCHOR,
+} from '../constants';
 import type { NodeLikeExtraOptions } from '../registers/node';
 
-const anchorName = process.env[EK_ANCHOR_NAME] || 'package.json';
+const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
 
 if (!anchorPath) {
@@ -225,20 +231,29 @@ function launchRazzle() {
   const razzleCommandPath = path.resolve(projectPath, 'node_modules/razzle', bin['razzle']);
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
 
+  process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
+
   execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
 }
 
 // Helpers
 
-function execNode(args: string[], options: execa.SyncOptions & { nodeArgs?: string[] } = {}): void {
-  let exec = nodePath;
+function execNode(
+  execArgs: string[],
+  execOpts: execa.SyncOptions & { nodeArgs?: string[] } = {}
+): void {
+  let execPath = nodePath;
   if (nodePath.match(/ts-node$/)) {
-    exec = shelljs.which('node').stdout;
-    args.unshift(nodePath);
+    execPath = shelljs.which('node').stdout;
+    execArgs.unshift(nodePath);
   }
 
   try {
-    execa.sync(exec, [...(options.nodeArgs || []), ...args], { stdio: 'inherit', ...options });
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
+    execa.sync(execPath, [...(execOpts.nodeArgs || []), ...execArgs], {
+      stdio: 'inherit',
+      ...execOpts,
+    });
   } catch (e) {
     console.error(e.stack);
     process.exit(1);

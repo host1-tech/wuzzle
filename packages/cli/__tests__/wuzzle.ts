@@ -4,7 +4,7 @@ import { merge } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
 import treeKill from 'tree-kill';
-import { EK_ANCHOR_NAME } from '../src/constants';
+import { EK_RPOJECT_ANCHOR } from '../src/constants';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const envOptions = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false`;
@@ -20,7 +20,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('anchor not located', () => {
       beforeAll(() => {
-        commandExec = `cross-env ${EK_ANCHOR_NAME}='inexistent_anchor_name' ${wuzzleExec}`;
+        commandExec = `cross-env ${EK_RPOJECT_ANCHOR}='inexistent_anchor_name' ${wuzzleExec}`;
         fixturePath = '';
         outputDir = '';
       });
@@ -276,16 +276,15 @@ describe('@wuzzle/cli - wuzzle', () => {
       itCreatesOutputDir();
     });
 
-    // TODO make razzle test work
-    // describe('razzle 3.x test', () => {
-    //   beforeAll(() => {
-    //     execCommand = `${wuzzleExec} razzle test --coverage`;
-    //     fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-    //   });
-    //   itExecutes();
-    //   itMountsWuzzleProcess();
-    //   itPrintsExecMessage('renders without exploding');
-    // });
+    describe('razzle 3.x test', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} razzle test --coverage --env=jsdom`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('renders without exploding');
+    });
 
     function itExecutes(options: Partial<{ exitCode: number; closeMsg: string }> = {}) {
       options = merge({ exitCode: 0 }, options);
