@@ -39,6 +39,20 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
     });
   });
 
+  describe('when executing with no input file found', () => {
+    it('prints hint message', () => {
+      const { stdout } = shelljs.exec(`${wuzzleTranspileExec} 'inexistent/input/glob' -d lib`);
+      expect(stdout).toContain('No input file found');
+    });
+  });
+
+  describe('when executing with bad input file', () => {
+    it('prints hint message', () => {
+      const { stdout } = shelljs.exec(`${wuzzleTranspileExec} 'src/throw.es' -d lib`);
+      expect(stdout).toContain('compilation failed');
+    });
+  });
+
   describe('when executing with unsupported option', () => {
     it.each(['-t', '--target'])(`prints error message with '%s unknown'`, option => {
       const { stderr } = shelljs.exec(

@@ -9,11 +9,12 @@ import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 import type webpack from 'webpack';
-import { EK_COMMAND_NAME } from '../constants';
+import { EK_COMMAND_ARGS, EK_COMMAND_NAME } from '../constants';
 import transpile from '../transpile';
 
-// Keep command name env variable consistent with 'wuzzle transpile'
+// Set command env variables consistent across 'wuzzle transpile'
 process.env[EK_COMMAND_NAME] = 'transpile';
+process.env[EK_COMMAND_ARGS] = JSON.stringify(process.argv.slice(2));
 
 const program = new Command('wuzzle-transpile');
 const version = require('../../package.json').version;
@@ -98,11 +99,21 @@ async function launchExec() {
   // Calculate input options
   const { verbose, clean, watch, ignore, args: inputGlobs } = program;
 
+  const verboseLog = verbose ? console.log : noop;
+  const forceLog = console.log;
+  const errorLog = console.error;
+
   const inputPaths = uniq(
     inputGlobs
       .map(g => glob.sync(g, { ignore }))
       .reduce((m, p) => (m.push(...p.map(p => path.resolve(p))), m), [])
+      .filter(p => shelljs.test('-f', p))
   );
+
+  if (!inputPaths.length) {
+    forceLog(yellow('No input file found.'));
+    return;
+  }
 
   let basePath = path.resolve(program.basePath || longestCommonPrefix(inputPaths));
   if (!shelljs.test('-d', basePath)) basePath = path.dirname(basePath);
@@ -122,10 +133,6 @@ async function launchExec() {
         ? 'inline-source-map'
         : 'inline-cheap-module-source-map'
       : undefined;
-
-  const verboseLog = verbose ? console.log : noop;
-  const forceLog = console.log;
-  const errorLog = console.error;
 
   // Check to clean output dir
   if (clean) {

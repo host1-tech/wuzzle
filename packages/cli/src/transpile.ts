@@ -42,6 +42,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   let inputPath: string;
   if (imfs) {
     inputPath = path.resolve(options.inputCodePath!);
+    correctInputMemoryFileSystem(imfs, { inputPath });
     imfs.mkdirpSync(path.dirname(inputPath));
     imfs.writeFileSync(inputPath, options.inputCode!, 'utf-8');
   } else {
@@ -85,9 +86,16 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
     webpackCompiler.outputFileSystem = omfs;
   }
 
-  await webpackCompiler.run();
+  const webpackStats: webpack.Stats = await webpackCompiler.run();
 
-  let outputCode: string = omfs ? omfs.readFileSync(outputPath, 'utf-8') : '';
+  const hasErrors = webpackStats.hasErrors();
+
+  let outputCode: string = '';
+  if (!hasErrors) {
+    if (omfs) {
+      outputCode = omfs.readFileSync(outputPath, 'utf-8');
+    }
+  }
 
   // Destroy memory file system if created
   if (imfs) {
@@ -97,6 +105,10 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   if (omfs) {
     omfs.unlinkSync(outputPath);
     delete omfs.data;
+  }
+
+  if (hasErrors) {
+    throw new Error(`Compilation failed with messages:\n${webpackStats.toString('errors-only')}`);
   }
 
   // Normalize source map when available
@@ -136,7 +148,7 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
         skipValidation: true,
       });
       consumer.eachMapping(m => {
-        if (m.source?.startsWith('webpack/')) {
+        if (m.source != inputPath) {
           return;
         }
         generator.addMapping({
@@ -167,6 +179,19 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
   } catch {}
 
   return outputCode;
+}
+
+function correctInputMemoryFileSystem(imfs: MemoryFileSystem, options: { inputPath: string }) {
+  const imfsReadFile = imfs.readFile.bind(imfs);
+  const imfsStat = imfs.stat.bind(imfs);
+  Object.assign(imfs, {
+    readFile(...args: Parameters<typeof imfs.readFile>) {
+      return args[0] == options.inputPath ? imfsReadFile(...args) : fs.readFile(...args);
+    },
+    stat(...args: Parameters<typeof imfs.stat>) {
+      return args[0] == options.inputPath ? imfsStat(...args) : fs.stat(...args);
+    },
+  });
 }
 
 export default transpile;

@@ -35,6 +35,17 @@ describe('src/transpile', () => {
     expect(error?.message).toContain(`Cannot find inputPath '${inputPath}'`);
   });
 
+  it('throws error when compilation failure', async () => {
+    const inputPath = 'src/throw.js';
+    let error;
+    try {
+      await transpile({ inputPath });
+    } catch (e) {
+      error = e;
+    }
+    expect(error?.message).toContain(`Compilation failed with messages`);
+  });
+
   describe.each([
     [IOMethod.CODE, IOMethod.CODE],
     [IOMethod.CODE, IOMethod.FILE],
@@ -138,10 +149,10 @@ describe('src/transpile', () => {
     const isCodeOutput = outputMethod == IOMethod.CODE;
     const isInline = typeof devtool == 'string' && devtool.includes('inline');
 
-    let rawSourceMap: RawSourceMap;
+    let rawSourceMap: RawSourceMap | null = null;
 
     it('executes', async () => {
-      const transpileOptions: TranspileOptions = { webpackConfig: { devtool } };
+      const transpileOptions: TranspileOptions = { inputPath, webpackConfig: { devtool } };
 
       if (isCodeOutput) {
         const outputCodePath = outputPath;
@@ -149,6 +160,10 @@ describe('src/transpile', () => {
       } else {
         Object.assign(transpileOptions, { outputPath });
       }
+
+      const outputMapPath = outputPath + '.map';
+
+      shelljs.rm('-fr', outputMapPath);
 
       const outputCode = await transpile(transpileOptions);
       const outputContent = isCodeOutput ? outputCode : shelljs.cat(outputPath).stdout;
@@ -161,12 +176,18 @@ describe('src/transpile', () => {
           ).toString('utf-8')
         );
       } else {
-        rawSourceMap = JSON.parse(shelljs.cat(outputPath + '.map').stdout);
+        if (shelljs.test('-f', outputMapPath)) {
+          rawSourceMap = JSON.parse(shelljs.cat(outputMapPath).stdout);
+        }
       }
     });
 
-    it('removes redundant source map items', () => {
-      expect(rawSourceMap.sources.some(source => source.startsWith('webpack/'))).toBe(false);
+    it('outputs valid source map', () => {
+      if (isCodeOutput && !isInline) {
+        expect(rawSourceMap).toBeNull();
+      } else {
+        expect(rawSourceMap?.sources).toEqual([path.resolve(inputPath)]);
+      }
     });
   });
 });
