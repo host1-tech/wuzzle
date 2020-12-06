@@ -33,6 +33,7 @@ execa.sync(
     '--coverageDirectory',
     coverageJestDir,
     '--coverage',
+    '--no-cache',
     ...args,
   ],
   {
