@@ -4,5 +4,6 @@ es
 dist
 out
 build
+coverage
 .next
 .nyc_output
