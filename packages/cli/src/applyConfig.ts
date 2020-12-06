@@ -1,6 +1,7 @@
 import { diff, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import type webpack from 'webpack';
+import { EK_INTERNAL_PRE_CONFIG } from './constants';
 
 const debug = require('debug')('@wuzzle/cli:applyConfig');
 
@@ -18,6 +19,15 @@ export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
 function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuration {
   debug('Wuzzle process mounted in CWD:', process.cwd());
+
+  const internalPreConfigPath = process.env[EK_INTERNAL_PRE_CONFIG];
+  if (internalPreConfigPath) {
+    try {
+      const internalPreConfig: WuzzleConfigModify = require(internalPreConfigPath).default;
+      Object.assign(webpackConfig, internalPreConfig(webpackConfig));
+    } catch {}
+  }
+
   const webpackConfigOldSnapshot = stringify(webpackConfig);
 
   const optionsToUse: WuzzleConfigOptions = {};
@@ -32,16 +42,16 @@ function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuratio
 
   if (optionsToUse.modify) {
     try {
-      const newWebpackConfig = optionsToUse.modify(webpackConfig);
-      if (newWebpackConfig) {
-        webpackConfig = newWebpackConfig;
-      }
+      Object.assign(webpackConfig, optionsToUse.modify(webpackConfig));
     } catch {}
   }
 
   const webpackConfigNewSnapshot = stringify(webpackConfig);
 
-  debug('Webpack config changed:', diff(webpackConfigOldSnapshot, webpackConfigNewSnapshot));
+  debug(
+    'Webpack config with difference:',
+    diff(webpackConfigOldSnapshot, webpackConfigNewSnapshot)
+  );
   return webpackConfig;
 }
 
