@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.3](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.2...v0.1.0-alpha.3) (2020-12-12)
+
+
+### Bug Fixes
+
+* enforce skipping preflight check in cra ([d5d5529](https://github.com/licg9999/wuzzle/commit/d5d5529aade4b275028ba828d3d0870ef156a4a2))
+
+
+
 ## [0.1.0-alpha.2](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.1...v0.1.0-alpha.2) (2020-12-12)
 
 
