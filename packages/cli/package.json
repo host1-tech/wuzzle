@@ -1,7 +1,7 @@
 {
   "name": "@wuzzle/cli",
   "version": "0.1.0",
-  "description": "Wuzzle command line.",
+  "description": "Wuzzle command line interface.",
   "keywords": [],
   "license": "MIT",
   "files": [
