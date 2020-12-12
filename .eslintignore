@@ -5,5 +5,5 @@ dist
 out
 build
 coverage
-.next
+fixtures
 .nyc_output
