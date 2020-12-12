@@ -6,7 +6,8 @@
     "version": {
       "message": "chore: publish %s",
       "allowBranch": "master",
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "changelogPreset": "conventionalcommits"
     }
   }
 }
