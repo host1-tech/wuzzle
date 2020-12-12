@@ -28,10 +28,9 @@
     "fix": "run-s fix:*",
     "fix:eslint": "eslint --fix '**/*.@([jt]s?(x)|json)'",
     "fix:prettier": "prettier --write '**/*.@([jt]s?(x)|json)'",
-    "release": "lerna publish",
-    "release:canary": "lerna publish --canary",
-    "postinstall": "run-s build && lerna run --stream fixtures:install",
-    "prepublishOnly": "run-s clean:built build lint test"
+    "release": "lerna version",
+    "release:pre": "lerna version --conventional-prerelease",
+    "postinstall": "run-s build && lerna run --stream fixtures:install"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
