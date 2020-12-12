@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.0...v0.1.0-alpha.1) (2020-12-12)
+
+
+### Bug Fixes
+
+* set scoped packages publicly accessable ([261f855](https://github.com/licg9999/wuzzle/commit/261f85532a06863fb1a42fa096f8a0bde372d3b7))
+
+
+
 ## 0.1.0-alpha.0 (2020-12-12)
 
 
