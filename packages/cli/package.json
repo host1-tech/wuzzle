@@ -20,10 +20,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/host1-tech/wuzzle.git"
+    "url": "https://github.com/licg9999/wuzzle.git"
   },
   "bugs": {
-    "url": "https://github.com/host1-tech/wuzzle/issues"
+    "url": "https://github.com/licg9999/wuzzle/issues"
   },
   "dependencies": {
     "@babel/generator": "^7.11.4",

@@ -5,7 +5,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/host1-tech/wuzzle.git"
+    "url": "https://github.com/licg9999/wuzzle.git"
   },
   "engines": {
     "node": ">=10",
