@@ -61,7 +61,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
     describe('react-scripts 3.x', () => {
       beforeAll(() => {
-        commandExec = `cross-env SKIP_PREFLIGHT_CHECK=true ${wuzzleExec} react-scripts build`;
+        commandExec = `${wuzzleExec} react-scripts build`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
         outputDir = 'build';
       });

@@ -9,6 +9,7 @@ import {
   EK_COMMAND_NAME,
   EK_INTERNAL_PRE_CONFIG,
   EK_NODE_LIKE_EXTRA_OPTIONS,
+  EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EK_RPOJECT_ANCHOR,
 } from '../constants';
 import type { NodeLikeExtraOptions } from '../registers/node';
@@ -98,8 +99,9 @@ function launchReactScripts() {
     'node_modules/react-scripts',
     bin['react-scripts']
   );
-
   const reactScriptsRegisterPath = require.resolve('../registers/react-scripts__3.x');
+
+  process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
   execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
 }
 
