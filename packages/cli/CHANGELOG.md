@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.2](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.1...v0.1.0-alpha.2) (2020-12-12)
+
+
+### Bug Fixes
+
+* link deps ([afe4033](https://github.com/licg9999/wuzzle/commit/afe403395b087e3249192d1176ff6713532fd899))
+
+
+
 ## [0.1.0-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.0...v0.1.0-alpha.1) (2020-12-12)
 
 
