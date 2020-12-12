@@ -28,7 +28,10 @@
     "fix": "run-s fix:*",
     "fix:eslint": "eslint --fix '**/*.@([jt]s?(x)|json)'",
     "fix:prettier": "prettier --write '**/*.@([jt]s?(x)|json)'",
-    "postinstall": "yarn build && lerna run --stream fixtures:install"
+    "release": "lerna publish",
+    "release:canary": "lerna publish --canary",
+    "postinstall": "run-s build && lerna run --stream fixtures:install",
+    "prepublishOnly": "run-s clean:built build lint test"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
