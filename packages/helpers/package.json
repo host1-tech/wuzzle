@@ -16,6 +16,9 @@
   "bugs": {
     "url": "https://github.com/licg9999/wuzzle/issues"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "diff": "^4.0.2"
   },

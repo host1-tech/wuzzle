@@ -25,6 +25,9 @@
   "bugs": {
     "url": "https://github.com/licg9999/wuzzle/issues"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@babel/generator": "^7.11.4",
     "@babel/parser": "^7.11.4",
