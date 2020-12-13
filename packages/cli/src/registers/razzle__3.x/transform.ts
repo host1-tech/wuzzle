@@ -2,6 +2,9 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
+import { EK_COMMAND_ARGS } from '../../constants';
+
+const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
 
 export const match = /node_modules[\\/]razzle[\\/]bin[\\/]razzle\.js$/;
 
@@ -22,7 +25,7 @@ export function transform(code: string): string {
         path.parent.elements.unshift(
           t.stringLiteral('-r'),
           t.stringLiteral(
-            process.argv[2] == 'test'
+            razzleCommand == 'test'
               ? require.resolve('../jest__24.x')
               : require.resolve('../webpack__4.x')
           )
