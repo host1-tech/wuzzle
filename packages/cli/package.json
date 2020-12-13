@@ -12,9 +12,6 @@
     "wuzzle": "bin/wuzzle.js",
     "wuzzle-transpile": "bin/wuzzle-transpile.js"
   },
-  "scripts": {
-    "fixtures:install": "./scripts/fixtures.ts install"
-  },
   "engines": {
     "node": ">=10"
   },
