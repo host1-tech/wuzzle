@@ -1,6 +1,6 @@
 {
   "name": "@wuzzle/helpers",
-  "version": "0.1.0-alpha.5",
+  "version": "0.1.0-alpha.9",
   "description": "Collection of helper functions used by Wuzzle.",
   "homepage": "https://github.com/licg9999/wuzzle#readme",
   "license": "MIT",
