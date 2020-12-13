@@ -5,8 +5,27 @@ on:
     tags: ['v*']
 
 jobs:
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org
+      - name: Install and build
+        run: yarn
+      - name: Publish from package
+        run: yarn publish:npm --yes
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   publish-gh:
     name: Publish to GitHub
+    needs: publish-npm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,20 +48,3 @@ jobs:
           body: ${{ steps.changelog.outputs.changes }}
           prerelease: ${{ steps.changelog.outputs.status == 'prereleased' }}
           draft: ${{ steps.changelog.outputs.status == 'unreleased' }}
-  publish-npm:
-    name: Publish to NPM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-          registry-url: https://registry.npmjs.org
-      - name: Install and build
-        run: yarn
-      - name: Publish from package
-        run: yarn publish:npm --yes
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
