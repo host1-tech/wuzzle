@@ -25,7 +25,7 @@ program
   .option('-w, --watch', 'Recompile files on changes.')
   .option(
     '--ignore <globs...>',
-    `List of globs not to compile. (default: 'node_modules/**/*' '<outDir>/**/*')`
+    `List of globs not to compile. (default: '**/node_modules/**' '<absoluteOutDir>/**')`
   )
   .option(
     '-b, --base-path <path>',
@@ -66,7 +66,7 @@ function ensureArgs() {
   }
 
   if (!program.ignore) {
-    program.ignore = ['node_modules/**/*', `${path.resolve(program.outDir)}/**/*`];
+    program.ignore = ['**/node_modules/**', `${path.resolve(program.outDir)}/**`];
   }
 
   if (
@@ -105,8 +105,8 @@ async function launchExec() {
 
   const inputPaths = uniq(
     inputGlobs
-      .map(g => glob.sync(g, { ignore }))
-      .reduce((m, p) => (m.push(...p.map(p => path.resolve(p))), m), [])
+      .map(g => glob.sync(g, { absolute: true, ignore }))
+      .reduce((m, p) => (m.push(...p), m), [])
       .filter(p => shelljs.test('-f', p))
   );
 
