@@ -102,6 +102,10 @@ function launchReactScripts() {
   const reactScriptsRegisterPath = require.resolve('../registers/react-scripts__3.x');
 
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
+  process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve(
+    '../registers/react-scripts__3.x/pre-config'
+  );
+
   execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
 }
 

@@ -59,7 +59,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       itCreatesOutputDir();
     });
 
-    describe('react-scripts 3.x', () => {
+    describe('react-scripts 3.x build', () => {
       beforeAll(() => {
         commandExec = `${wuzzleExec} react-scripts build`;
         fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
@@ -68,6 +68,16 @@ describe('@wuzzle/cli - wuzzle', () => {
       itExecutes();
       itMountsWuzzleProcess();
       itCreatesOutputDir();
+    });
+
+    describe('react-scripts 3.x test', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} react-scripts test --watchAll=false`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itPrintsExecMessage('renders without exploding');
     });
 
     describe('electron-webpack 2.x', () => {
