@@ -38,7 +38,7 @@ export default (webpackConfig: webpack.Configuration) => {
         ],
       },
       resolve: {
-        extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
+        extensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.ts', '.tsx'],
       },
     });
   }
