@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.10](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2020-12-14)
+
+
+### Features
+
+* add cra test support ([198ea1a](https://github.com/licg9999/wuzzle/commit/198ea1aed92849de5bbde6f58dd1458d642000ea))
+
+
+### Bug Fixes
+
+* adjust razzle test extensions resolving ([1d183e8](https://github.com/licg9999/wuzzle/commit/1d183e877af08946c9f16ec3deba67f80786eb70))
+
+
+
 ## [0.1.0-alpha.9](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2020-12-13)
 
 **Note:** Version bump only for package wuzzle
