@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.11](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.10...v0.1.0-alpha.11) (2020-12-15)
+
+
+### Features
+
+* add cra 4.x support ([0f29436](https://github.com/licg9999/wuzzle/commit/0f294360199d98954309e8a4ae72c01c2a898d40))
+
+
+
 ## [0.1.0-alpha.10](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2020-12-14)
 
 
