@@ -92,18 +92,22 @@ function launchWebpack() {
 }
 
 function launchReactScripts() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/react-scripts/package.json'));
+  const { bin, version } = require(path.resolve(
+    projectPath,
+    'node_modules/react-scripts/package.json'
+  ));
+  const majorVersion = semver.parse(version)!.major;
 
   const reactScriptsCommandPath = path.resolve(
     projectPath,
     'node_modules/react-scripts',
     bin['react-scripts']
   );
-  const reactScriptsRegisterPath = require.resolve('../registers/react-scripts__3.x');
+  const reactScriptsRegisterPath = require.resolve(`../registers/react-scripts__${majorVersion}.x`);
 
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve(
-    '../registers/react-scripts__3.x/pre-config'
+    `../registers/react-scripts__${majorVersion}.x/pre-config`
   );
 
   execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);

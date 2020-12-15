@@ -59,25 +59,27 @@ describe('@wuzzle/cli - wuzzle', () => {
       itCreatesOutputDir();
     });
 
-    describe('react-scripts 3.x build', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} react-scripts build`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
-        outputDir = 'build';
+    ['4.x', '3.x'].forEach(version => {
+      describe(`react-scripts ${version} build`, () => {
+        beforeAll(() => {
+          commandExec = `${wuzzleExec} react-scripts build`;
+          fixturePath = path.resolve(projectPath, `__tests__/fixtures/react-scripts__${version}`);
+          outputDir = 'build';
+        });
+        itExecutes();
+        itMountsWuzzleProcess();
+        itCreatesOutputDir();
       });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
-    });
 
-    describe('react-scripts 3.x test', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} react-scripts test --watchAll=false`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x');
+      describe(`react-scripts ${version} test`, () => {
+        beforeAll(() => {
+          commandExec = `${wuzzleExec} react-scripts test --watchAll=false`;
+          fixturePath = path.resolve(projectPath, `__tests__/fixtures/react-scripts__${version}`);
+        });
+        itExecutes();
+        itMountsWuzzleProcess();
+        itPrintsExecMessage('renders without exploding');
       });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itPrintsExecMessage('renders without exploding');
     });
 
     describe('electron-webpack 2.x', () => {
