@@ -40,7 +40,7 @@ describe('razzle__3.x/pre-config.ts', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     const webpackConfig = evaluateWebpackConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
   });
 
@@ -54,7 +54,7 @@ describe('razzle__3.x/pre-config.ts', () => {
         } as ReturnType<typeof cosmiconfigSync>)
     );
     const webpackConfig = evaluateWebpackConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
   });
 });

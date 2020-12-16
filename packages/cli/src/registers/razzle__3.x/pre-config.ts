@@ -31,9 +31,22 @@ export default (webpackConfig: webpack.Configuration) => {
           {
             test: /\.css$/,
             exclude: /node_modules/,
-            use: {
-              loader: 'null-loader',
-            },
+            use: [
+              {
+                loader: 'null-loader',
+              },
+            ],
+          },
+          {
+            exclude: [/\.(js|jsx|mjs|cjs|json|ts|tsx|css)$/, /node_modules/],
+            use: [
+              {
+                loader: 'file-loader',
+                options: {
+                  emitFile: false,
+                },
+              },
+            ],
           },
         ],
       },

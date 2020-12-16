@@ -30,7 +30,7 @@ describe('react-scripts__3.x/pre-config.ts', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     const webpackConfig = evaluateWebpackConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
   });
 });
 

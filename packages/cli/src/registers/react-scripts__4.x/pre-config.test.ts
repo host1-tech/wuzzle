@@ -37,7 +37,7 @@ describe('react-scripts__4.x/pre-config.ts', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     const webpackConfig = evaluateWebpackConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
       'automatic'
     );
@@ -49,7 +49,7 @@ describe('react-scripts__4.x/pre-config.ts', () => {
     shelljs.cd(fixturePaths['3.x']);
     const webpackConfig = evaluateWebpackConfig();
     shelljs.cd(fixturePaths['4.x']);
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
   });
 
@@ -58,7 +58,7 @@ describe('react-scripts__4.x/pre-config.ts', () => {
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
     const webpackConfig = evaluateWebpackConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(2);
+    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
   });
 });
