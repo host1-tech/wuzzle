@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0-alpha.12](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.11...v0.1.0-alpha.12) (2020-12-16)
+
+
+### Bug Fixes
+
+* improve react-script/razzle test compatibility ([d36850d](https://github.com/licg9999/wuzzle/commit/d36850df4bb4e38e30c74d937e3531d9dddb3e51))
+
+
+
 ## [0.1.0-alpha.11](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.10...v0.1.0-alpha.11) (2020-12-15)
 
 
