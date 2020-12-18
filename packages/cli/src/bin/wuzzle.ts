@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import execa from 'execa';
 import findUp from 'find-up';
+import fs from 'fs';
 import path from 'path';
 import semver from 'semver';
 import shelljs from 'shelljs';
@@ -70,39 +71,33 @@ switch (commandName) {
     launchRazzle();
     break;
 
+  case 'build-storybook':
+  case 'start-storybook':
+  case 'storybook-server':
+    launchStorybook();
+    break;
+
   default:
     if (commandName) {
-      console.error(`error: command '${commandName}' not supported.`);
+      launchDefault();
     } else {
       console.error('error: command name not specified.');
+      process.exit(1);
     }
-    process.exit(1);
 }
 
 // Entries
 
 function launchWebpack() {
-  const { bin, version } = require(path.resolve(projectPath, 'node_modules/webpack/package.json'));
-  const majorVersion = semver.parse(version)!.major;
-
-  const webpackCommandPath = path.resolve(projectPath, 'node_modules/webpack', bin);
+  const webpackCommandPath = resolveCommandPath();
+  const majorVersion = resolveCommandSemVer(webpackCommandPath).major;
   const webpackRegisterPath = require.resolve(`../registers/webpack__${majorVersion}.x`);
-
   execNode(['-r', webpackRegisterPath, webpackCommandPath, ...args]);
 }
 
 function launchReactScripts() {
-  const { bin, version } = require(path.resolve(
-    projectPath,
-    'node_modules/react-scripts/package.json'
-  ));
-  const majorVersion = semver.parse(version)!.major;
-
-  const reactScriptsCommandPath = path.resolve(
-    projectPath,
-    'node_modules/react-scripts',
-    bin['react-scripts']
-  );
+  const reactScriptsCommandPath = resolveCommandPath();
+  const majorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
   const reactScriptsRegisterPath = require.resolve(`../registers/react-scripts__${majorVersion}.x`);
 
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
@@ -114,24 +109,14 @@ function launchReactScripts() {
 }
 
 function launchElectronWebpack() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/electron-webpack/package.json'));
-
-  const electronWebpackCommandPath = path.resolve(
-    projectPath,
-    'node_modules/electron-webpack',
-    bin['electron-webpack']
-  );
+  const electronWebpackCommandPath = resolveCommandPath();
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-
   execNode(['-r', webpackRegisterPath, electronWebpackCommandPath, ...args]);
 }
 
 function launchNext() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/next/package.json'));
-
-  const nextCommandPath = path.resolve(projectPath, 'node_modules/next', bin['next']);
+  const nextCommandPath = resolveCommandPath();
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-
   execNode(['-r', webpackRegisterPath, nextCommandPath, ...args]);
 }
 
@@ -149,12 +134,8 @@ async function launchNode() {
 
 async function launchMocha() {
   applyNodeLikeExtraOptions('wuzzle-mocha');
-
-  const { bin } = require(path.resolve(projectPath, 'node_modules/mocha/package.json'));
-
-  const mochaCommandPath = path.resolve(projectPath, 'node_modules/mocha', bin['mocha']);
+  const mochaCommandPath = resolveCommandPath();
   const nodeRegisterPath = require.resolve('../registers/node');
-
   execNode([mochaCommandPath, '-r', nodeRegisterPath, ...args]);
 }
 
@@ -211,14 +192,8 @@ function launchJest() {
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  const { bin, version } = require(path.resolve(projectPath, 'node_modules/jest/package.json'));
-  const majorVersion = semver.parse(version)!.major;
-
-  const jestCommandPath = path.resolve(
-    projectPath,
-    'node_modules/jest',
-    majorVersion >= 25 ? bin : bin['jest']
-  );
+  const jestCommandPath = resolveCommandPath();
+  const majorVersion = resolveCommandSemVer(jestCommandPath).major;
   const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
 
   execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], {
@@ -227,26 +202,54 @@ function launchJest() {
 }
 
 function launchTaro() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/@tarojs/cli/package.json'));
-
-  const taroCommandPath = path.resolve(projectPath, 'node_modules/@tarojs/cli', bin['taro']);
+  const taroCommandPath = resolveCommandPath();
   const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-
   execNode(['-r', webpackRegisterPath, taroCommandPath, ...args]);
 }
 
 function launchRazzle() {
-  const { bin } = require(path.resolve(projectPath, 'node_modules/razzle/package.json'));
-
-  const razzleCommandPath = path.resolve(projectPath, 'node_modules/razzle', bin['razzle']);
+  const razzleCommandPath = resolveCommandPath();
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
-
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
-
   execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
 }
 
+function launchStorybook() {
+  const storybookCommandPath = resolveCommandPath();
+  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
+  execNode(['-r', webpackRegisterPath, storybookCommandPath, ...args]);
+}
+
+function launchDefault() {
+  let currentCommandPath: string;
+  let webpackMajorVersion: number;
+  try {
+    currentCommandPath = resolveCommandPath();
+    webpackMajorVersion = resolveWebpackSemVer().major;
+  } catch {
+    console.error(`error: command '${commandName}' not supported.`);
+    process.exit(1);
+  }
+  const webpackRegisterPath = require.resolve(`../registers/webpack__${webpackMajorVersion}.x`);
+  execNode(['-r', webpackRegisterPath, currentCommandPath, ...args]);
+}
+
 // Helpers
+
+function resolveCommandPath(): string {
+  const commandLink = path.resolve(projectPath, 'node_modules/.bin', commandName);
+  return path.resolve(commandLink, '..', fs.readlinkSync(commandLink));
+}
+
+function resolveCommandSemVer(commandPath: string): semver.SemVer {
+  const { version } = require(findUp.sync('package.json', { cwd: commandPath })!);
+  return semver.parse(version)!;
+}
+
+function resolveWebpackSemVer(): semver.SemVer {
+  const { version } = require(path.resolve(projectPath, 'node_modules/webpack/package.json'));
+  return semver.parse(version)!;
+}
 
 function execNode(
   execArgs: string[],

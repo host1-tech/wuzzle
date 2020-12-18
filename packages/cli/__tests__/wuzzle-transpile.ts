@@ -327,7 +327,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         outputFiles.forEach(outputFile => {
           expect(shelljs.test('-f', outputFile)).toBe(true);
         });
-      }, 30000);
+      }, 45000);
     }
 
     function itPrintsProgressDetails() {

@@ -252,7 +252,7 @@ describe('@wuzzle/cli - wuzzle', () => {
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
         outputDir = '';
       });
-      itExecutes({ exitCode: 1, closeMsg: 'Debugger' });
+      itExecutes({ closeMsg: 'Debugger' });
       itPrintsExecMessage('Debugger listening on ws://');
     });
 
@@ -262,7 +262,7 @@ describe('@wuzzle/cli - wuzzle', () => {
         fixturePath = path.resolve(projectPath, `__tests__/fixtures/jest__26.x`);
         outputDir = '';
       });
-      itExecutes({ exitCode: 1, closeMsg: 'Debugger' });
+      itExecutes({ closeMsg: 'Debugger' });
       itPrintsExecMessage('Debugger listening on ws://127.0.0.1:9933');
     });
 
@@ -298,6 +298,27 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('renders without exploding');
     });
 
+    describe('storybook 6.x start', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} start-storybook --quiet --ci`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
+        outputDir = '';
+      });
+      itExecutes({ closeMsg: 'webpack built' });
+      itMountsWuzzleProcess();
+    });
+
+    describe('storybook 6.x build', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} build-storybook --quiet`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
+        outputDir = 'storybook-static';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
+
     function itExecutes(options: Partial<{ exitCode: number; closeMsg: string }> = {}) {
       options = merge({ exitCode: 0 }, options);
 
@@ -323,8 +344,7 @@ describe('@wuzzle/cli - wuzzle', () => {
             stream.on('data', function onData(streamLine) {
               streamLines.push(streamLine);
               if (options.closeMsg && streamLine.includes(options.closeMsg)) {
-                commandProc.kill();
-                treeKill(commandProc.pid);
+                treeKill(commandProc.pid, 'SIGKILL');
               }
             });
           }
@@ -334,7 +354,9 @@ describe('@wuzzle/cli - wuzzle', () => {
 
         stdout = _stdout;
         stderr = _stderr;
-        expect(commandProc.exitCode).toBe(options.exitCode);
+        if (typeof commandProc.exitCode == 'number') {
+          expect(commandProc.exitCode).toBe(options.exitCode);
+        }
       }, 60000);
     }
 
