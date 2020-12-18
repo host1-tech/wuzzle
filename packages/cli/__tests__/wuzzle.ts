@@ -59,6 +59,60 @@ describe('@wuzzle/cli - wuzzle', () => {
       itCreatesOutputDir();
     });
 
+    describe('electron-webpack 2.x', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} electron-webpack --progress=false`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/electron-webpack__2.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
+
+    describe('next 9.x', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} next build`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/next__9.x');
+        outputDir = '.next';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
+
+    describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} taro build --type=${buildType}`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
+        outputDir = 'dist';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
+
+    describe('storybook 6.x start', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} start-storybook --quiet --ci`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
+        outputDir = '';
+      });
+      itExecutes({ closeMsg: 'webpack built' });
+      itMountsWuzzleProcess();
+    });
+
+    describe('storybook 6.x build', () => {
+      beforeAll(() => {
+        commandExec = `${wuzzleExec} build-storybook --quiet`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
+        outputDir = 'storybook-static';
+      });
+      itExecutes();
+      itMountsWuzzleProcess();
+      itCreatesOutputDir();
+    });
+
     ['4.x', '3.x'].forEach(version => {
       describe(`react-scripts ${version} build`, () => {
         beforeAll(() => {
@@ -82,26 +136,25 @@ describe('@wuzzle/cli - wuzzle', () => {
       });
     });
 
-    describe('electron-webpack 2.x', () => {
+    describe('razzle 3.x build', () => {
       beforeAll(() => {
-        commandExec = `${wuzzleExec} electron-webpack --progress=false`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/electron-webpack__2.x');
-        outputDir = 'dist';
+        commandExec = `${wuzzleExec} razzle build`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
+        outputDir = 'build';
       });
       itExecutes();
       itMountsWuzzleProcess();
       itCreatesOutputDir();
     });
 
-    describe('next 9.x', () => {
+    describe('razzle 3.x test', () => {
       beforeAll(() => {
-        commandExec = `${wuzzleExec} next build`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/next__9.x');
-        outputDir = '.next';
+        commandExec = `${wuzzleExec} razzle test --coverage --env=jsdom`;
+        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
       });
       itExecutes();
       itMountsWuzzleProcess();
-      itCreatesOutputDir();
+      itPrintsExecMessage('renders without exploding');
     });
 
     describe('transpile', () => {
@@ -266,59 +319,6 @@ describe('@wuzzle/cli - wuzzle', () => {
       itPrintsExecMessage('Debugger listening on ws://127.0.0.1:9933');
     });
 
-    describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} taro build --type=${buildType}`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
-        outputDir = 'dist';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
-    });
-
-    describe('razzle 3.x build', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} razzle build`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-        outputDir = 'build';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
-    });
-
-    describe('razzle 3.x test', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} razzle test --coverage --env=jsdom`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itPrintsExecMessage('renders without exploding');
-    });
-
-    describe('storybook 6.x start', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} start-storybook --quiet --ci`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
-        outputDir = '';
-      });
-      itExecutes({ closeMsg: 'webpack built' });
-      itMountsWuzzleProcess();
-    });
-
-    describe('storybook 6.x build', () => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} build-storybook --quiet`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/storybook__6.x');
-        outputDir = 'storybook-static';
-      });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
-    });
-
     function itExecutes(options: Partial<{ exitCode: number; closeMsg: string }> = {}) {
       options = merge({ exitCode: 0 }, options);
 
@@ -326,6 +326,7 @@ describe('@wuzzle/cli - wuzzle', () => {
         fixturePath && shelljs.cd(fixturePath);
         outputDir && shelljs.rm('-fr', outputDir);
 
+        let isCommandProcKilled = false;
         const commandProc = shelljs.exec(commandExec, { async: true });
         const [_stdout, _stderr] = await new Promise(resolve => {
           const stdoutLines: string[] = [];
@@ -344,7 +345,8 @@ describe('@wuzzle/cli - wuzzle', () => {
             stream.on('data', function onData(streamLine) {
               streamLines.push(streamLine);
               if (options.closeMsg && streamLine.includes(options.closeMsg)) {
-                treeKill(commandProc.pid, 'SIGKILL');
+                isCommandProcKilled = true;
+                treeKill(commandProc.pid, 'SIGINT');
               }
             });
           }
@@ -354,7 +356,7 @@ describe('@wuzzle/cli - wuzzle', () => {
 
         stdout = _stdout;
         stderr = _stderr;
-        if (typeof commandProc.exitCode == 'number') {
+        if (!isCommandProcKilled) {
           expect(commandProc.exitCode).toBe(options.exitCode);
         }
       }, 60000);

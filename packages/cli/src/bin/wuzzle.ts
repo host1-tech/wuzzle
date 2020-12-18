@@ -35,16 +35,30 @@ switch (commandName) {
     launchWebpack();
     break;
 
-  case 'react-scripts':
-    launchReactScripts();
-    break;
-
   case 'electron-webpack':
     launchElectronWebpack();
     break;
 
   case 'next':
     launchNext();
+    break;
+
+  case 'taro':
+    launchTaro();
+    break;
+
+  case 'build-storybook':
+  case 'start-storybook':
+  case 'storybook-server':
+    launchStorybook();
+    break;
+
+  case 'react-scripts':
+    launchReactScripts();
+    break;
+
+  case 'razzle':
+    launchRazzle();
     break;
 
   case 'transpile':
@@ -63,20 +77,6 @@ switch (commandName) {
     launchJest();
     break;
 
-  case 'taro':
-    launchTaro();
-    break;
-
-  case 'razzle':
-    launchRazzle();
-    break;
-
-  case 'build-storybook':
-  case 'start-storybook':
-  case 'storybook-server':
-    launchStorybook();
-    break;
-
   default:
     if (commandName) {
       launchDefault();
@@ -89,35 +89,45 @@ switch (commandName) {
 // Entries
 
 function launchWebpack() {
-  const webpackCommandPath = resolveCommandPath();
-  const majorVersion = resolveCommandSemVer(webpackCommandPath).major;
-  const webpackRegisterPath = require.resolve(`../registers/webpack__${majorVersion}.x`);
-  execNode(['-r', webpackRegisterPath, webpackCommandPath, ...args]);
+  launchDefault();
+}
+
+function launchElectronWebpack() {
+  launchDefault();
+}
+
+function launchNext() {
+  launchDefault();
+}
+
+function launchTaro() {
+  launchDefault();
+}
+
+function launchStorybook() {
+  launchDefault();
 }
 
 function launchReactScripts() {
   const reactScriptsCommandPath = resolveCommandPath();
-  const majorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
-  const reactScriptsRegisterPath = require.resolve(`../registers/react-scripts__${majorVersion}.x`);
+  const reactScriptsMajorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
+  const reactScriptsRegisterPath = require.resolve(
+    `../registers/react-scripts__${reactScriptsMajorVersion}.x`
+  );
 
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve(
-    `../registers/react-scripts__${majorVersion}.x/pre-config`
+    `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
   );
 
   execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
 }
 
-function launchElectronWebpack() {
-  const electronWebpackCommandPath = resolveCommandPath();
-  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-  execNode(['-r', webpackRegisterPath, electronWebpackCommandPath, ...args]);
-}
-
-function launchNext() {
-  const nextCommandPath = resolveCommandPath();
-  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-  execNode(['-r', webpackRegisterPath, nextCommandPath, ...args]);
+function launchRazzle() {
+  const razzleCommandPath = resolveCommandPath();
+  const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
+  process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
+  execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
 }
 
 function launchTranspile() {
@@ -193,45 +203,26 @@ function launchJest() {
   }
 
   const jestCommandPath = resolveCommandPath();
-  const majorVersion = resolveCommandSemVer(jestCommandPath).major;
-  const jestRegisterPath = require.resolve(`../registers/jest__${majorVersion}.x`);
+  const jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
+  const jestRegisterPath = require.resolve(`../registers/jest__${jestMajorVersion}.x`);
 
   execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], {
     nodeArgs: inspectNodeArgs,
   });
 }
 
-function launchTaro() {
-  const taroCommandPath = resolveCommandPath();
-  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-  execNode(['-r', webpackRegisterPath, taroCommandPath, ...args]);
-}
-
-function launchRazzle() {
-  const razzleCommandPath = resolveCommandPath();
-  const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
-  process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
-  execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
-}
-
-function launchStorybook() {
-  const storybookCommandPath = resolveCommandPath();
-  const webpackRegisterPath = require.resolve('../registers/webpack__4.x');
-  execNode(['-r', webpackRegisterPath, storybookCommandPath, ...args]);
-}
-
 function launchDefault() {
-  let currentCommandPath: string;
+  let defaultCommandPath: string;
   let webpackMajorVersion: number;
   try {
-    currentCommandPath = resolveCommandPath();
-    webpackMajorVersion = resolveWebpackSemVer().major;
+    defaultCommandPath = resolveCommandPath();
+    webpackMajorVersion = resolveWebpackSemVer(defaultCommandPath).major;
   } catch {
     console.error(`error: command '${commandName}' not supported.`);
     process.exit(1);
   }
   const webpackRegisterPath = require.resolve(`../registers/webpack__${webpackMajorVersion}.x`);
-  execNode(['-r', webpackRegisterPath, currentCommandPath, ...args]);
+  execNode(['-r', webpackRegisterPath, defaultCommandPath, ...args]);
 }
 
 // Helpers
@@ -246,8 +237,10 @@ function resolveCommandSemVer(commandPath: string): semver.SemVer {
   return semver.parse(version)!;
 }
 
-function resolveWebpackSemVer(): semver.SemVer {
-  const { version } = require(path.resolve(projectPath, 'node_modules/webpack/package.json'));
+function resolveWebpackSemVer(commandPath: string): semver.SemVer {
+  const { version } = require(findUp.sync('package.json', {
+    cwd: require.resolve('webpack', { paths: [commandPath] }),
+  })!);
   return semver.parse(version)!;
 }
 
