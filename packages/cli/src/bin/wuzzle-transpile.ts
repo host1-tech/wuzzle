@@ -185,7 +185,7 @@ async function launchExec() {
   if (watch) {
     forceLog(blue(`Start watching '${inputGlobs.join(`' '`)}'.`));
 
-    const watchOptions = {
+    const watchOptions: chokidar.WatchOptions = {
       ignored: ignore,
       ignoreInitial: true,
     };
