@@ -5,8 +5,8 @@
     "@tarojs/react": "^3.0.14",
     "@tarojs/runtime": "^3.0.14",
     "@tarojs/taro": "^3.0.14",
-    "react": "^16.10.0",
-    "react-dom": "^16.10.0"
+    "react": "~16.13.1",
+    "react-dom": "~16.13.1"
   },
   "devDependencies": {
     "@babel/core": "^7.8.0",

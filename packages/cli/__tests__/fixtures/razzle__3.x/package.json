@@ -1,10 +1,8 @@
 {
-  "devDependencies": {
-    "razzle": "^3.3.7"
-  },
   "dependencies": {
     "express": "^4.17.1",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "razzle": "^3.3.7",
+    "react": "~16.13.1",
+    "react-dom": "~16.13.1"
   }
 }
