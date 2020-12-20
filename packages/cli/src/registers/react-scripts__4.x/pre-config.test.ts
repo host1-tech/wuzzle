@@ -20,6 +20,7 @@ const fixturePaths = {
 
 describe('react-scripts__4.x/pre-config.ts', () => {
   beforeAll(() => shelljs.cd(fixturePaths['4.x']));
+  afterEach(() => process.cwd() != fixturePaths['4.x'] && shelljs.cd(fixturePaths['4.x']));
 
   it('keeps unchanged when applied with unknown command name', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
@@ -44,11 +45,10 @@ describe('react-scripts__4.x/pre-config.ts', () => {
   });
 
   it('makes changes when applied with proper command envs and jsx runtime not found', () => {
+    shelljs.cd(fixturePaths['3.x']);
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    shelljs.cd(fixturePaths['3.x']);
     const webpackConfig = evaluateWebpackConfig();
-    shelljs.cd(fixturePaths['4.x']);
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
   });
