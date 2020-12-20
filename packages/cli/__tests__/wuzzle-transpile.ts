@@ -7,7 +7,7 @@ import treeKill from 'tree-kill';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-bin');
-const envOptions = `cross-env TS_NODE_TYPE_CHECK=false`;
+const envOptions = 'cross-env TS_NODE_TYPE_CHECK=false';
 const wuzzleTranspileExec = `${envOptions} ts-node ${require.resolve(
   '../src/bin/wuzzle-transpile'
 )}`;
@@ -407,7 +407,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
             stdout.off('data', onData);
             resolve(outputLine);
           });
-          shelljs.touch(inputTempFile);
+          setTimeout(() => shelljs.touch(inputTempFile), 200);
         });
         expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' compiled`);
         expect(shelljs.test('-f', outputTempFile)).toBe(true);
@@ -423,7 +423,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
             stdout.off('data', onData);
             resolve(outputLine);
           });
-          fs.writeFileSync(inputTempFile, newContent);
+          setTimeout(() => fs.writeFileSync(inputTempFile, newContent), 200);
         });
         expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' recompiled`);
         expect(shelljs.cat(outputTempFile).stdout).toContain(newContent);
@@ -438,7 +438,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
             stdout.off('data', onData);
             resolve(outputLine);
           });
-          shelljs.rm('-f', inputTempFile);
+          setTimeout(() => shelljs.rm('-f', inputTempFile), 200);
         });
         expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' removed`);
         expect(shelljs.test('-f', outputTempFile)).toBe(false);
