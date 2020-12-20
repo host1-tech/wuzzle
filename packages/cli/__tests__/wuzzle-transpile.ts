@@ -12,6 +12,8 @@ const wuzzleTranspileExec = `${envOptions} ts-node ${require.resolve(
   '../src/bin/wuzzle-transpile'
 )}`;
 
+const inputTempFile = 'src/temp.js';
+
 describe('@wuzzle/cli - wuzzle-transpile', () => {
   beforeAll(() => shelljs.cd(fixturePath));
 
@@ -72,7 +74,6 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
   describe('when executing with ...', () => {
     let inputGlobs: string;
     let inputFiles: string[];
-    let inputTempFile: string;
     let outputDir: string;
     let outputFiles: string[];
     let outputTempFile: string;
@@ -269,7 +270,6 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       beforeAll(async () => {
         inputGlobs = 'src/**/*.js';
         inputFiles = ['src/index.js', 'src/constants/index.js'];
-        inputTempFile = 'src/temp.js';
         outputDir = 'lib';
         outputFiles = ['lib/index.js', 'lib/constants/index.js'];
         outputTempFile = 'lib/temp.js';
@@ -277,8 +277,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       });
 
       afterAll(() => {
-        commandProc.kill();
-        treeKill(commandProc.pid);
+        treeKill(commandProc.pid, 'SIGINT');
       });
 
       itExecutesAndCreatesOutputFiles();
@@ -334,7 +333,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       it('prints progress details', () => {
         expect(stdout).toContain(`Start compiling '${inputGlobs}'`);
         inputFiles.forEach(inputFile => {
-          expect(stdout).toContain(`File '${inputFile}' compiled`);
+          expect(stdout).toContain(`File '${path.normalize(inputFile)}' compiled`);
         });
         expect(stdout).toContain('All files compiled');
       });
@@ -410,9 +409,9 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
           });
           shelljs.touch(inputTempFile);
         });
-        expect(stdoutLine).toContain(`File '${inputTempFile}' compiled`);
+        expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' compiled`);
         expect(shelljs.test('-f', outputTempFile)).toBe(true);
-      });
+      }, 15000);
     }
 
     function itUpdatesOutputFileOnInputFileUpdated() {
@@ -426,9 +425,9 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
           });
           fs.writeFileSync(inputTempFile, newContent);
         });
-        expect(stdoutLine).toContain(`File '${inputTempFile}' recompiled`);
+        expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' recompiled`);
         expect(shelljs.cat(outputTempFile).stdout).toContain(newContent);
-      });
+      }, 15000);
     }
 
     function itRemovesOutputFileOnInputFileRemoved() {
@@ -441,9 +440,9 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
           });
           shelljs.rm('-f', inputTempFile);
         });
-        expect(stdoutLine).toContain(`File '${inputTempFile}' removed`);
+        expect(stdoutLine).toContain(`File '${path.normalize(inputTempFile)}' removed`);
         expect(shelljs.test('-f', outputTempFile)).toBe(false);
-      });
+      }, 15000);
     }
   });
 });
