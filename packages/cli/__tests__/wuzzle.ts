@@ -7,7 +7,10 @@ import treeKill from 'tree-kill';
 import { EK_RPOJECT_ANCHOR } from '../src/constants';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
-const envOptions = `cross-env DEBUG='@wuzzle/cli:applyConfig' cross-env TS_NODE_TYPE_CHECK=false`;
+const envOptions =
+  `cross-env DEBUG='@wuzzle/cli:applyConfig' ` +
+  `cross-env NODE_ENV=development ` +
+  `cross-env TS_NODE_TYPE_CHECK=false`;
 const wuzzleExec = `${envOptions} ts-node ${require.resolve('../src/bin/wuzzle')}`;
 
 describe('@wuzzle/cli - wuzzle', () => {
@@ -218,7 +221,7 @@ describe('@wuzzle/cli - wuzzle', () => {
       });
       itExecutes({ exitCode: 1 });
       itMountsWuzzleProcess();
-      itPrintsExecMessage('src/throw-error.js:2');
+      itPrintsExecMessage(`${path.normalize('src/throw-error.js')}:2`);
     });
 
     describe.each(['8.x', '7.x'])('mocha %s', version => {
