@@ -26,10 +26,11 @@ export function transform(code: string): string {
         );
 
         if (targetPath) {
-          const transformerPath = require.resolve('./transformer');
+          const transformerPath = require.resolve('./transformer').replace(/\\/g, '\\\\');
 
           const { program } = parse(
-            `configs.forEach(config => config.transform.splice(0, config.transform.length, ['.', '${transformerPath}', {}]));`
+            `configs.forEach(config => config.transform.splice(` +
+              `0, config.transform.length, ['.', '${transformerPath}', {}]));`
           );
 
           targetPath.insertAfter(program.body[0]);

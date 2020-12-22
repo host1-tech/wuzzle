@@ -19,11 +19,10 @@ export function transform(code: string): string {
         t.isVariableDeclaration(path.parent)
       ) {
         const { program } = parse(
-          `nodeArgs.push('-r', '${
-            reactScriptsCommand == 'test'
-              ? require.resolve('../jest__24.x')
-              : require.resolve('../webpack__4.x')
-          }')`
+          `nodeArgs.push('-r', '${(reactScriptsCommand == 'test'
+            ? require.resolve('../jest__24.x')
+            : require.resolve('../webpack__4.x')
+          ).replace(/\\/g, '\\\\')}')`
         );
         path.parentPath.insertAfter(program.body[0]);
       }
@@ -39,7 +38,7 @@ export function transform(code: string): string {
         t.isIdentifier(path.parent.callee.property) &&
         path.parent.callee.property.name == 'sync'
       ) {
-        path.replaceWithSourceString(`'${process.argv[0]}'`);
+        path.replaceWithSourceString(`'${process.argv[0].replace(/\\/g, '\\\\')}'`);
       }
     },
   });

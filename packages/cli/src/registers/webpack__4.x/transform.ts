@@ -33,7 +33,9 @@ export function transform(code: string): string {
         path.parent.callee.property.name == 'process'
       ) {
         path.replaceWithSourceString(
-          `require('${require.resolve('../../applyConfig')}').default(${path.node.name})`
+          `require('${require.resolve('../../applyConfig').replace(/\\/g, '\\\\')}').default(${
+            path.node.name
+          })`
         );
       }
     },

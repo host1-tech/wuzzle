@@ -3,6 +3,7 @@ import execa from 'execa';
 import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
+import readCmdShim from 'read-cmd-shim';
 import semver from 'semver';
 import shelljs from 'shelljs';
 import {
@@ -229,7 +230,13 @@ function launchDefault() {
 
 function resolveCommandPath(): string {
   const commandLink = path.resolve(projectPath, 'node_modules/.bin', commandName);
-  return path.resolve(commandLink, '..', fs.readlinkSync(commandLink));
+  let linkContent;
+  try {
+    linkContent = fs.readlinkSync(commandLink);
+  } catch {
+    linkContent = readCmdShim.sync(commandLink);
+  }
+  return path.resolve(commandLink, '..', linkContent);
 }
 
 function resolveCommandSemVer(commandPath: string): semver.SemVer {
@@ -249,7 +256,7 @@ function execNode(
   execOpts: execa.SyncOptions & { nodeArgs?: string[] } = {}
 ): void {
   let execPath = nodePath;
-  if (nodePath.match(/ts-node$/)) {
+  if (nodePath.match(/node_modules[\\/]ts-node/)) {
     execPath = shelljs.which('node').stdout;
     execArgs.unshift(nodePath);
   }

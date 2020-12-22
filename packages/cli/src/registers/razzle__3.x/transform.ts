@@ -25,16 +25,17 @@ export function transform(code: string): string {
         path.parent.elements.unshift(
           t.stringLiteral('-r'),
           t.stringLiteral(
-            razzleCommand == 'test'
+            (razzleCommand == 'test'
               ? require.resolve('../jest__24.x')
               : require.resolve('../webpack__4.x')
+            ).replace(/\\/g, '\\\\')
           )
         );
       }
     },
     StringLiteral(path) {
       if (path.node.value == 'node' && findParentSpawnSync(path)) {
-        path.replaceWithSourceString(`'${process.argv[0]}'`);
+        path.replaceWithSourceString(`'${process.argv[0].replace(/\\/g, '\\\\')}'`);
       }
     },
   });
