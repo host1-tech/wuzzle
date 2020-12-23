@@ -256,7 +256,7 @@ function execNode(
   execOpts: execa.SyncOptions & { nodeArgs?: string[] } = {}
 ): void {
   let execPath = nodePath;
-  if (nodePath.match(/node_modules[\\/]ts-node/)) {
+  if ([/node_modules[\\/]ts-node/, /ts-node$/].some(m => m.test(nodePath))) {
     execPath = shelljs.which('node').stdout;
     execArgs.unshift(nodePath);
   }
