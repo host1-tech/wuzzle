@@ -3,7 +3,6 @@ import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
-import treeKill from 'tree-kill';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
 const fixturePath = path.resolve(projectPath, '__tests__/fixtures/wuzzle-transpile-bin');
@@ -276,9 +275,7 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -w -V`;
       });
 
-      afterAll(() => {
-        treeKill(commandProc.pid, 'SIGINT');
-      });
+      afterAll(() => commandProc.kill('SIGINT'));
 
       itExecutesAndCreatesOutputFiles();
       itPrintsProgressDetails();
