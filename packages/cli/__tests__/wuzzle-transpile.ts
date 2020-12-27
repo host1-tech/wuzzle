@@ -89,11 +89,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'**/*.js' -d lib`, () => {
@@ -105,11 +105,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/constants/**/*.js' -d lib`, () => {
@@ -121,11 +121,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir}`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/constants/**/*.js' -d lib -b src`, () => {
@@ -137,11 +137,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -b src`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib --ignore 'src/constants/**/*.js'`, () => {
@@ -153,11 +153,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} --ignore 'src/constants/**/*.js'`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d out -p`, () => {
@@ -169,11 +169,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsProdFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsProdJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -s`, () => {
@@ -190,10 +190,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -s inline`, () => {
@@ -205,11 +206,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -s inline`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itCreatesInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itOutputsInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -p -s`, () => {
@@ -226,10 +227,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsProdFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsProdJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -p -s inline`, () => {
@@ -241,11 +243,11 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -p -s inline`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
-      itOutputsProdFiles();
-      itDoesNotCreateSourceMapFiles();
-      itCreatesInlineSourceMaps();
+      itOutputsProdJsFiles();
+      itOutputsInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -V`, () => {
@@ -257,12 +259,12 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -V`;
       });
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
       itPrintsCleanMessage();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
     });
 
     describe(`'src/**/*.js' -d lib -w -V`, () => {
@@ -275,22 +277,23 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
         commandExec = `${wuzzleTranspileExec} '${inputGlobs}' -d ${outputDir} -w -V`;
       });
 
-      afterAll(() => commandProc.kill('SIGINT'));
+      afterAll(() => commandProc.stdin?.write('\x04'));
 
-      itExecutesAndCreatesOutputFiles();
+      itExecutes();
+      itCreatesOutputFiles();
       itPrintsProgressDetails();
       itPrintsWatchMessage();
-      itOutputsDevFiles();
-      itDoesNotCreateSourceMapFiles();
-      itDoesNotCreateInlineSourceMaps();
+      itOutputsDevJsFiles();
+      itDoesNotOutputInlineSourceMaps();
       itCreatesOutputFileOnInputFileCreated();
       itUpdatesOutputFileOnInputFileUpdated();
       itRemovesOutputFileOnInputFileRemoved();
     });
 
-    function itExecutesAndCreatesOutputFiles() {
+    function itExecutes() {
       it('executes and creates output files', async () => {
-        shelljs.rm('-fr', outputDir, inputTempFile);
+        outputDir && shelljs.rm('-fr', outputDir);
+        shelljs.rm('-f', inputTempFile);
 
         commandProc = shelljs.exec(commandExec, { async: true });
         stdout = await new Promise(resolve => {
@@ -326,6 +329,18 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       }, 45000);
     }
 
+    function itCreatesOutputFiles() {
+      it('creates output files', () => {
+        const outputFilesCount = shelljs
+          .ls('-R', outputDir)
+          .filter(file => shelljs.test('-f', path.resolve(outputDir, file))).length;
+
+        expect(outputFilesCount).toBe(outputFiles.length);
+
+        outputFiles.forEach(outputFile => expect(shelljs.test('-f', outputFile)).toBe(true));
+      });
+    }
+
     function itPrintsProgressDetails() {
       it('prints progress details', () => {
         expect(stdout).toContain(`Start compiling '${inputGlobs}'`);
@@ -348,8 +363,8 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       });
     }
 
-    function itOutputsDevFiles() {
-      it('it outputs dev files', () => {
+    function itOutputsDevJsFiles() {
+      it('outputs dev js files', () => {
         outputFiles
           .filter(outputFile => outputFile.endsWith('.js'))
           .forEach(outputFile => {
@@ -358,8 +373,8 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       });
     }
 
-    function itOutputsProdFiles() {
-      it('it outputs prod files', () => {
+    function itOutputsProdJsFiles() {
+      it('outputs prod js files', () => {
         outputFiles
           .filter(outputFile => outputFile.endsWith('.js'))
           .forEach(outputFile => {
@@ -368,16 +383,8 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       });
     }
 
-    function itDoesNotCreateSourceMapFiles() {
-      it('does not create source map files', () => {
-        outputFiles.forEach(outputFile => {
-          expect(shelljs.test('-f', `${outputFile}.map`)).toBe(false);
-        });
-      });
-    }
-
-    function itCreatesInlineSourceMaps() {
-      it('it creates inline source maps', () => {
+    function itOutputsInlineSourceMaps() {
+      it('it outputs inline source maps', () => {
         outputFiles.forEach(outputFile => {
           expect(shelljs.cat(outputFile).stdout).toContain(
             'sourceMappingURL=data:application/json;charset=utf-8;base64'
@@ -386,8 +393,8 @@ describe('@wuzzle/cli - wuzzle-transpile', () => {
       });
     }
 
-    function itDoesNotCreateInlineSourceMaps() {
-      it('it does not create inline source maps', () => {
+    function itDoesNotOutputInlineSourceMaps() {
+      it('it does not output inline source maps', () => {
         outputFiles.forEach(outputFile => {
           expect(shelljs.cat(outputFile).stdout).not.toContain(
             'sourceMappingURL=data:application/json;charset=utf-8;base64'
