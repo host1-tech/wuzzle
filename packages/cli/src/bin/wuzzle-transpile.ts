@@ -195,5 +195,12 @@ async function launchExec() {
       .on('add', action)
       .on('change', action)
       .on('unlink', remove);
+
+    // Handle CTRL-D as exit signal
+    process.stdin.on('data', chunk => {
+      if (chunk.toString('binary').includes('\x04')) {
+        process.exit();
+      }
+    });
   }
 }
