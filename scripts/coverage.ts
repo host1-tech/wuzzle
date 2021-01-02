@@ -45,7 +45,15 @@ shelljs.rm('-fr', path.join(dotNycOutputDir, '*'));
 
 shelljs.mv(path.join(coverageJestDir, COVERAGE_FINAL_JSON), dotNycOutputCoverageJestFile);
 
-shelljs.mv(path.join(coverageNycDir, COVERAGE_FINAL_JSON), dotNycOutputCoverageNycFile);
+const oldNycCoverage = JSON.parse(
+  fs.readFileSync(path.join(coverageNycDir, COVERAGE_FINAL_JSON), 'utf-8')
+);
+const newNycCoverage: Record<string, unknown> = {};
+Object.keys(oldNycCoverage).forEach(k => {
+  const v = oldNycCoverage[k];
+  newNycCoverage[k.replace(/\//g, '\\')] = { ...v, path: v.path.replace(/\//g, '\\') };
+});
+fs.writeFileSync(dotNycOutputCoverageNycFile, JSON.stringify(newNycCoverage));
 
 shelljs.rm('-fr', path.join(coverageDir, '*'));
 
