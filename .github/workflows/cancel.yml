@@ -1,0 +1,19 @@
+name: Cancel
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  cancel:
+    name: Cancel
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cancel previously running workflows
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          workflow_id: .github/workflows/coverage.yml,.github/workflows/lint.yml
+          access_token: ${{ github.token }}
