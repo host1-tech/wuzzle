@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install and build
+        run: yarn
+      - name: Lint commits
+        uses: wagoid/commitlint-github-action@v2
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules
+      - name: Lint sources
+        run: yarn lint
