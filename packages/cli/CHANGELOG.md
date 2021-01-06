@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.0](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.13...v0.1.0) (2021-01-06)
+
+
+### Bug Fixes
+
+* add windows compatible path resolving ([5ecee4c](https://github.com/licg9999/wuzzle/commit/5ecee4c473d9b263deb27df86620e10e2e0dbb89))
+* adjust ts-node check ([70bb0fa](https://github.com/licg9999/wuzzle/commit/70bb0fa608fbe136e8bca3c6b88222093ca7cd88))
+
+
+
 ## [0.1.0-alpha.13](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.12...v0.1.0-alpha.13) (2020-12-18)
 
 
