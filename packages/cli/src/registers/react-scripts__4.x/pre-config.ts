@@ -21,7 +21,7 @@ export default (webpackConfig: webpack.Configuration) => {
             exclude: /node_modules/,
             use: [
               {
-                loader: 'babel-loader',
+                loader: require.resolve('babel-loader'),
                 options: {
                   presets: [
                     [
@@ -40,7 +40,7 @@ export default (webpackConfig: webpack.Configuration) => {
             exclude: /node_modules/,
             use: [
               {
-                loader: 'null-loader',
+                loader: require.resolve('null-loader'),
               },
             ],
           },
@@ -49,10 +49,10 @@ export default (webpackConfig: webpack.Configuration) => {
             exclude: /node_modules/,
             use: [
               {
-                loader: '@svgr/webpack',
+                loader: require.resolve('@svgr/webpack'),
               },
               {
-                loader: 'file-loader',
+                loader: require.resolve('file-loader'),
                 options: {
                   emitFile: false,
                 },
@@ -63,7 +63,7 @@ export default (webpackConfig: webpack.Configuration) => {
             exclude: [/\.(js|jsx|mjs|cjs|json|ts|tsx|css|svg)$/, /node_modules/],
             use: [
               {
-                loader: 'file-loader',
+                loader: require.resolve('file-loader'),
                 options: {
                   emitFile: false,
                 },
