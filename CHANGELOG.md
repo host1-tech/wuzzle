@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.1](https://github.com/licg9999/wuzzle/compare/v0.1.0...v0.1.1) (2021-01-10)
+
+
+### Bug Fixes
+
+* improve omfs release ([e1c0232](https://github.com/licg9999/wuzzle/commit/e1c023249540254a17c4eb73b606d88a66991b48))
+* resolve loaders absolute paths ([356f687](https://github.com/licg9999/wuzzle/commit/356f687a9e9fc27a2b9ed16abcd539d3c5eefd94))
+
+
+
 ## [0.1.0](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.13...v0.1.0) (2021-01-06)
 
 
