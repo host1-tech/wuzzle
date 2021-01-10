@@ -102,9 +102,12 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
     imfs.unlinkSync(inputPath);
     delete imfs.data;
   }
-  if (omfs) {
-    omfs.unlinkSync(outputPath);
-    delete omfs.data;
+
+  if (!hasErrors) {
+    if (omfs) {
+      omfs.unlinkSync(outputPath);
+      delete omfs.data;
+    }
   }
 
   if (hasErrors) {
