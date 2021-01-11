@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/licg9999/wuzzle/compare/v0.1.1...v0.1.2) (2021-01-11)
+
+
+### Bug Fixes
+
+* improve changelog preset ([8176b85](https://github.com/licg9999/wuzzle/commit/8176b85043b0b5c3158c44e60c22fddec3b2c68e))
+* normalize changelog generation ([36e4bdb](https://github.com/licg9999/wuzzle/commit/36e4bdb64027630d0ff6040dd688287b32a4866e))
+* normalize meta files ([7137cfb](https://github.com/licg9999/wuzzle/commit/7137cfbe923c0309996338da7fcac597536c1edc))
+
+
+
 ## [0.1.1](https://github.com/licg9999/wuzzle/compare/v0.1.0...v0.1.1) (2021-01-10)
 
 

@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/wuzzlejs/wuzzle/compare/v0.1.1...v0.1.2) (2021-01-11)
+
+
+### Bug Fixes
+
+* normalize meta files ([7137cfb](https://github.com/wuzzlejs/wuzzle/commit/7137cfbe923c0309996338da7fcac597536c1edc))
+
+
+
 ## [0.1.0](https://github.com/licg9999/wuzzle/compare/v0.1.0-alpha.13...v0.1.0) (2021-01-06)
 
 **Note:** Version bump only for package @wuzzle/helpers
