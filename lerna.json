@@ -7,7 +7,7 @@
       "message": "chore: publish %s",
       "allowBranch": "master",
       "conventionalCommits": true,
-      "changelogPreset": "conventionalcommits"
+      "changelogPreset": "@wuzzle-utils/conventional-changelog-conventionalcommits"
     }
   }
 }

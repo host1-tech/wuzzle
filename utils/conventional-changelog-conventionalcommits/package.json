@@ -1,0 +1,10 @@
+{
+  "name": "@wuzzle-utils/conventional-changelog-conventionalcommits",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "conventional-changelog-conventionalcommits": "^4.5.0"
+  }
+}
