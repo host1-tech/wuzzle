@@ -2,7 +2,6 @@
   "name": "@wuzzle/helpers",
   "version": "0.1.0",
   "description": "Collection of helper functions used by Wuzzle.",
-  "homepage": "https://github.com/licg9999/wuzzle#readme",
   "license": "MIT",
   "files": [
     "lib"
@@ -11,10 +10,10 @@
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "https://github.com/licg9999/wuzzle.git"
+    "url": "https://github.com/wuzzlejs/wuzzle.git"
   },
   "bugs": {
-    "url": "https://github.com/licg9999/wuzzle/issues"
+    "url": "https://github.com/wuzzlejs/wuzzle/issues"
   },
   "publishConfig": {
     "access": "public"
