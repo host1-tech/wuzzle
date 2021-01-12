@@ -3,6 +3,7 @@ import path from 'path';
 import shelljs from 'shelljs';
 import { RawSourceMap } from 'source-map';
 import webpack from 'webpack';
+import { EK_INTERNAL_PRE_CONFIG } from './constants';
 import transpile, { TranspileOptions } from './transpile';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
@@ -44,6 +45,14 @@ describe('src/transpile', () => {
       error = e;
     }
     expect(error?.message).toContain(`Compilation failed with messages`);
+  });
+
+  it('renames output ext when output ext matches exts in webpack config', async () => {
+    const inputPath = 'src/trial.ts';
+    const outputPath = 'lib/trial.ts';
+    process.env[EK_INTERNAL_PRE_CONFIG] = path.resolve('pre-config.js');
+    await transpile({ inputPath, outputPath });
+    expect(shelljs.test('-f', 'lib/trial.js')).toBe(true);
   });
 
   describe.each([

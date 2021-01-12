@@ -77,6 +77,15 @@ async function transpile(options: TranspileOptions = {}): Promise<string> {
 
   applyConfig(webpackConfig);
 
+  const resolveExtensions = webpackConfig.resolve?.extensions ?? [];
+  const outputPathParsed = path.parse(outputPath);
+  if (resolveExtensions.includes(outputPathParsed.ext)) {
+    outputPathParsed.ext = '.js';
+    outputPathParsed.base = `${outputPathParsed.name}${outputPathParsed.ext}`;
+    outputPath = path.format(outputPathParsed);
+    Object.assign(webpackConfig.output, { filename: outputPathParsed.base });
+  }
+
   // Create webpack compiler and execute
   const webpackCompiler = pify(webpack(webpackConfig));
   if (imfs) {
