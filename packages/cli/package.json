@@ -41,6 +41,7 @@
     "execa": "^4.0.3",
     "file-loader": "^6.2.0",
     "find-up": "^5.0.0",
+    "get-stream": "^6.0.0",
     "glob": "^7.1.6",
     "lodash": "^4.17.20",
     "memory-fs": "^0.5.0",

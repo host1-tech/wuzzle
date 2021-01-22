@@ -1,18 +1,10 @@
+import getStream from 'get-stream';
 import transpile from '../../transpile';
 
 const [, , inputCodePath] = process.argv;
 
-async function readInputCode(): Promise<string> {
-  const chunks: Buffer[] = [];
-  return await new Promise<string>((resolve, reject) => {
-    process.stdin.on('data', chunk => chunks.push(chunk));
-    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-    process.stdin.on('error', reject);
-  });
-}
-
 (async () => {
-  const inputCode = await readInputCode();
+  const inputCode = await getStream(process.stdin);
   const outputCode = await transpile({
     inputCode,
     inputCodePath,
