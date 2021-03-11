@@ -10,7 +10,6 @@
 
 [![](https://img.shields.io/npm/v/@wuzzle/cli.svg)](https://www.npmjs.com/package/@wuzzle/cli)
 [![](https://img.shields.io/codecov/c/github/host1-tech/wuzzle/master.svg)](https://app.codecov.io/gh/host1-tech/wuzzle)
-[![](https://img.shields.io/github/checks-status/host1-tech/wuzzle/master)](https://github.com/host1-tech/wuzzle)
 [![](https://img.shields.io/github/license/host1-tech/wuzzle)](https://github.com/host1-tech/wuzzle/blob/master/LICENSE)
 
 ## Install
