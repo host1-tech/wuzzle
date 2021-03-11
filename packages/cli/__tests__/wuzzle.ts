@@ -84,15 +84,17 @@ describe('@wuzzle/cli - wuzzle', () => {
       itCreatesOutputDir();
     });
 
-    describe.each(['weapp', 'h5'])('taro 3.x build type %s', buildType => {
-      beforeAll(() => {
-        commandExec = `${wuzzleExec} taro build --type=${buildType}`;
-        fixturePath = path.resolve(projectPath, '__tests__/fixtures/taro__3.x');
-        outputDir = 'dist';
+    ['3.x', '2.x'].forEach(version => {
+      describe.each(['weapp', 'h5'])(`taro ${version} build type %s`, buildType => {
+        beforeAll(() => {
+          commandExec = `${wuzzleExec} taro build --type=${buildType}`;
+          fixturePath = path.resolve(projectPath, `__tests__/fixtures/taro__${version}`);
+          outputDir = 'dist';
+        });
+        itExecutes();
+        itMountsWuzzleProcess();
+        itCreatesOutputDir();
       });
-      itExecutes();
-      itMountsWuzzleProcess();
-      itCreatesOutputDir();
     });
 
     describe('storybook 6.x start', () => {
