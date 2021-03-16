@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.5](https://github.com/host1-tech/wuzzle/compare/v0.1.4...v0.1.5) (2021-03-16)
+
+
+### Bug Fixes
+
+* adjust taro test deps and remove checks status ([13b66b8](https://github.com/host1-tech/wuzzle/commit/13b66b88c39c4ef601b3deacdbf3b66d6fb6a866))
+
+
+
 ## [0.1.4](https://github.com/host1-tech/wuzzle/compare/v0.1.3...v0.1.4) (2021-02-28)
 
 **Note:** Version bump only for package @wuzzle/cli
