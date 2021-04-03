@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.1.5...v0.1.6-alpha.0) (2021-04-03)
+
+
+### Bug Fixes
+
+* add symlink following option ([335a4ac](https://github.com/host1-tech/wuzzle/commit/335a4acc67c876cba50b4a5a88205762195fddab))
+
+
+
 ## [0.1.5](https://github.com/host1-tech/wuzzle/compare/v0.1.4...v0.1.5) (2021-03-16)
 
 
