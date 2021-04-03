@@ -50,6 +50,7 @@ program
       '"file" if specified without value)'
   )
   .option('--no-clean', 'Prevent cleaning out directory.')
+  .option('-F, --follow', `Follow symlinked directories when expanding '**' patterns.`)
   .option('-V, --verbose', 'Show more details.')
   .helpOption('-h, --help', 'Output usage information.')
   .version(version, '-v, --version', 'Output the version number.');
@@ -97,7 +98,7 @@ function ensureArgs() {
 
 async function launchExec() {
   // Calculate input options
-  const { verbose, clean, watch, ignore, args: inputGlobs } = program;
+  const { verbose, clean, watch, ignore, follow, args: inputGlobs } = program;
 
   const verboseLog = verbose ? console.log : noop;
   const forceLog = console.log;
@@ -105,7 +106,7 @@ async function launchExec() {
 
   const inputPaths = uniq(
     inputGlobs
-      .map(g => glob.sync(g, { absolute: true, ignore }))
+      .map(g => glob.sync(g, { absolute: true, ignore, follow }))
       .reduce((m, p) => (m.push(...p), m), [])
       .filter(p => shelljs.test('-f', p))
   );
