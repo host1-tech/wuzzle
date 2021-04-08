@@ -27,6 +27,7 @@ const transpileDefaultOptions: TranspileOptions = {
     },
     target: 'node',
     mode: 'development',
+    node: false,
   },
 };
 
