@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.1.6-alpha.0...v0.1.6-alpha.1) (2021-04-08)
+
+
+### Bug Fixes
+
+* improve transpile config ([fb88924](https://github.com/licg9999/wuzzle/commit/fb8892460e9c785a27d33f72356754d755fef71e))
+
+
+
 ## [0.1.6-alpha.0](https://github.com/licg9999/wuzzle/compare/v0.1.5...v0.1.6-alpha.0) (2021-04-03)
 
 
