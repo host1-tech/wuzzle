@@ -1,8 +1,18 @@
+import jsonStringifySafe from 'json-stringify-safe';
+
 interface TargetDescription<T = any> {
   Type: new (...args: any[]) => T;
   toIntermediate(k: string, v: T): string;
   intermediateTester: RegExp;
 }
+
+const cycleDescription: TargetDescription = {
+  Type: class CircularType {},
+  toIntermediate() {
+    return '#Circular [Circular]';
+  },
+  intermediateTester: /"#Circular (.+)"/,
+};
 
 const targetDescriptions: TargetDescription[] = [
   {
@@ -26,6 +36,7 @@ const targetDescriptions: TargetDescription[] = [
     },
     intermediateTester: /"#Function (.+)"/,
   },
+  cycleDescription,
 ];
 
 function jsonReplacer(k: string, v: any): any {
@@ -33,6 +44,10 @@ function jsonReplacer(k: string, v: any): any {
     if (v instanceof Type) return (v = toIntermediate(k, v));
   });
   return v;
+}
+
+function cycleReplacer(k: string, v: any): any {
+  return cycleDescription.toIntermediate(k, v);
 }
 
 function stringFormat(v: string): string {
@@ -49,5 +64,5 @@ function stringFormat(v: string): string {
 }
 
 export default function stringify(o: any, space: number = 2): string {
-  return stringFormat(JSON.stringify(o, jsonReplacer, space));
+  return stringFormat(jsonStringifySafe(o, jsonReplacer, space, cycleReplacer));
 }

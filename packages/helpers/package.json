@@ -19,9 +19,11 @@
     "access": "public"
   },
   "dependencies": {
-    "diff": "^4.0.2"
+    "diff": "^4.0.2",
+    "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
-    "@types/diff": "^4.0.2"
+    "@types/diff": "^4.0.2",
+    "@types/json-stringify-safe": "^5.0.0"
   }
 }

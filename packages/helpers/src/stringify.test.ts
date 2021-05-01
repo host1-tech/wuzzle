@@ -46,8 +46,17 @@ describe('stringify', () => {
     const result = stringify({
       foo: class bar {},
     });
-
     expect(result).toContain('"foo": [Function: bar]');
+  });
+
+  it('works with circular object', () => {
+    const foo = {};
+    const bar = {};
+    Object.assign(foo, { bar });
+    Object.assign(bar, { foo });
+    const result = stringify(foo);
+    expect(result).toContain('"bar":');
+    expect(result).toContain('"foo": [Circular]');
   });
 
   it('works with space argument', () => {
