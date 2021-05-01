@@ -6,14 +6,48 @@ describe('stringify', () => {
     expect(result).toContain('"regular": /expression/');
   });
 
-  it('works with function', () => {
+  it('works with plain function', () => {
     const result = stringify({
       foo: function () {
         return 0;
       },
     });
-    expect(result).toContain('"foo": function ()');
-    expect(result).toContain('return 0;');
+    expect(result).toContain('"foo": [Function: foo]');
+  });
+
+  it('works with named function', () => {
+    const result = stringify({
+      foo: function bar() {
+        return 0;
+      },
+    });
+    expect(result).toContain('"foo": [Function: bar]');
+  });
+
+  it('works with arrow function', () => {
+    const result = stringify({
+      foo: () => {
+        return 0;
+      },
+    });
+    expect(result).toContain('"foo": [Function: foo]');
+  });
+
+  it('works with member function', () => {
+    const result = stringify({
+      foo() {
+        return 0;
+      },
+    });
+    expect(result).toContain('"foo": [Function: foo]');
+  });
+
+  it('works with class', () => {
+    const result = stringify({
+      foo: class bar {},
+    });
+
+    expect(result).toContain('"foo": [Function: bar]');
   });
 
   it('works with space argument', () => {
