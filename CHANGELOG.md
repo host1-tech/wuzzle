@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6-alpha.3](https://github.com/licg9999/wuzzle/compare/v0.1.6-alpha.2...v0.1.6-alpha.3) (2021-05-19)
+
+
+### Bug Fixes
+
+* use util#inspect in stringify ([7199a53](https://github.com/licg9999/wuzzle/commit/7199a539a27d7d7aef610d290ee61e302055d76f))
+
+
+
 ## [0.1.6-alpha.2](https://github.com/licg9999/wuzzle/compare/v0.1.6-alpha.1...v0.1.6-alpha.2) (2021-05-01)
 
 
