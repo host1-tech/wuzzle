@@ -1,66 +1,25 @@
+import util from 'util';
 import stringify from './stringify';
 
+const mockedInspect = jest.spyOn(util, 'inspect');
+
+const inspectOutput = 'inspectOutput';
+mockedInspect.mockReturnValue(inspectOutput);
+
 describe('stringify', () => {
-  it('works with regular expression', () => {
-    const result = stringify({ regular: /expression/ });
-    expect(result).toContain('"regular": /expression/');
+  afterEach(() => mockedInspect.mockClear());
+
+  it('works with preset options', () => {
+    const input = { regular: /expression/ };
+    const output = stringify(input);
+    expect(output).toBe(inspectOutput);
+    expect(mockedInspect).toBeCalledWith(input, { colors: true, depth: Infinity });
   });
 
-  it('works with plain function', () => {
-    const result = stringify({
-      foo: function () {
-        return 0;
-      },
-    });
-    expect(result).toContain('"foo": [Function: foo]');
-  });
-
-  it('works with named function', () => {
-    const result = stringify({
-      foo: function bar() {
-        return 0;
-      },
-    });
-    expect(result).toContain('"foo": [Function: bar]');
-  });
-
-  it('works with arrow function', () => {
-    const result = stringify({
-      foo: () => {
-        return 0;
-      },
-    });
-    expect(result).toContain('"foo": [Function: foo]');
-  });
-
-  it('works with member function', () => {
-    const result = stringify({
-      foo() {
-        return 0;
-      },
-    });
-    expect(result).toContain('"foo": [Function: foo]');
-  });
-
-  it('works with class', () => {
-    const result = stringify({
-      foo: class bar {},
-    });
-    expect(result).toContain('"foo": [Function: bar]');
-  });
-
-  it('works with circular object', () => {
-    const foo = {};
-    const bar = {};
-    Object.assign(foo, { bar });
-    Object.assign(bar, { foo });
-    const result = stringify(foo);
-    expect(result).toContain('"bar":');
-    expect(result).toContain('"foo": [Circular]');
-  });
-
-  it('works with space argument', () => {
-    const result = stringify({ value: 0 }, 4);
-    expect(result).toContain('    ');
+  it('works with custom options', () => {
+    const input = { regular: /expression/ };
+    const output = stringify(input, { depth: 2, showHidden: true });
+    expect(output).toBe(inspectOutput);
+    expect(mockedInspect).toBeCalledWith(input, { colors: true, depth: 2, showHidden: true });
   });
 });
