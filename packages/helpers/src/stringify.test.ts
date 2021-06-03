@@ -1,5 +1,5 @@
 import util from 'util';
-import stringify from './stringify';
+import { stringify } from './stringify';
 
 const mockedInspect = jest.spyOn(util, 'inspect');
 

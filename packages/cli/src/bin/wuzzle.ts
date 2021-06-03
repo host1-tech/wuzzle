@@ -1,9 +1,8 @@
+import { resolveCommandPath } from '@wuzzle/helpers';
 import { Command } from 'commander';
 import execa from 'execa';
 import findUp from 'find-up';
-import fs from 'fs';
 import path from 'path';
-import readCmdShim from 'read-cmd-shim';
 import semver from 'semver';
 import shelljs from 'shelljs';
 import {
@@ -110,7 +109,7 @@ function launchStorybook() {
 }
 
 function launchReactScripts() {
-  const reactScriptsCommandPath = resolveCommandPath();
+  const reactScriptsCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const reactScriptsMajorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
   const reactScriptsRegisterPath = require.resolve(
     `../registers/react-scripts__${reactScriptsMajorVersion}.x`
@@ -125,7 +124,7 @@ function launchReactScripts() {
 }
 
 function launchRazzle() {
-  const razzleCommandPath = resolveCommandPath();
+  const razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
   execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
@@ -145,7 +144,7 @@ async function launchNode() {
 
 async function launchMocha() {
   applyNodeLikeExtraOptions('wuzzle-mocha');
-  const mochaCommandPath = resolveCommandPath();
+  const mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const nodeRegisterPath = require.resolve('../registers/node');
   execNode([mochaCommandPath, '-r', nodeRegisterPath, ...args]);
 }
@@ -203,7 +202,7 @@ function launchJest() {
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  const jestCommandPath = resolveCommandPath();
+  const jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
   const jestRegisterPath = require.resolve(`../registers/jest__${jestMajorVersion}.x`);
 
@@ -216,7 +215,7 @@ function launchDefault() {
   let defaultCommandPath: string;
   let webpackMajorVersion: number;
   try {
-    defaultCommandPath = resolveCommandPath();
+    defaultCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
     webpackMajorVersion = resolveWebpackSemVer(defaultCommandPath).major;
   } catch {
     console.error(`error: command '${commandName}' not supported.`);
@@ -227,17 +226,6 @@ function launchDefault() {
 }
 
 // Helpers
-
-function resolveCommandPath(): string {
-  const commandLink = path.resolve(projectPath, 'node_modules/.bin', commandName);
-  let linkContent;
-  try {
-    linkContent = fs.readlinkSync(commandLink);
-  } catch {
-    linkContent = readCmdShim.sync(commandLink);
-  }
-  return path.resolve(commandLink, '..', linkContent);
-}
 
 function resolveCommandSemVer(commandPath: string): semver.SemVer {
   const { version } = require(findUp.sync('package.json', { cwd: commandPath })!);

@@ -20,10 +20,9 @@
   },
   "dependencies": {
     "diff": "^4.0.2",
-    "json-stringify-safe": "^5.0.1"
+    "read-cmd-shim": "^2.0.0"
   },
   "devDependencies": {
-    "@types/diff": "^4.0.2",
-    "@types/json-stringify-safe": "^5.0.0"
+    "@types/diff": "^4.0.2"
   }
 }

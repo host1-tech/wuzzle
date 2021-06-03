@@ -1,6 +1,6 @@
 import { diffLines } from 'diff';
 
-export default function diff(oldStr: string, newStr: string) {
+export function diff(oldStr: string, newStr: string) {
   return diffLines(oldStr, newStr)
     .map(({ value, added, removed }) => {
       const sign = added ? '+' : removed ? '-' : '';
