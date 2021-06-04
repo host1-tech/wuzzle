@@ -20,9 +20,12 @@
   },
   "dependencies": {
     "diff": "^4.0.2",
-    "read-cmd-shim": "^2.0.0"
+    "find-up": "^5.0.0",
+    "read-cmd-shim": "^2.0.0",
+    "semver": "^7.3.5"
   },
   "devDependencies": {
-    "@types/diff": "^4.0.2"
+    "@types/diff": "^4.0.2",
+    "@types/semver": "^7.3.6"
   }
 }
