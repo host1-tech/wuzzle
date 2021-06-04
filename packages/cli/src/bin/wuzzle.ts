@@ -1,9 +1,8 @@
-import { resolveCommandPath } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveCommandSemVer, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
 import execa from 'execa';
 import findUp from 'find-up';
 import path from 'path';
-import semver from 'semver';
 import shelljs from 'shelljs';
 import {
   EK_COMMAND_ARGS,
@@ -226,18 +225,6 @@ function launchDefault() {
 }
 
 // Helpers
-
-function resolveCommandSemVer(commandPath: string): semver.SemVer {
-  const { version } = require(findUp.sync('package.json', { cwd: commandPath })!);
-  return semver.parse(version)!;
-}
-
-function resolveWebpackSemVer(commandPath: string): semver.SemVer {
-  const { version } = require(findUp.sync('package.json', {
-    cwd: require.resolve('webpack', { paths: [commandPath] }),
-  })!);
-  return semver.parse(version)!;
-}
 
 function execNode(
   execArgs: string[],

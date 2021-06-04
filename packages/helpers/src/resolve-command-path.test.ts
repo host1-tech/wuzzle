@@ -19,7 +19,7 @@ const mockedProcessCwd = mocked(process.cwd).mockReturnValue(processCwdResult);
 const commandName = 'commandName';
 
 describe('resolveCommandPath', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
