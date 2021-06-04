@@ -13,6 +13,7 @@ import {
   EK_RPOJECT_ANCHOR,
 } from '../constants';
 import type { NodeLikeExtraOptions } from '../registers/node';
+import { areArgsParsableByFlags } from '../utils';
 
 const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -153,20 +154,17 @@ function launchJest() {
   const inspectJestArgs: string[] = [];
 
   const extraOptions = {
-    Inspect: '--inspect',
-    InspectBrk: '--inspect-brk',
+    Inspect: '--inspect [string]',
+    InspectBrk: '--inspect-brk [string]',
     Help: '-H,--help',
   };
 
-  if (willParseExtraOptions(extraOptions)) {
+  if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
     const extraProg = new Command();
 
     extraProg
-      .option(`${extraOptions.Inspect} [string]`, 'activate inspector')
-      .option(
-        `${extraOptions.InspectBrk} [string]`,
-        'activate inspector and break at start of user scrip'
-      )
+      .option(extraOptions.Inspect, 'activate inspector')
+      .option(extraOptions.InspectBrk, 'activate inspector and break at start of user scrip')
       .helpOption(extraOptions.Help, 'Output usage information.')
       .allowUnknownOption();
 
@@ -256,16 +254,16 @@ function applyNodeLikeExtraOptions(name: string) {
   const { exts } = options;
 
   const extraOptions = {
-    Ext: '--ext',
+    Ext: '--ext <string>',
     Help: '-H,--Help',
   };
 
-  if (willParseExtraOptions(extraOptions)) {
+  if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
     const extraProg = new Command();
 
     extraProg
       .option(
-        `${extraOptions.Ext} <string>`,
+        extraOptions.Ext,
         'Specify file extensions for resolving, splitted by comma. ' +
           `(default: "${exts.join(',')}")`
       )
@@ -279,13 +277,4 @@ function applyNodeLikeExtraOptions(name: string) {
   }
 
   process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(options);
-}
-
-/**
- * Check whether to parse extra options or not by `extraOptions`.
- */
-function willParseExtraOptions(extraOptions: Record<string, string>) {
-  return Object.values(extraOptions).some(option =>
-    args.some(arg => option.split(',').some(o => arg == o || arg.startsWith(`${o}=`)))
-  );
 }
