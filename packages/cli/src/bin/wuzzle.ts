@@ -5,12 +5,10 @@ import path from 'path';
 import {
   EK_COMMAND_NAME,
   EK_INTERNAL_PRE_CONFIG,
-  EK_NODE_LIKE_EXTRA_OPTIONS,
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EK_RPOJECT_ANCHOR,
 } from '../constants';
-import type { NodeLikeExtraOptions } from '../registers/node';
-import { areArgsParsableByFlags, execNode } from '../utils';
+import { applyNodeLikeExtraOptions, areArgsParsableByFlags, execNode } from '../utils';
 
 const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -142,7 +140,7 @@ function launchTranspile() {
 }
 
 async function launchNode() {
-  applyNodeLikeExtraOptions('wuzzle-node');
+  applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-node', args });
   const nodeRegisterPath = require.resolve('../registers/node');
   execNode({
     nodePath,
@@ -152,7 +150,7 @@ async function launchNode() {
 }
 
 async function launchMocha() {
-  applyNodeLikeExtraOptions('wuzzle-mocha');
+  applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args });
   const mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const nodeRegisterPath = require.resolve('../registers/node');
   execNode({
@@ -246,39 +244,4 @@ function launchDefault() {
     args,
     execArgs: ['-r', webpackRegisterPath, defaultCommandPath, ...args],
   });
-}
-
-// Helpers
-
-/**
- * Parse node like extra options from process args if they exist and store them as an env variable.
- */
-function applyNodeLikeExtraOptions(name: string) {
-  const options: NodeLikeExtraOptions = { exts: ['.js'] };
-  const { exts } = options;
-
-  const extraOptions = {
-    Ext: '--ext <string>',
-    Help: '-H,--Help',
-  };
-
-  if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
-    const extraProg = new Command();
-
-    extraProg
-      .option(
-        extraOptions.Ext,
-        'Specify file extensions for resolving, splitted by comma. ' +
-          `(default: "${exts.join(',')}")`
-      )
-      .helpOption(extraOptions.Help, 'Output usage information.')
-      .allowUnknownOption();
-
-    extraProg.parse([nodePath, name, ...args]);
-
-    exts.splice(0, exts.length, ...extraProg.ext.split(','));
-    args.splice(0, args.length, ...extraProg.args);
-  }
-
-  process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(options);
 }
