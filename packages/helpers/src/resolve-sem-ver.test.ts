@@ -30,9 +30,7 @@ describe('resolveCommandSemVer', () => {
     mockedFsReadFileSync.mockReturnValueOnce(packageJsonBuf);
     const semVer = resolveCommandSemVer(commandPath);
     expect(semVer.version).toBe(version);
-    expect(mockedFindUpSync).toBeCalledTimes(1);
     expect(mockedFindUpSync).toBeCalledWith('package.json', { cwd: commandPath });
-    expect(mockedFsReadFileSync).toBeCalledTimes(1);
     expect(mockedFsReadFileSync).toBeCalledWith(packageJsonPath);
   });
 
@@ -60,11 +58,8 @@ describe('resolveWebpackSemVer', () => {
     const semVer = resolveWebpackSemVer(commandPath);
     expect(semVer).toBeInstanceOf(SemVer);
     expect(semVer.version).toBe(version);
-    expect(mockedResolveRequire).toBeCalledTimes(1);
     expect(mockedResolveRequire).toBeCalledWith('webpack', { paths: [commandPath] });
-    expect(mockedFindUpSync).toBeCalledTimes(1);
     expect(mockedFindUpSync).toBeCalledWith('package.json', { cwd: webpackEntryPath });
-    expect(mockedFsReadFileSync).toBeCalledTimes(1);
     expect(mockedFsReadFileSync).toBeCalledWith(packageJsonPath);
   });
 

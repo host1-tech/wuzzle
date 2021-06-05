@@ -1,11 +1,8 @@
 import { resolveCommandPath, resolveCommandSemVer, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import execa from 'execa';
 import findUp from 'find-up';
 import path from 'path';
-import shelljs from 'shelljs';
 import {
-  EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
   EK_INTERNAL_PRE_CONFIG,
   EK_NODE_LIKE_EXTRA_OPTIONS,
@@ -13,7 +10,7 @@ import {
   EK_RPOJECT_ANCHOR,
 } from '../constants';
 import type { NodeLikeExtraOptions } from '../registers/node';
-import { areArgsParsableByFlags } from '../utils';
+import { areArgsParsableByFlags, execNode } from '../utils';
 
 const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -120,14 +117,22 @@ function launchReactScripts() {
     `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
   );
 
-  execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args],
+  });
 }
 
 function launchRazzle() {
   const razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
-  execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', razzleRegisterPath, razzleCommandPath, ...args],
+  });
 }
 
 function launchTranspile() {
@@ -139,14 +144,22 @@ function launchTranspile() {
 async function launchNode() {
   applyNodeLikeExtraOptions('wuzzle-node');
   const nodeRegisterPath = require.resolve('../registers/node');
-  execNode(['-r', nodeRegisterPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', nodeRegisterPath, ...args],
+  });
 }
 
 async function launchMocha() {
   applyNodeLikeExtraOptions('wuzzle-mocha');
   const mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const nodeRegisterPath = require.resolve('../registers/node');
-  execNode([mochaCommandPath, '-r', nodeRegisterPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: [mochaCommandPath, '-r', nodeRegisterPath, ...args],
+  });
 }
 
 function launchJest() {
@@ -203,8 +216,17 @@ function launchJest() {
   const jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
   const jestRegisterPath = require.resolve(`../registers/jest__${jestMajorVersion}.x`);
 
-  execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], {
-    nodeArgs: inspectNodeArgs,
+  execNode({
+    nodePath,
+    args,
+    execArgs: [
+      ...inspectNodeArgs,
+      '-r',
+      jestRegisterPath,
+      jestCommandPath,
+      ...inspectJestArgs,
+      ...args,
+    ],
   });
 }
 
@@ -219,38 +241,20 @@ function launchDefault() {
     process.exit(1);
   }
   const webpackRegisterPath = require.resolve(`../registers/webpack__${webpackMajorVersion}.x`);
-  execNode(['-r', webpackRegisterPath, defaultCommandPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', webpackRegisterPath, defaultCommandPath, ...args],
+  });
 }
 
 // Helpers
-
-function execNode(
-  execArgs: string[],
-  execOpts: execa.SyncOptions & { nodeArgs?: string[] } = {}
-): void {
-  let execPath = nodePath;
-  if ([/node_modules[\\/]ts-node/, /ts-node$/].some(m => m.test(nodePath))) {
-    execPath = shelljs.which('node').stdout;
-    execArgs.unshift(nodePath);
-  }
-
-  try {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
-    execa.sync(execPath, [...(execOpts.nodeArgs || []), ...execArgs], {
-      stdio: 'inherit',
-      ...execOpts,
-    });
-  } catch (e) {
-    console.error(e.stack);
-    process.exit(1);
-  }
-}
 
 /**
  * Parse node like extra options from process args if they exist and store them as an env variable.
  */
 function applyNodeLikeExtraOptions(name: string) {
-  const options: NodeLikeExtraOptions = { exts: [] };
+  const options: NodeLikeExtraOptions = { exts: ['.js'] };
   const { exts } = options;
 
   const extraOptions = {

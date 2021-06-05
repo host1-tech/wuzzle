@@ -1,17 +1,17 @@
 import { EventEmitter } from 'events';
 import findUp from 'find-up';
-import { merge } from 'lodash';
+import { map, merge } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
 import treeKill from 'tree-kill';
 import { EK_RPOJECT_ANCHOR } from '../src/constants';
 
 const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
-const envOptions =
-  `cross-env DEBUG='@wuzzle/cli:applyConfig' ` +
-  `cross-env NODE_ENV=development ` +
-  `cross-env TS_NODE_TYPE_CHECK=false`;
-const wuzzleExec = `${envOptions} ts-node ${require.resolve('../src/bin/wuzzle')}`;
+const envOptions = map(
+  { DEBUG: '@wuzzle/cli:applyConfig', NODE_ENV: 'development' },
+  (v, k) => `cross-env ${k}='${v}'`
+).join(' ');
+const wuzzleExec = `${envOptions} ${require.resolve('../bin/wuzzle')}`;
 
 describe('@wuzzle/cli - wuzzle', () => {
   describe('when working with...', () => {
