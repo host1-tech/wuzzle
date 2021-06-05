@@ -27,7 +27,6 @@ describe('resolveCommandPath', () => {
     mockedFsReadlinkSync.mockReturnValueOnce(symbolicLinkValue);
     const commandPath = resolveCommandPath({ commandName });
     expect(mockedProcessCwd).toBeCalledTimes(1);
-    expect(mockedFsReadlinkSync).toBeCalledTimes(1);
     expect(mockedFsReadlinkSync.mock.calls[0][0]).toMatch(
       new RegExp(`^${processCwdResult}.*${commandName}$`)
     );
@@ -41,7 +40,6 @@ describe('resolveCommandPath', () => {
     mockedReadCmdShimSync.mockReturnValueOnce(cmdShimValue);
     const commandPath = resolveCommandPath({ commandName });
     expect(mockedProcessCwd).toBeCalledTimes(1);
-    expect(mockedFsReadlinkSync).toBeCalledTimes(1);
     expect(mockedFsReadlinkSync.mock.calls[0][0]).toMatch(
       new RegExp(`^${processCwdResult}.*${commandName}$`)
     );
