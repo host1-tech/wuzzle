@@ -1,20 +1,14 @@
+import { resolveCommandPath, resolveCommandSemVer, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import execa from 'execa';
 import findUp from 'find-up';
-import fs from 'fs';
 import path from 'path';
-import readCmdShim from 'read-cmd-shim';
-import semver from 'semver';
-import shelljs from 'shelljs';
 import {
-  EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
   EK_INTERNAL_PRE_CONFIG,
-  EK_NODE_LIKE_EXTRA_OPTIONS,
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EK_RPOJECT_ANCHOR,
 } from '../constants';
-import type { NodeLikeExtraOptions } from '../registers/node';
+import { applyNodeLikeExtraOptions, areArgsParsableByFlags, execNode } from '../utils';
 
 const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -110,7 +104,7 @@ function launchStorybook() {
 }
 
 function launchReactScripts() {
-  const reactScriptsCommandPath = resolveCommandPath();
+  const reactScriptsCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const reactScriptsMajorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
   const reactScriptsRegisterPath = require.resolve(
     `../registers/react-scripts__${reactScriptsMajorVersion}.x`
@@ -121,14 +115,22 @@ function launchReactScripts() {
     `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
   );
 
-  execNode(['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args],
+  });
 }
 
 function launchRazzle() {
-  const razzleCommandPath = resolveCommandPath();
+  const razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const razzleRegisterPath = require.resolve('../registers/razzle__3.x');
   process.env[EK_INTERNAL_PRE_CONFIG] = require.resolve('../registers/razzle__3.x/pre-config');
-  execNode(['-r', razzleRegisterPath, razzleCommandPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', razzleRegisterPath, razzleCommandPath, ...args],
+  });
 }
 
 function launchTranspile() {
@@ -138,16 +140,24 @@ function launchTranspile() {
 }
 
 async function launchNode() {
-  applyNodeLikeExtraOptions('wuzzle-node');
+  applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-node', args });
   const nodeRegisterPath = require.resolve('../registers/node');
-  execNode(['-r', nodeRegisterPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', nodeRegisterPath, ...args],
+  });
 }
 
 async function launchMocha() {
-  applyNodeLikeExtraOptions('wuzzle-mocha');
-  const mochaCommandPath = resolveCommandPath();
+  applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args });
+  const mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const nodeRegisterPath = require.resolve('../registers/node');
-  execNode([mochaCommandPath, '-r', nodeRegisterPath, ...args]);
+  execNode({
+    nodePath,
+    args,
+    execArgs: [mochaCommandPath, '-r', nodeRegisterPath, ...args],
+  });
 }
 
 function launchJest() {
@@ -155,20 +165,17 @@ function launchJest() {
   const inspectJestArgs: string[] = [];
 
   const extraOptions = {
-    Inspect: '--inspect',
-    InspectBrk: '--inspect-brk',
+    Inspect: '--inspect [string]',
+    InspectBrk: '--inspect-brk [string]',
     Help: '-H,--help',
   };
 
-  if (willParseExtraOptions(extraOptions)) {
+  if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
     const extraProg = new Command();
 
     extraProg
-      .option(`${extraOptions.Inspect} [string]`, 'activate inspector')
-      .option(
-        `${extraOptions.InspectBrk} [string]`,
-        'activate inspector and break at start of user scrip'
-      )
+      .option(extraOptions.Inspect, 'activate inspector')
+      .option(extraOptions.InspectBrk, 'activate inspector and break at start of user scrip')
       .helpOption(extraOptions.Help, 'Output usage information.')
       .allowUnknownOption();
 
@@ -203,12 +210,21 @@ function launchJest() {
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  const jestCommandPath = resolveCommandPath();
+  const jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
   const jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
   const jestRegisterPath = require.resolve(`../registers/jest__${jestMajorVersion}.x`);
 
-  execNode(['-r', jestRegisterPath, jestCommandPath, ...inspectJestArgs, ...args], {
-    nodeArgs: inspectNodeArgs,
+  execNode({
+    nodePath,
+    args,
+    execArgs: [
+      ...inspectNodeArgs,
+      '-r',
+      jestRegisterPath,
+      jestCommandPath,
+      ...inspectJestArgs,
+      ...args,
+    ],
   });
 }
 
@@ -216,101 +232,16 @@ function launchDefault() {
   let defaultCommandPath: string;
   let webpackMajorVersion: number;
   try {
-    defaultCommandPath = resolveCommandPath();
+    defaultCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
     webpackMajorVersion = resolveWebpackSemVer(defaultCommandPath).major;
   } catch {
     console.error(`error: command '${commandName}' not supported.`);
     process.exit(1);
   }
   const webpackRegisterPath = require.resolve(`../registers/webpack__${webpackMajorVersion}.x`);
-  execNode(['-r', webpackRegisterPath, defaultCommandPath, ...args]);
-}
-
-// Helpers
-
-function resolveCommandPath(): string {
-  const commandLink = path.resolve(projectPath, 'node_modules/.bin', commandName);
-  let linkContent;
-  try {
-    linkContent = fs.readlinkSync(commandLink);
-  } catch {
-    linkContent = readCmdShim.sync(commandLink);
-  }
-  return path.resolve(commandLink, '..', linkContent);
-}
-
-function resolveCommandSemVer(commandPath: string): semver.SemVer {
-  const { version } = require(findUp.sync('package.json', { cwd: commandPath })!);
-  return semver.parse(version)!;
-}
-
-function resolveWebpackSemVer(commandPath: string): semver.SemVer {
-  const { version } = require(findUp.sync('package.json', {
-    cwd: require.resolve('webpack', { paths: [commandPath] }),
-  })!);
-  return semver.parse(version)!;
-}
-
-function execNode(
-  execArgs: string[],
-  execOpts: execa.SyncOptions & { nodeArgs?: string[] } = {}
-): void {
-  let execPath = nodePath;
-  if ([/node_modules[\\/]ts-node/, /ts-node$/].some(m => m.test(nodePath))) {
-    execPath = shelljs.which('node').stdout;
-    execArgs.unshift(nodePath);
-  }
-
-  try {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
-    execa.sync(execPath, [...(execOpts.nodeArgs || []), ...execArgs], {
-      stdio: 'inherit',
-      ...execOpts,
-    });
-  } catch (e) {
-    console.error(e.stack);
-    process.exit(1);
-  }
-}
-
-/**
- * Parse node like extra options from process args if they exist and store them as an env variable.
- */
-function applyNodeLikeExtraOptions(name: string) {
-  const options: NodeLikeExtraOptions = { exts: [] };
-  const { exts } = options;
-
-  const extraOptions = {
-    Ext: '--ext',
-    Help: '-H,--Help',
-  };
-
-  if (willParseExtraOptions(extraOptions)) {
-    const extraProg = new Command();
-
-    extraProg
-      .option(
-        `${extraOptions.Ext} <string>`,
-        'Specify file extensions for resolving, splitted by comma. ' +
-          `(default: "${exts.join(',')}")`
-      )
-      .helpOption(extraOptions.Help, 'Output usage information.')
-      .allowUnknownOption();
-
-    extraProg.parse([nodePath, name, ...args]);
-
-    exts.splice(0, exts.length, ...extraProg.ext.split(','));
-    args.splice(0, args.length, ...extraProg.args);
-  }
-
-  process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(options);
-}
-
-/**
- * Check whether to parse extra options or not by `extraOptions`.
- */
-function willParseExtraOptions(extraOptions: Record<string, string>) {
-  return Object.values(extraOptions).some(option =>
-    args.some(arg => option.split(',').some(o => arg == o || arg.startsWith(`${o}=`)))
-  );
+  execNode({
+    nodePath,
+    args,
+    execArgs: ['-r', webpackRegisterPath, defaultCommandPath, ...args],
+  });
 }

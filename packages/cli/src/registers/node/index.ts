@@ -1,17 +1,20 @@
-import { merge } from 'lodash';
+import { mergeWith, uniq } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../../constants';
+import { getDefaultNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
 import { transform } from './transform';
 
 sourceMapSupport.install({ hookRequire: true });
 
-const options: NodeLikeExtraOptions = {
-  exts: ['.js'],
-};
+const options: NodeLikeExtraOptions = getDefaultNodeLikeExtraOptions();
 
 try {
-  merge(options, JSON.parse(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]!));
+  mergeWith(options, JSON.parse(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]!), (lVal, rVal) => {
+    if (Array.isArray(lVal) && Array.isArray(rVal)) {
+      return uniq([...lVal, ...rVal]);
+    }
+  });
 } catch {}
 
 const piratesOptions = {
@@ -20,7 +23,3 @@ const piratesOptions = {
 };
 
 addHook(transform, piratesOptions);
-
-export interface NodeLikeExtraOptions {
-  exts: string[];
-}

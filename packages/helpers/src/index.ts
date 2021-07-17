@@ -1,3 +1,6 @@
-export { default as stringify } from './stringify';
-export { default as diff } from './diff';
-export { default as longestCommonPrefix } from './longest-common-prefix';
+export * from './diff';
+export * from './longest-common-prefix';
+export * from './resolve-command-path';
+export * from './resolve-require';
+export * from './resolve-sem-ver';
+export * from './stringify';

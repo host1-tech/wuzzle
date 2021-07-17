@@ -1,4 +1,4 @@
-import longestCommonPrefix from './longest-common-prefix';
+import { longestCommonPrefix } from './longest-common-prefix';
 
 describe('longestCommonPrefix', () => {
   it('calculates longest common prefix from input strings', () => {

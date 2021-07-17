@@ -1,4 +1,4 @@
-export default function longestCommonPrefix(strs: string[]): string {
+export function longestCommonPrefix(strs: string[]): string {
   if (!strs.length) return '';
 
   let k = strs[0].length;

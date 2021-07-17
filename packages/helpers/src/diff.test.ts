@@ -1,4 +1,4 @@
-import diff from './diff';
+import { diff } from './diff';
 
 describe('diff', () => {
   it('prints differences between inputs line by line', () => {
