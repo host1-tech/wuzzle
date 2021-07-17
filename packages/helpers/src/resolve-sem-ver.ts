@@ -3,8 +3,6 @@ import findUp from 'find-up';
 import semver, { SemVer } from 'semver';
 import { resolveRequire } from './resolve-require';
 
-export { SemVer };
-
 export function resolveCommandSemVer(commandPath: string): SemVer {
   const packageJsonPath = findUp.sync('package.json', { cwd: commandPath });
   if (packageJsonPath === undefined) {
