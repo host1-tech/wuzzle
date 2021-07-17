@@ -1,8 +1,9 @@
 import findUp from 'find-up';
 import fs from 'fs';
+import { SemVer } from 'semver';
 import { mocked } from 'ts-jest/utils';
-import * as resolveRequireHelper from './resolve-require';
-import { resolveCommandSemVer, resolveWebpackSemVer, SemVer } from './resolve-sem-ver';
+import { resolveRequire } from './resolve-require';
+import { resolveCommandSemVer, resolveWebpackSemVer } from './resolve-sem-ver';
 
 const commandPath = '/path/to/command';
 const version = '1.0.0';
@@ -12,13 +13,8 @@ const packageJsonInvalidBuf = Buffer.from(JSON.stringify({ version: 'random' }))
 const webpackEntryPath = '/path/to/webpack/entry';
 
 jest.spyOn(findUp, 'sync');
-const mockedFindUpSync = mocked(findUp.sync);
-
 jest.spyOn(fs, 'readFileSync');
-const mockedFsReadFileSync = mocked(fs.readFileSync);
-
-jest.spyOn(resolveRequireHelper, 'resolveRequire');
-const mockedResolveRequire = mocked(resolveRequireHelper.resolveRequire);
+jest.mock('./resolve-require');
 
 describe('resolveCommandSemVer', () => {
   beforeEach(() => {
@@ -26,22 +22,22 @@ describe('resolveCommandSemVer', () => {
   });
 
   it('works on package located and version parsed', () => {
-    mockedFindUpSync.mockReturnValueOnce(packageJsonPath);
-    mockedFsReadFileSync.mockReturnValueOnce(packageJsonBuf);
+    mocked(findUp.sync).mockReturnValueOnce(packageJsonPath);
+    mocked(fs.readFileSync).mockReturnValueOnce(packageJsonBuf);
     const semVer = resolveCommandSemVer(commandPath);
     expect(semVer.version).toBe(version);
-    expect(mockedFindUpSync).toBeCalledWith('package.json', { cwd: commandPath });
-    expect(mockedFsReadFileSync).toBeCalledWith(packageJsonPath);
+    expect(findUp.sync).toBeCalledWith('package.json', { cwd: commandPath });
+    expect(fs.readFileSync).toBeCalledWith(packageJsonPath);
   });
 
   it('throws error on package not located', () => {
-    mockedFindUpSync.mockReturnValueOnce(undefined);
+    mocked(findUp.sync).mockReturnValueOnce(undefined);
     expect(() => resolveCommandSemVer(commandPath)).toThrow();
   });
 
   it('throws error on version not parsed', () => {
-    mockedFindUpSync.mockReturnValueOnce(packageJsonPath);
-    mockedFsReadFileSync.mockReturnValueOnce(packageJsonInvalidBuf);
+    mocked(findUp.sync).mockReturnValueOnce(packageJsonPath);
+    mocked(fs.readFileSync).mockReturnValueOnce(packageJsonInvalidBuf);
     expect(() => resolveCommandSemVer(commandPath)).toThrow();
   });
 });
@@ -52,27 +48,27 @@ describe('resolveWebpackSemVer', () => {
   });
 
   it('works on webpack package located and its version parsed', () => {
-    mockedResolveRequire.mockReturnValueOnce(webpackEntryPath);
-    mockedFindUpSync.mockReturnValueOnce(packageJsonPath);
-    mockedFsReadFileSync.mockReturnValueOnce(packageJsonBuf);
+    mocked(resolveRequire).mockReturnValueOnce(webpackEntryPath);
+    mocked(findUp.sync).mockReturnValueOnce(packageJsonPath);
+    mocked(fs.readFileSync).mockReturnValueOnce(packageJsonBuf);
     const semVer = resolveWebpackSemVer(commandPath);
     expect(semVer).toBeInstanceOf(SemVer);
     expect(semVer.version).toBe(version);
-    expect(mockedResolveRequire).toBeCalledWith('webpack', { paths: [commandPath] });
-    expect(mockedFindUpSync).toBeCalledWith('package.json', { cwd: webpackEntryPath });
-    expect(mockedFsReadFileSync).toBeCalledWith(packageJsonPath);
+    expect(resolveRequire).toBeCalledWith('webpack', { paths: [commandPath] });
+    expect(findUp.sync).toBeCalledWith('package.json', { cwd: webpackEntryPath });
+    expect(fs.readFileSync).toBeCalledWith(packageJsonPath);
   });
 
   it('throws error on webpack package not located', () => {
-    mockedResolveRequire.mockReturnValueOnce(webpackEntryPath);
-    mockedFindUpSync.mockReturnValueOnce(undefined);
+    mocked(resolveRequire).mockReturnValueOnce(webpackEntryPath);
+    mocked(findUp.sync).mockReturnValueOnce(undefined);
     expect(() => resolveWebpackSemVer(commandPath)).toThrow();
   });
 
   it('throws error on webpack version not parsed', () => {
-    mockedResolveRequire.mockReturnValueOnce(webpackEntryPath);
-    mockedFindUpSync.mockReturnValueOnce(packageJsonPath);
-    mockedFsReadFileSync.mockReturnValueOnce(packageJsonInvalidBuf);
+    mocked(resolveRequire).mockReturnValueOnce(webpackEntryPath);
+    mocked(findUp.sync).mockReturnValueOnce(packageJsonPath);
+    mocked(fs.readFileSync).mockReturnValueOnce(packageJsonInvalidBuf);
     expect(() => resolveWebpackSemVer(commandPath)).toThrow();
   });
 });
