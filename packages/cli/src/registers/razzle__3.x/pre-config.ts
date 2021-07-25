@@ -2,57 +2,59 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import path from 'path';
 import type webpack from 'webpack';
 import { merge } from 'webpack-merge';
+import { resolveRequire } from '@wuzzle/helpers';
 import { EK_COMMAND_ARGS, EK_COMMAND_NAME } from '../../constants';
 
 const babelConfigExplorer = cosmiconfigSync('babel');
-const commandName = process.env[EK_COMMAND_NAME]!;
-const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
 
 export default (webpackConfig: webpack.Configuration) => {
-  if (commandName != 'razzle') return;
-  if (razzleCommand == 'test') {
-    return merge(webpackConfig, {
-      module: {
-        rules: [
-          {
-            test: /\.(js|jsx|mjs|cjs|ts|tsx)$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: require.resolve('babel-loader'),
-                options: {
-                  presets: babelConfigExplorer.search()
-                    ? []
-                    : [require.resolve(path.resolve('node_modules/razzle/babel'))],
-                },
+  const commandName = process.env[EK_COMMAND_NAME]!;
+  const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+
+  if (commandName !== 'razzle') return webpackConfig;
+  if (razzleCommand !== 'test') return webpackConfig;
+
+  return merge(webpackConfig, {
+    module: {
+      rules: [
+        {
+          test: /\.(js|jsx|mjs|cjs|ts|tsx)$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: resolveRequire('babel-loader'),
+              options: {
+                presets: babelConfigExplorer.search()
+                  ? []
+                  : [resolveRequire(path.resolve('node_modules/razzle/babel'))],
               },
-            ],
-          },
-          {
-            test: /\.css$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: require.resolve('null-loader'),
+            },
+          ],
+        },
+        {
+          test: /\.css$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: resolveRequire('null-loader'),
+            },
+          ],
+        },
+        {
+          exclude: [/\.(js|jsx|mjs|cjs|ts|tsx|json|css)$/, /node_modules/],
+          use: [
+            {
+              loader: resolveRequire('file-loader'),
+              options: {
+                emitFile: false,
               },
-            ],
-          },
-          {
-            exclude: [/\.(js|jsx|mjs|cjs|json|ts|tsx|css)$/, /node_modules/],
-            use: [
-              {
-                loader: require.resolve('file-loader'),
-                options: {
-                  emitFile: false,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      resolve: {
-        extensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.ts', '.tsx'],
-      },
-    });
-  }
+            },
+          ],
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.json'],
+    },
+  });
 };

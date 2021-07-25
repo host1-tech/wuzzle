@@ -1,43 +1,38 @@
-import findUp from 'find-up';
+import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
-import path from 'path';
-import shelljs from 'shelljs';
-import type webpack from 'webpack';
+import { mocked } from 'ts-jest/utils';
 import {
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
   EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM,
 } from '../../constants';
-import type preConfig from './pre-config';
+import preConfig from './pre-config';
 
-type PreConfig = typeof preConfig;
+jest.mock('@wuzzle/helpers');
 
-const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
-const fixturePaths = {
-  '4.x': path.resolve(projectPath, '__tests__/fixtures/react-scripts__4.x'),
-  '3.x': path.resolve(projectPath, '__tests__/fixtures/react-scripts__3.x'),
-};
-
-describe('react-scripts__4.x/pre-config.ts', () => {
-  beforeAll(() => shelljs.cd(fixturePaths['4.x']));
-  afterEach(() => process.cwd() != fixturePaths['4.x'] && shelljs.cd(fixturePaths['4.x']));
+describe('preConfig.ts', () => {
+  beforeEach(() => {
+    delete process.env[EK_COMMAND_NAME];
+    delete process.env[EK_COMMAND_ARGS];
+    mocked(resolveRequire).mockReturnValue('');
+  });
 
   it('keeps unchanged when applied with unknown command name', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    expect(evaluateWebpackConfig()).toEqual({});
+    expect(preConfig({})).toEqual({});
   });
 
   it('keeps unchanged when applied with unknown command args', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['unknown']);
-    expect(evaluateWebpackConfig()).toEqual({});
+    expect(preConfig({})).toEqual({});
   });
 
   it('makes changes when applied with proper command envs and new jsx runtime found', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    const webpackConfig = evaluateWebpackConfig();
+    const webpackConfig = preConfig({});
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
       'automatic'
@@ -45,10 +40,15 @@ describe('react-scripts__4.x/pre-config.ts', () => {
   });
 
   it('makes changes when applied with proper command envs and jsx runtime not found', () => {
-    shelljs.cd(fixturePaths['3.x']);
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    const webpackConfig = evaluateWebpackConfig();
+    mocked(resolveRequire).mockImplementation(p => {
+      if (p.endsWith('react/jsx-runtime')) {
+        throw 0;
+      }
+      return '';
+    });
+    const webpackConfig = preConfig({});
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
   });
@@ -57,16 +57,8 @@ describe('react-scripts__4.x/pre-config.ts', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
-    const webpackConfig = evaluateWebpackConfig();
+    const webpackConfig = preConfig({});
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
   });
 });
-
-function evaluateWebpackConfig() {
-  const iWebpackConfig: webpack.Configuration = {};
-  let preConfig: PreConfig = jest.fn();
-  jest.isolateModules(() => (preConfig = require('./pre-config').default));
-  const oWebpackConfig = preConfig(iWebpackConfig);
-  return Object.assign({}, iWebpackConfig, oWebpackConfig);
-}

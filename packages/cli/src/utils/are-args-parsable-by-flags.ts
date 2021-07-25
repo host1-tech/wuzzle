@@ -9,7 +9,7 @@ export function areArgsParsableByFlags({ args, flags }: AreArgsParsableByFlagsOp
       flag
         .split(',')
         .map(flag => flag.trim().split(' ')[0])
-        .some(o => arg == o || arg.startsWith(`${o}=`))
+        .some(o => arg === o || arg.startsWith(`${o}=`))
     )
   );
 }

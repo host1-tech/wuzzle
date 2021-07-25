@@ -1,0 +1,8 @@
+const runCLI =
+  /*#__PURE__*/
+  (function() {
+      const _readConfigs = (0, _jestConfig().readConfigs)(argv, projects),
+        globalConfig = _readConfigs.globalConfig,
+        configz = _readConfigs.configs,
+        hasDeprecationWarnings = _readConfigs.hasDeprecationWarnings;
+  })();

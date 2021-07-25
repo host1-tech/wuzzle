@@ -1,0 +1,4 @@
+async function runCLI(argv, projects) {
+  const {globalConfig, configz, hasDeprecationWarnings} = await (0,
+  _jestConfig().readConfigs)(argv, projects);
+}

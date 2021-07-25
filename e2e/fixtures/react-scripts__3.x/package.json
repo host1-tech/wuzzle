@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+  "devDependencies": {
+    "react-scripts": "^3.4.3"
+  },
+  "browserslist": []
+}

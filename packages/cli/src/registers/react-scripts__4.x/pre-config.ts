@@ -6,77 +6,78 @@ import {
   EK_COMMAND_NAME,
   EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM,
 } from '../../constants';
-
-const commandName = process.env[EK_COMMAND_NAME]!;
-const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+import { resolveRequire } from '@wuzzle/helpers';
 
 export default (webpackConfig: webpack.Configuration) => {
-  if (commandName != 'react-scripts') return;
-  if (reactScriptsCommand == 'test') {
-    return merge(webpackConfig, {
-      module: {
-        rules: [
-          {
-            test: /\.(js|jsx|mjs|cjs|ts|tsx)$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: require.resolve('babel-loader'),
-                options: {
-                  presets: [
-                    [
-                      require.resolve(path.resolve('node_modules/babel-preset-react-app')),
-                      {
-                        runtime: hasNewJsxRuntime() ? 'automatic' : 'classic',
-                      },
-                    ],
+  const commandName = process.env[EK_COMMAND_NAME]!;
+  const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+
+  if (commandName !== 'react-scripts') return webpackConfig;
+  if (reactScriptsCommand !== 'test') return webpackConfig;
+
+  return merge(webpackConfig, {
+    module: {
+      rules: [
+        {
+          test: /\.(js|jsx|mjs|cjs|ts|tsx)$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: resolveRequire('babel-loader'),
+              options: {
+                presets: [
+                  [
+                    resolveRequire(path.resolve('node_modules/babel-preset-react-app')),
+                    {
+                      runtime: hasNewJsxRuntime() ? 'automatic' : 'classic',
+                    },
                   ],
-                },
+                ],
               },
-            ],
-          },
-          {
-            test: /\.css$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: require.resolve('null-loader'),
+            },
+          ],
+        },
+        {
+          test: /\.css$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: resolveRequire('null-loader'),
+            },
+          ],
+        },
+        {
+          test: /\.svg$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: resolveRequire('@svgr/webpack'),
+            },
+            {
+              loader: resolveRequire('file-loader'),
+              options: {
+                emitFile: false,
               },
-            ],
-          },
-          {
-            test: /\.svg$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: require.resolve('@svgr/webpack'),
+            },
+          ],
+        },
+        {
+          exclude: [/\.(js|jsx|mjs|cjs|ts|tsx|json|css|svg)$/, /node_modules/],
+          use: [
+            {
+              loader: resolveRequire('file-loader'),
+              options: {
+                emitFile: false,
               },
-              {
-                loader: require.resolve('file-loader'),
-                options: {
-                  emitFile: false,
-                },
-              },
-            ],
-          },
-          {
-            exclude: [/\.(js|jsx|mjs|cjs|json|ts|tsx|css|svg)$/, /node_modules/],
-            use: [
-              {
-                loader: require.resolve('file-loader'),
-                options: {
-                  emitFile: false,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      resolve: {
-        extensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.ts', '.tsx'],
-      },
-    });
-  }
+            },
+          ],
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.json'],
+    },
+  });
 };
 
 function hasNewJsxRuntime() {
@@ -85,7 +86,7 @@ function hasNewJsxRuntime() {
   }
 
   try {
-    require.resolve(path.resolve('node_modules/react/jsx-runtime'));
+    resolveRequire(path.resolve('node_modules/react/jsx-runtime'));
     return true;
   } catch {
     return false;

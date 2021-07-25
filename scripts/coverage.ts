@@ -45,7 +45,7 @@ shelljs.rm('-fr', path.join(dotNycOutputDir, '*'));
 
 shelljs.mv(path.join(coverageJestDir, COVERAGE_FINAL_JSON), dotNycOutputCoverageJestFile);
 
-if (process.platform == 'win32') {
+if (process.platform === 'win32') {
   const oldNycCoverage = JSON.parse(
     fs.readFileSync(path.join(coverageNycDir, COVERAGE_FINAL_JSON), 'utf-8')
   );

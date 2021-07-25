@@ -1,1 +1,2 @@
-import '../jest__25.x';
+import { register } from './transform';
+register();

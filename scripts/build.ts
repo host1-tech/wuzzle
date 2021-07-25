@@ -5,8 +5,8 @@ import path from 'path';
 
 const [, , ...args] = process.argv;
 
-const tsconfigPaths = ['packages/helpers', 'packages/cli'].map(p =>
-  path.join(p, 'tsconfig.prod.json')
-);
+const packagesInSequence = ['packages/helpers', 'packages/cli'];
+
+const tsconfigPaths = packagesInSequence.map(p => path.join(p, 'tsconfig.prod.json'));
 
 execa.sync('yarn', ['tsc', '--build', ...tsconfigPaths, ...args], { stdio: 'inherit' });
