@@ -1,5 +1,6 @@
-import fs from 'fs';
 import findUp from 'find-up';
+import fs from 'fs';
+import path from 'path';
 import semver, { SemVer } from 'semver';
 import { resolveRequire } from './resolve-require';
 
@@ -17,7 +18,9 @@ export function resolveCommandSemVer(commandPath: string): SemVer {
 }
 
 export function resolveWebpackSemVer(commandPath: string): SemVer {
-  const webpackEntryPath = resolveRequire('webpack', { paths: [commandPath] });
+  const webpackEntryPath = resolveRequire('webpack', {
+    basedir: path.dirname(commandPath),
+  });
   const packageJsonPath = findUp.sync('package.json', { cwd: webpackEntryPath });
   if (packageJsonPath === undefined) {
     throw new Error(`Cannot locate webpack package from command '${commandPath}'`);

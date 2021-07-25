@@ -1,45 +1,44 @@
-import { cosmiconfigSync } from 'cosmiconfig';
-import findUp from 'find-up';
+import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
-import path from 'path';
-import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import type webpack from 'webpack';
 import { EK_COMMAND_ARGS, EK_COMMAND_NAME } from '../../constants';
-import type preConfig from './pre-config';
+import preConfig from './pre-config';
 
-jest.mock('cosmiconfig');
-const mockedCosmiconfigSync = mocked(cosmiconfigSync).mockImplementation(
-  () =>
-    ({
-      search: () => ({}),
-    } as ReturnType<typeof cosmiconfigSync>)
-);
+let cosmiconfigSync$mockedSearch: jest.Mock;
+jest.mock('cosmiconfig', () => {
+  cosmiconfigSync$mockedSearch = jest.fn();
+  return {
+    cosmiconfigSync: () => ({
+      search: cosmiconfigSync$mockedSearch,
+    }),
+  };
+});
+jest.mock('@wuzzle/helpers');
+mocked(resolveRequire).mockReturnValue('');
 
-type PreConfig = typeof preConfig;
-
-const projectPath = path.dirname(findUp.sync('package.json', { cwd: __filename })!);
-const fixturePath = path.resolve(projectPath, '__tests__/fixtures/razzle__3.x');
-
-describe('razzle__3.x/pre-config.ts', () => {
-  beforeAll(() => shelljs.cd(fixturePath));
+describe('preConfig', () => {
+  beforeEach(() => {
+    delete process.env[EK_COMMAND_NAME];
+    delete process.env[EK_COMMAND_ARGS];
+  });
 
   it('keeps unchanged when applied with unknown command name', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    expect(evaluateWebpackConfig()).toEqual({});
+    expect(preConfig({})).toEqual({});
   });
 
   it('keeps unchanged when applied with unknown command args', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['unknown']);
-    expect(evaluateWebpackConfig()).toEqual({});
+    expect(preConfig({})).toEqual({});
   });
 
   it('makes changes when applied with proper command envs and babel config found', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    const webpackConfig = evaluateWebpackConfig();
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({});
+    const webpackConfig = preConfig({});
     expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
   });
@@ -47,22 +46,9 @@ describe('razzle__3.x/pre-config.ts', () => {
   it('makes changes when applied with proper command envs and no babel config found', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    mockedCosmiconfigSync.mockImplementationOnce(
-      () =>
-        ({
-          search: () => null,
-        } as ReturnType<typeof cosmiconfigSync>)
-    );
-    const webpackConfig = evaluateWebpackConfig();
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
+    const webpackConfig = preConfig({});
     expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
   });
 });
-
-function evaluateWebpackConfig() {
-  const iWebpackConfig: webpack.Configuration = {};
-  let preConfig: PreConfig = jest.fn();
-  jest.isolateModules(() => (preConfig = require('./pre-config').default));
-  const oWebpackConfig = preConfig(iWebpackConfig);
-  return Object.assign({}, iWebpackConfig, oWebpackConfig);
-}

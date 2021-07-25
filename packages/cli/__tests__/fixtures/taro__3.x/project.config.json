@@ -1,9 +1,0 @@
-{
-  "miniprogramRoot": "dist/",
-  "appid": "touristappid",
-  "projectname": "tourist",
-  "setting": {},
-  "simulatorType": "wechat",
-  "simulatorPluginLibVersion": {},
-  "condition": {}
-}

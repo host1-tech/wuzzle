@@ -1,1 +1,0 @@
-exports.greeting = 'Hi, WT.';

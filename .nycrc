@@ -6,7 +6,7 @@
     "**/?(*.)+(spec|test).[jt]s?(x)"
   ],
   "coverageExclude": [
-    "**/__tests__/**/*.[jt]s?(x)"
+    "**/fixtures/**/*.[jt]s?(x)"
   ],
   "coverageReporters": [
     "json",

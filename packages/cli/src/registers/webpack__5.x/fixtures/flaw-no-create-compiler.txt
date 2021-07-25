@@ -1,0 +1,25 @@
+
+const createCompilee = rawOptions => {
+	const options = getNormalizedWebpackOptions(rawOptions);
+	applyWebpackOptionsBaseDefaults(options);
+	const compiler = new Compiler(options.context);
+	compiler.options = options;
+	new NodeEnvironmentPlugin({
+		infrastructureLogging: options.infrastructureLogging
+	}).apply(compiler);
+	if (Array.isArray(options.plugins)) {
+		for (const plugin of options.plugins) {
+			if (typeof plugin === "function") {
+				plugin.call(compiler, compiler);
+			} else {
+				plugin.apply(compiler);
+			}
+		}
+	}
+	applyWebpackOptionsDefaults(options);
+	compiler.hooks.environment.call();
+	compiler.hooks.afterEnvironment.call();
+	new WebpackOptionsApply().process(options, compiler);
+	compiler.hooks.initialize.call();
+	return compiler;
+};

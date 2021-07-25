@@ -1,5 +1,6 @@
 import findUp from 'find-up';
 import fs from 'fs';
+import path from 'path';
 import { SemVer } from 'semver';
 import { mocked } from 'ts-jest/utils';
 import { resolveRequire } from './resolve-require';
@@ -54,7 +55,7 @@ describe('resolveWebpackSemVer', () => {
     const semVer = resolveWebpackSemVer(commandPath);
     expect(semVer).toBeInstanceOf(SemVer);
     expect(semVer.version).toBe(version);
-    expect(resolveRequire).toBeCalledWith('webpack', { paths: [commandPath] });
+    expect(resolveRequire).toBeCalledWith('webpack', { basedir: path.dirname(commandPath) });
     expect(findUp.sync).toBeCalledWith('package.json', { cwd: webpackEntryPath });
     expect(fs.readFileSync).toBeCalledWith(packageJsonPath);
   });

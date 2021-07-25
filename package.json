@@ -16,7 +16,7 @@
     "watch": "yarn build --watch",
     "clean": "run-s clean:*",
     "clean:built": "rimraf \"packages/*/@(lib|tsconfig.tsbuildinfo)\"",
-    "clean:coverage": "rimraf \"**/.nyc_output\" \"**/coverage\"",
+    "clean:coverage": "rimraf \".nyc_output\" \"coverage\"",
     "clean:cache": "rimraf \"**/node_modules/.cache\"",
     "clean:installed": "rimraf \"**/node_modules\"",
     "test": "jest --no-cache",
@@ -70,7 +70,6 @@
     "eslint-plugin-react": "^7.20.6",
     "eslint-plugin-react-hooks": "^4.2.0",
     "execa": "^4.1.0",
-    "find-up": "^5.0.0",
     "glob": "^7.1.6",
     "husky": "^4.2.5",
     "jest": "^26.4.0",
@@ -81,9 +80,9 @@
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.4",
-    "tree-kill": "^1.2.2",
     "ts-jest": "^26.2.0",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "wait-for-expect": "^3.0.2"
   }
 }

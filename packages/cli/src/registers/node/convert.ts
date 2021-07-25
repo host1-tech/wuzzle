@@ -1,5 +1,5 @@
 import getStream from 'get-stream';
-import transpile from '../../transpile';
+import { transpile } from '../../transpile';
 
 const [, , inputCodePath] = process.argv;
 
