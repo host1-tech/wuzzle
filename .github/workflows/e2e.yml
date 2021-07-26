@@ -1,0 +1,30 @@
+name: E2E
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  e2e:
+    name: E2E
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install, build and prepare fixtures
+        run: |
+          yarn
+          yarn fixtures:install
+      - name: Test end to end cases
+        run: yarn e2e

@@ -3,7 +3,7 @@
 
 module.exports = {
   coveragePathIgnorePatterns: ['/node_modules/', '/lib/', '/es/', '/dist/', '/e2e/'],
-  modulePathIgnorePatterns: ['/node_modules/', '/fixtures/', '/scripts/'],
+  modulePathIgnorePatterns: ['/node_modules/', '/fixtures/'],
   preset: 'ts-jest',
   testEnvironment: 'node',
 };

@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Cancel previously running workflows
+      - name: Cancel running heavy workflows
         uses: styfle/cancel-workflow-action@0.6.0
         with:
-          workflow_id: .github/workflows/coverage.yml,.github/workflows/lint.yml
+          workflow_id: .github/workflows/coverage.yml,.github/workflows/e2e.yml
           access_token: ${{ github.token }}
