@@ -1,7 +1,7 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import findUp from 'find-up';
 import path from 'path';
-import { EK_COMMAND_NAME, EK_RPOJECT_ANCHOR, EXIT_CODE_ERROR } from '../constants';
+import { EK_COMMAND_NAME, EK_RPOJECT_ANCHOR, EXIT_CODE_ERROR } from '../../constants';
 import {
   launchDefault,
   launchJest,
@@ -9,8 +9,8 @@ import {
   launchNode,
   launchRazzle,
   launchReactScripts,
-} from '../launches';
-import { LaunchFunction } from '../utils';
+} from '../../launches';
+import { LaunchFunction } from '../../utils';
 
 const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
 const anchorPath = findUp.sync(anchorName);
@@ -34,9 +34,9 @@ process.env[EK_COMMAND_NAME] = commandName;
 
 const entries: Record<string, LaunchFunction> = {
   ['transpile']: () => {
-    process.argv[1] = resolveRequire('./wuzzle-transpile');
+    process.argv[1] = resolveRequire('../wuzzle-transpile');
     process.argv.splice(2, 1);
-    require('./wuzzle-transpile');
+    require('../wuzzle-transpile');
   },
   ['jest']: launchJest,
   ['mocha']: launchMocha,
