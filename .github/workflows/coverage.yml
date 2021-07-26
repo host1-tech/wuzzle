@@ -9,23 +9,18 @@ on:
 jobs:
   coverage:
     name: Coverage
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    env:
-      OS: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - name: Install, build and prepare fixtures
-        run: |
-          yarn
-          yarn fixtures:install
+      - name: Install and build
+        run: yarn
       - name: Test with coverage enabled
         run: yarn coverage
       - name: Upload coverage to Codecov
@@ -33,6 +28,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./coverage
-          env_vars: OS
           flags: root
           fail_ci_if_error: true

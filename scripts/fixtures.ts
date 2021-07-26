@@ -8,7 +8,7 @@ import path from 'path';
 
 const cwd = process.cwd();
 
-const fixtureDirs = glob.sync('e2e/fixtures/*/', {
+const fixtureDirs = glob.sync('e2e/fixtures/*', {
   ignore: ['**/node_modules/**'],
 });
 
