@@ -13,22 +13,22 @@ describe('preConfig.ts', () => {
     delete process.env[EK_COMMAND_ARGS];
   });
 
-  it('keeps unchanged when applied with unknown command name', () => {
+  it('returns empty on unknown command name given', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toBe(undefined);
   });
 
-  it('keeps unchanged when applied with unknown command args', () => {
+  it('returns empty on unknown command args given', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['unknown']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toBe(undefined);
   });
 
-  it('makes changes when applied with proper command envs', () => {
+  it('returns testing config on testing command given', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    const webpackConfig = preConfig({});
+    const webpackConfig = preConfig();
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
   });
 });

@@ -38,7 +38,7 @@ export function transform(code: string): string {
           path.replaceWithSourceString(
             `require('${resolveRequire('../../apply-config').replace(/\\/g, '\\\\')}').default(${
               path.node.name
-            })`
+            },require('..'))`
           );
         }
       }
