@@ -65,7 +65,7 @@ program
 program.parse(process.argv);
 
 ensureArgs();
-launchExec().catch(e => console.error(e.stack ?? e));
+launchExec().catch(console.error);
 
 function ensureArgs() {
   if (!program.args.length) {
