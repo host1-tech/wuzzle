@@ -1,14 +1,16 @@
 import { diff, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
-import type webpack from 'webpack';
+import type webpackType from 'webpack';
+import { merge } from 'webpack-merge';
 import { EK_INTERNAL_PRE_CONFIG } from './constants';
 
 const debug = debugFty('@wuzzle/cli:applyConfig');
 
 export type WuzzleConfigModify = (
-  webpackConfig: webpack.Configuration
-) => webpack.Configuration | void;
+  webpackConfig: webpackType.Configuration,
+  webpack: typeof webpackType
+) => webpackType.Configuration | void;
 
 export interface WuzzleConfigOptions {
   modify?: WuzzleConfigModify;
@@ -16,7 +18,10 @@ export interface WuzzleConfigOptions {
 
 export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
-function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuration {
+function applyConfig(
+  webpackConfig: webpackType.Configuration,
+  webpack: typeof webpackType
+): webpackType.Configuration {
   debug('Wuzzle process mounted in CWD:', process.cwd());
   const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
 
@@ -24,7 +29,10 @@ function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuratio
   if (internalPreConfigPath) {
     try {
       const internalPreConfig: WuzzleConfigModify = require(internalPreConfigPath).default;
-      Object.assign(webpackConfig, internalPreConfig(webpackConfig));
+      const webpackConfigToMerge = internalPreConfig(webpackConfig, webpack);
+      if (webpackConfigToMerge) {
+        Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
+      }
     } catch {}
   }
 
@@ -42,7 +50,10 @@ function applyConfig(webpackConfig: webpack.Configuration): webpack.Configuratio
 
   if (optionsToUse.modify) {
     try {
-      Object.assign(webpackConfig, optionsToUse.modify(webpackConfig));
+      const webpackConfigToMerge = optionsToUse.modify(webpackConfig, webpack);
+      if (webpackConfigToMerge) {
+        Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
+      }
     } catch {}
   }
 

@@ -85,7 +85,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     },
   ];
 
-  applyConfig(webpackConfig);
+  applyConfig(webpackConfig, webpack);
 
   if (internalOptions.autoResolveOutputExt) {
     const extensionsToResolve = webpackConfig.resolve?.extensions ?? [];

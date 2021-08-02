@@ -22,32 +22,32 @@ describe('preConfig', () => {
     delete process.env[EK_COMMAND_ARGS];
   });
 
-  it('keeps unchanged when applied with unknown command name', () => {
+  it('returns empty on unknown command name given', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toEqual(undefined);
   });
 
-  it('keeps unchanged when applied with unknown command args', () => {
+  it('returns empty on unknown command args given', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['unknown']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toEqual(undefined);
   });
 
-  it('makes changes when applied with proper command envs and babel config found', () => {
+  it('returns testing config w/o babel preset on testing command given and babel config found', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({});
-    const webpackConfig = preConfig({});
+    const webpackConfig = preConfig();
     expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
   });
 
-  it('makes changes when applied with proper command envs and no babel config found', () => {
+  it('returns testing config with babel preset on testing command given and babel config not found', () => {
     process.env[EK_COMMAND_NAME] = 'razzle';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    const webpackConfig = preConfig({});
+    const webpackConfig = preConfig();
     expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
     expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
   });

@@ -1,21 +1,19 @@
+import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
-import type webpack from 'webpack';
-import { merge } from 'webpack-merge';
 import {
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
   EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM,
 } from '../../constants';
-import { resolveRequire } from '@wuzzle/helpers';
 
-export default (webpackConfig: webpack.Configuration) => {
+export default () => {
   const commandName = process.env[EK_COMMAND_NAME]!;
   const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
 
-  if (commandName !== 'react-scripts') return webpackConfig;
-  if (reactScriptsCommand !== 'test') return webpackConfig;
+  if (commandName !== 'react-scripts') return;
+  if (reactScriptsCommand !== 'test') return;
 
-  return merge(webpackConfig, {
+  return {
     module: {
       rules: [
         {
@@ -77,7 +75,7 @@ export default (webpackConfig: webpack.Configuration) => {
     resolve: {
       extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.json'],
     },
-  });
+  };
 };
 
 function hasNewJsxRuntime() {

@@ -17,48 +17,64 @@ describe('preConfig.ts', () => {
     mocked(resolveRequire).mockReturnValue('');
   });
 
-  it('keeps unchanged when applied with unknown command name', () => {
+  it('returns empty on unknown command name given', () => {
     process.env[EK_COMMAND_NAME] = 'unknown';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toEqual(undefined);
   });
 
-  it('keeps unchanged when applied with unknown command args', () => {
+  it('returns empty on unknown command args given', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['unknown']);
-    expect(preConfig({})).toEqual({});
+    expect(preConfig()).toEqual(undefined);
   });
 
-  it('makes changes when applied with proper command envs and new jsx runtime found', () => {
-    process.env[EK_COMMAND_NAME] = 'react-scripts';
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    const webpackConfig = preConfig({});
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
-    expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
-      'automatic'
-    );
-  });
+  it(
+    'returns testing config with jsx runtime enabled ' +
+      'on testing command given and found new jsx runtime',
+    () => {
+      process.env[EK_COMMAND_NAME] = 'react-scripts';
+      process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+      const webpackConfig = preConfig();
+      expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
+      expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
+        'automatic'
+      );
+    }
+  );
 
-  it('makes changes when applied with proper command envs and jsx runtime not found', () => {
-    process.env[EK_COMMAND_NAME] = 'react-scripts';
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    mocked(resolveRequire).mockImplementation(p => {
-      if (p.endsWith('react/jsx-runtime')) {
-        throw 0;
-      }
-      return '';
-    });
-    const webpackConfig = preConfig({});
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
-    expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
-  });
+  it(
+    'returns testing config with jsx runtime disabled ' +
+      'on testing command given and jsx runtime not found',
+    () => {
+      process.env[EK_COMMAND_NAME] = 'react-scripts';
+      process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+      mocked(resolveRequire).mockImplementation(p => {
+        if (p.endsWith('react/jsx-runtime')) {
+          throw 0;
+        }
+        return '';
+      });
+      const webpackConfig = preConfig();
+      expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
+      expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
+        'classic'
+      );
+    }
+  );
 
-  it('makes changes when applied with proper command envs and jsx runtime disabled', () => {
-    process.env[EK_COMMAND_NAME] = 'react-scripts';
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
-    const webpackConfig = preConfig({});
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
-    expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe('classic');
-  });
+  it(
+    'returns testing config with jsx runtime disabled ' +
+      'on testing command given and jsx runtime disabled',
+    () => {
+      process.env[EK_COMMAND_NAME] = 'react-scripts';
+      process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+      process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
+      const webpackConfig = preConfig();
+      expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
+      expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
+        'classic'
+      );
+    }
+  );
 });

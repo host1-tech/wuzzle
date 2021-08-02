@@ -22,10 +22,13 @@ jest.mock('debug', () => {
 });
 
 let internalPreConfigPath: string;
-const mockedInternalPreConfigFty = jest.fn();
+const mockedInternalPreConfig = jest.fn();
 jest.mock(
   (internalPreConfigPath = '/path/to/internal-pre-config'),
-  () => ({ __esModule: true, default: mockedInternalPreConfigFty() }),
+  () => ({
+    __esModule: true,
+    default: mockedInternalPreConfig,
+  }),
   { virtual: true }
 );
 
@@ -37,56 +40,68 @@ describe('applyConfig', () => {
 
   it('does nothing with no config found', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    expect(applyConfig({})).toEqual({});
+    expect(applyConfig({}, webpack)).toEqual({});
   });
 
   it(`uses side effect of 'modify'`, () => {
-    cosmiconfigSync$mockedSearch.mockReturnValueOnce({
-      config: {
-        modify(webpackConfig: webpack.Configuration) {
-          webpackConfig.output = {};
-        },
-      },
-    });
-    expect(applyConfig({})).toEqual({ output: {} });
+    const wuzzleConfig = {
+      modify: jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+        webpackConfig.output = {};
+      }),
+    };
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    const webpackConfig: webpack.Configuration = {};
+    expect(applyConfig(webpackConfig, webpack)).toEqual({ output: {} });
+    expect(webpackConfig).toEqual({ output: {} });
+    expect(wuzzleConfig.modify.mock.calls[0][1]).toBe(webpack);
   });
 
   it(`uses returned value of 'modify'`, () => {
-    cosmiconfigSync$mockedSearch.mockReturnValueOnce({
-      config: {
-        modify(webpackConfig: webpack.Configuration) {
-          return { ...webpackConfig, output: {} };
-        },
-      },
-    });
-    expect(applyConfig({})).toEqual({ output: {} });
+    const wuzzleConfig = {
+      modify: jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+        return { ...webpackConfig, output: {} };
+      }),
+    };
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    const webpackConfig: webpack.Configuration = {};
+    expect(applyConfig(webpackConfig, webpack)).toEqual({ output: {} });
+    expect(webpackConfig).toEqual({ output: {} });
+    expect(wuzzleConfig.modify.mock.calls[0][1]).toBe(webpack);
   });
 
   it(`uses exported function as 'modify'`, () => {
-    cosmiconfigSync$mockedSearch.mockReturnValueOnce({
-      config(webpackConfig: webpack.Configuration) {
-        return { ...webpackConfig, output: {} };
-      },
+    const wuzzleConfig = jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+      return { ...webpackConfig, output: {} };
     });
-    expect(applyConfig({})).toEqual({ output: {} });
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    const webpackConfig: webpack.Configuration = {};
+    expect(applyConfig(webpackConfig, webpack)).toEqual({ output: {} });
+    expect(webpackConfig).toEqual({ output: {} });
+    expect(wuzzleConfig.mock.calls[0][1]).toBe(webpack);
   });
 
   it('uses side effect of internal pre config', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
     process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
-    mockedInternalPreConfigFty.mockReturnValueOnce((webpackConfig: webpack.Configuration) => {
+    mockedInternalPreConfig.mockImplementationOnce((webpackConfig: webpack.Configuration) => {
       webpackConfig.resolve = {};
     });
-    expect(applyConfig({})).toEqual({ resolve: {} });
+    const webpackConfig: webpack.Configuration = {};
+    expect(applyConfig(webpackConfig, webpack)).toEqual({ resolve: {} });
+    expect(webpackConfig).toEqual({ resolve: {} });
+    expect(mockedInternalPreConfig.mock.calls[0][1]).toBe(webpack);
   });
 
   it('uses returned value of internal pre config', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
     process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
-    mockedInternalPreConfigFty.mockReturnValueOnce((webpackConfig: webpack.Configuration) => {
-      return { ...webpackConfig, output: {} };
+    mockedInternalPreConfig.mockImplementationOnce((webpackConfig: webpack.Configuration) => {
+      return { ...webpackConfig, resolve: {} };
     });
-    expect(applyConfig({})).toEqual({ resolve: {} });
+    const webpackConfig: webpack.Configuration = {};
+    expect(applyConfig(webpackConfig, webpack)).toEqual({ resolve: {} });
+    expect(webpackConfig).toEqual({ resolve: {} });
+    expect(mockedInternalPreConfig.mock.calls[0][1]).toBe(webpack);
   });
 
   it('collects debug info and prints', () => {
@@ -95,7 +110,7 @@ describe('applyConfig', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({
       config: () => newWebpackConfig,
     });
-    applyConfig({ ...oldWebpackConfig });
+    applyConfig({ ...oldWebpackConfig }, webpack);
     expect(diff).toBeCalledWith(stringify(oldWebpackConfig), stringify(newWebpackConfig));
     [
       'Wuzzle process mounted in CWD:',
