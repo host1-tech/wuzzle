@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.0-alpha.1](https://github.com/host1-tech/wuzzle/compare/v0.2.0-alpha.0...v0.2.0-alpha.1) (2021-08-03)
+
+
+### Features
+
+* pass in webpack obj ([62a4ce2](https://github.com/host1-tech/wuzzle/commit/62a4ce2dd1ffb60a05a8b1a0bbc812e7afe1c18a))
+
+
+### Bug Fixes
+
+* refine error log ([9c899f3](https://github.com/host1-tech/wuzzle/commit/9c899f3e92cdabd92fa7fbf38cbee8907ab9fbc1))
+
+
+
 ## [0.2.0-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.1.6-alpha.3...v0.2.0-alpha.0) (2021-07-26)
 
 **Note:** Version bump only for package @wuzzle/cli
