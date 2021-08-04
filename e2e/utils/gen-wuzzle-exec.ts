@@ -5,5 +5,5 @@ export function genWuzzleExec(command: string, envOverrides: Record<string, stri
   const envPre = Object.keys(envMap)
     .map(k => `cross-env ${k}=${envMap[k]}`)
     .join(' ');
-  return `${envPre} ${resolveRequire('../../packages/cli/bin/wuzzle')} ${command}`;
+  return `${envPre} ${resolveRequire('../../packages/wuzzle/bin/wuzzle')} ${command}`;
 }
