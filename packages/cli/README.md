@@ -1,1 +1,1 @@
-../../README.md
+../wuzzle/README.md
