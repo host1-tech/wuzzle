@@ -25,7 +25,7 @@ export function applyNodeLikeExtraOptions({
 
   const commandExtraOptions = {
     Ext: [
-      '--ext <string>',
+      '-E,--ext <string>',
       'Specify file extensions for resolving, ' +
         `splitted by comma. (default: "${nodeLikeExtraOptions.exts.join(',')}")`,
     ],
