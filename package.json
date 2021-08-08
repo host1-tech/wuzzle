@@ -20,7 +20,7 @@
     "test": "jest --testPathIgnorePatterns e2e",
     "test:watch": "yarn test --watch",
     "coverage": "yarn test --coverage",
-    "e2e": "jest --no-cache e2e",
+    "e2e": "jest --no-cache --testPathPattern e2e",
     "lint": "run-p lint:*",
     "lint:eslint": "yarn eslint",
     "lint:prettier": "yarn prettier --check",
