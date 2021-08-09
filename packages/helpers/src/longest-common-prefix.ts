@@ -5,7 +5,7 @@ export function longestCommonPrefix(strs: string[]): string {
   for (let i = 1, n = strs.length; i < n; i++) {
     k = Math.min(k, strs[i].length);
     for (let j = 0; j < k; j++)
-      if (strs[i][j] != strs[0][j]) {
+      if (strs[i][j] !== strs[0][j]) {
         k = j;
         break;
       }

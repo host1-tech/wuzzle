@@ -18,7 +18,7 @@ jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
-  throw new Error('asdf');
+  throw 0;
 });
 mocked(resolveWebpackSemVer).mockReturnValue({} as never);
 

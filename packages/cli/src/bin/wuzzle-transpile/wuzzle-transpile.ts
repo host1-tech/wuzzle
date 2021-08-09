@@ -137,11 +137,11 @@ async function launchExec() {
   const webpackMode = program.production ? 'production' : 'development';
   const webpackTarget = program.target;
   const webpackDevtool: webpack.Options.Devtool | undefined =
-    program.sourceMap == 'file'
+    program.sourceMap === 'file'
       ? program.production
         ? 'source-map'
         : 'cheap-module-source-map'
-      : program.sourceMap == 'inline'
+      : program.sourceMap === 'inline'
       ? program.production
         ? 'inline-source-map'
         : 'inline-cheap-module-source-map'

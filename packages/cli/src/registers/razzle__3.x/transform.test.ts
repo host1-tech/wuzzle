@@ -1,11 +1,10 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import fs from 'fs';
 import path from 'path';
 import { addHook } from 'pirates';
+import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import { EK_COMMAND_ARGS } from '../../constants';
 import { register, transform } from './transform';
-import shelljs from 'shelljs';
 
 const matchingPaths = ['node_modules/razzle/bin/razzle.js'];
 
