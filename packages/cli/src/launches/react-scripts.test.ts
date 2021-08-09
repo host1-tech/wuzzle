@@ -17,7 +17,7 @@ const launchOptions: LaunchOptions = {
   commandName,
 };
 const reactScriptsRegisterPath = '/path/to/register/react-scripts';
-const reactScriptsPreConfigPath = `${reactScriptsRegisterPath}/pre-config`;
+const reactScriptsPreConfigPath = '/path/to/pre-config/react-scripts';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
