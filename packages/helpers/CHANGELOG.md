@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.2.0...v0.2.1-alpha.0) (2021-08-09)
+
+
+### Bug Fixes
+
+* fix warnings and refine texts ([daa1cc4](https://github.com/host1-tech/wuzzle/commit/daa1cc405ebd23a92419622087bb90279e3a82e7))
+
+
+
 ## [0.2.0](https://github.com/host1-tech/wuzzle/compare/v0.2.0-alpha.2...v0.2.0) (2021-08-08)
 
 **Note:** Version bump only for package @wuzzle/helpers
