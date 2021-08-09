@@ -34,21 +34,29 @@ describe('preConfig', () => {
     expect(preConfig()).toEqual(undefined);
   });
 
-  it('returns testing config w/o babel preset on testing command given and babel config found', () => {
-    process.env[EK_COMMAND_NAME] = 'razzle';
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    cosmiconfigSync$mockedSearch.mockReturnValueOnce({});
-    const webpackConfig = preConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
-    expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
-  });
+  it(
+    'returns testing config w/o babel preset ' +
+      'on testing subcommand given and babel config found',
+    () => {
+      process.env[EK_COMMAND_NAME] = 'razzle';
+      process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+      cosmiconfigSync$mockedSearch.mockReturnValueOnce({});
+      const webpackConfig = preConfig();
+      expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
+      expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
+    }
+  );
 
-  it('returns testing config with babel preset on testing command given and babel config not found', () => {
-    process.env[EK_COMMAND_NAME] = 'razzle';
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    const webpackConfig = preConfig();
-    expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
-    expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
-  });
+  it(
+    'returns testing config with babel preset ' +
+      'on testing subcommand given and babel config not found',
+    () => {
+      process.env[EK_COMMAND_NAME] = 'razzle';
+      process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+      cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
+      const webpackConfig = preConfig();
+      expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
+      expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
+    }
+  );
 });

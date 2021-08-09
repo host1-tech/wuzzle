@@ -79,7 +79,7 @@ export default () => {
 };
 
 function hasNewJsxRuntime() {
-  if (process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] == 'true') {
+  if (process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] === 'true') {
     return false;
   }
 

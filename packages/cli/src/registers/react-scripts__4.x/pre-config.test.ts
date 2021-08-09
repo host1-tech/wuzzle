@@ -31,7 +31,7 @@ describe('preConfig.ts', () => {
 
   it(
     'returns testing config with jsx runtime enabled ' +
-      'on testing command given and found new jsx runtime',
+      'on testing subcommand given and found new jsx runtime',
     () => {
       process.env[EK_COMMAND_NAME] = 'react-scripts';
       process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
@@ -45,7 +45,7 @@ describe('preConfig.ts', () => {
 
   it(
     'returns testing config with jsx runtime disabled ' +
-      'on testing command given and jsx runtime not found',
+      'on testing subcommand given and jsx runtime not found',
     () => {
       process.env[EK_COMMAND_NAME] = 'react-scripts';
       process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
@@ -65,7 +65,7 @@ describe('preConfig.ts', () => {
 
   it(
     'returns testing config with jsx runtime disabled ' +
-      'on testing command given and jsx runtime disabled',
+      'on testing subcommand given and jsx runtime disabled',
     () => {
       process.env[EK_COMMAND_NAME] = 'react-scripts';
       process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);

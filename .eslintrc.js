@@ -3,6 +3,7 @@ const jsRules = {
   'no-undef': 'error',
   'no-unused-vars': 'warn',
   'prefer-const': 'warn',
+  eqeqeq: 'warn',
 };
 
 const tsRules = {

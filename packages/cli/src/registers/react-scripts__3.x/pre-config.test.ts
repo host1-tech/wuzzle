@@ -25,7 +25,7 @@ describe('preConfig.ts', () => {
     expect(preConfig()).toBe(undefined);
   });
 
-  it('returns testing config on testing command given', () => {
+  it('returns testing config on testing subcommand given', () => {
     process.env[EK_COMMAND_NAME] = 'react-scripts';
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
     const webpackConfig = preConfig();

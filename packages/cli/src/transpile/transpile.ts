@@ -77,7 +77,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
   webpackConfig.externals = [
     (context, request, callback) => {
-      if (request == inputPath) {
+      if (request === inputPath) {
         callback();
       } else {
         callback(null, `commonjs ${request}`);
@@ -178,7 +178,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
         skipValidation: true,
       });
       consumer.eachMapping(m => {
-        if (m.source != inputPath) {
+        if (m.source !== inputPath) {
           return;
         }
         generator.addMapping({
