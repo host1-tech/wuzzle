@@ -1,7 +1,7 @@
 import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
-import { EXIT_CODE_ERROR } from '../constants';
+import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { execNode, LaunchOptions } from '../utils';
 import { launchMocha } from './mocha';
 
@@ -13,6 +13,7 @@ const launchOptions: LaunchOptions = {
   commandName,
 };
 const nodeRegisterPath = '/path/to/register/node';
+const nodePreConfigPath = '/path/to/pre-config/node';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
@@ -28,12 +29,14 @@ describe('launchMocha', () => {
 
   it('executes with node register attached if command resolved', () => {
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
+    mocked(resolveRequire).mockReturnValueOnce(nodePreConfigPath);
     launchMocha(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveRequire).toBeCalled();
     expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
       expect.arrayContaining([nodeRegisterPath])
     );
+    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(nodePreConfigPath);
   });
 
   it('exits with error code and error message if command not resolved', () => {

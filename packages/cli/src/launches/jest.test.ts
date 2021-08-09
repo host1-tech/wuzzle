@@ -1,7 +1,7 @@
 import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
-import { EXIT_CODE_ERROR } from '../constants';
+import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { areArgsParsableByFlags, execNode, LaunchOptions } from '../utils';
 import { launchJest } from './jest';
 
@@ -13,6 +13,7 @@ const launchOptions: LaunchOptions = {
   commandName,
 };
 const jestRegisterPath = '/path/to/register/jest';
+const jestPreConfigPath = '/path/to/pre-config/jest';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
@@ -29,6 +30,7 @@ describe('launchTest', () => {
 
   it('executes with jest register attached if command resolvable', () => {
     mocked(resolveRequire).mockReturnValueOnce(jestRegisterPath);
+    mocked(resolveRequire).mockReturnValueOnce(jestPreConfigPath);
     mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
@@ -37,6 +39,7 @@ describe('launchTest', () => {
     expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
       expect.arrayContaining([jestRegisterPath])
     );
+    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(jestPreConfigPath);
   });
 
   it.each([['--inspect'], ['--inspect=8080'], ['--inspect-brk'], ['--inspect-brk=8080']])(

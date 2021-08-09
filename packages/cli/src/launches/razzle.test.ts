@@ -13,7 +13,7 @@ const launchOptions: LaunchOptions = {
   commandName,
 };
 const razzleRegisterPath = '/path/to/register/razzle';
-const razzlePreConfigPath = `${razzleRegisterPath}/pre-config`;
+const razzlePreConfigPath = '/path/to/pre-config/razzle';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');

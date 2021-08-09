@@ -1,6 +1,6 @@
 import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import { EXIT_CODE_ERROR } from '../constants';
+import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { areArgsParsableByFlags, execNode, LaunchFunction } from '../utils';
 
 export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
@@ -64,7 +64,9 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
   }
 
   const jestRegisterPath = resolveRequire(`../registers/jest__${jestMajorVersion}.x`);
-
+  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
+    `../registers/jest__${jestMajorVersion}.x/pre-config`
+  );
   execNode({
     nodePath,
     args,
