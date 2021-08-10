@@ -31,6 +31,9 @@ const transpileDefaultOptions: TranspileInternalOptions = {
     target: 'node',
     mode: 'development',
     node: false,
+    optimization: {
+      nodeEnv: false,
+    },
   },
 };
 
