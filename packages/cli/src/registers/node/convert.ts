@@ -9,8 +9,6 @@ const [, , inputCodePath] = process.argv;
     inputCode,
     inputCodePath,
     webpackConfig: {
-      mode: 'development',
-      target: 'node',
       devtool: 'inline-cheap-module-source-map',
     },
   });
