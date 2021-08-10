@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.2.1-alpha.0...v0.2.1-alpha.1) (2021-08-10)
+
+
+### Features
+
+* unset node env in tranpsiling ([84ca856](https://github.com/licg9999/wuzzle/commit/84ca856501e6480b6d0da22abdf4b09246d51dcb))
+
+
+
 ## [0.2.1-alpha.0](https://github.com/licg9999/wuzzle/compare/v0.2.0...v0.2.1-alpha.0) (2021-08-09)
 
 
