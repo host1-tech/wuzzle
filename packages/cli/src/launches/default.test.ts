@@ -1,26 +1,29 @@
-import { resolveCommandPath, resolveRequire, resolveWebpackSemVer } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
+import { register } from '../registers/webpack__5.x';
 import { execNode, LaunchOptions } from '../utils';
 import { launchDefault } from './default';
 
 const commandName = 'commandName';
+const commandPath = '/path/to/command';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const webpackRegisterPath = '/path/to/register/webpack';
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../registers/webpack__5.x');
 jest.mock('../utils');
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
-mocked(resolveWebpackSemVer).mockReturnValue({} as never);
+mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveWebpackSemVer).mockReturnValue({ major: 5 } as never);
 
 describe('launchDefault', () => {
   beforeEach(() => {
@@ -28,13 +31,14 @@ describe('launchDefault', () => {
   });
 
   it('executes with webpack register attached if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(webpackRegisterPath);
     launchDefault(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveWebpackSemVer).toBeCalled();
-    expect(resolveRequire).toBeCalled();
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.arrayContaining([webpackRegisterPath])
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
     );
   });
 

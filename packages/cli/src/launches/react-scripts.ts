@@ -22,17 +22,17 @@ export const launchReactScripts: LaunchFunction = ({
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const reactScriptsRegisterPath = resolveRequire(
-    `../registers/react-scripts__${reactScriptsMajorVersion}.x`
-  );
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
   process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
     `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
   );
+  require(`../registers/react-scripts__${reactScriptsMajorVersion}.x`).register({
+    commandPath: reactScriptsCommandPath,
+  });
 
   execNode({
     nodePath,
     args,
-    execArgs: ['-r', reactScriptsRegisterPath, reactScriptsCommandPath, ...args],
+    execArgs: [reactScriptsCommandPath, ...args],
   });
 };

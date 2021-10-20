@@ -2,14 +2,19 @@ import { resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
-import { mocked } from 'ts-jest/utils';
-import { EK_COMMAND_NAME, EK_RPOJECT_ANCHOR, EXIT_CODE_ERROR } from '../../constants';
+import {
+  EK_COMMAND_ARGS,
+  EK_COMMAND_NAME,
+  EK_RPOJECT_ANCHOR,
+  EXIT_CODE_ERROR,
+} from '../../constants';
 import { launchDefault, launchNode } from '../../launches';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle')];
 const originalProcessArgv = process.argv;
 
+const extraArgs = ['extraArg'];
 const projectPath = fixturePath;
 
 jest.mock('@wuzzle/helpers');
@@ -31,24 +36,39 @@ describe('wuzzle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env[EK_COMMAND_NAME];
+    delete process.env[EK_COMMAND_ARGS];
     delete process.env[EK_RPOJECT_ANCHOR];
     process.argv = originalProcessArgv;
   });
 
   it('launches default entry in general', () => {
     const commandName = 'webpack';
-    process.argv = [...fixedArgs, commandName];
+    process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
-    expect(mocked(launchDefault).mock.calls[0][0]).toMatchObject({ projectPath, commandName });
+    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
+    expect(launchDefault).toBeCalledWith(
+      expect.objectContaining({
+        projectPath,
+        commandName,
+        args: extraArgs,
+      })
+    );
   });
 
   it('launches special entry if available', () => {
     const commandName = 'node';
-    process.argv = [...fixedArgs, commandName];
+    process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
-    expect(mocked(launchNode).mock.calls[0][0]).toMatchObject({ projectPath, commandName });
+    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
+    expect(launchNode).toBeCalledWith(
+      expect.objectContaining({
+        projectPath,
+        commandName,
+        args: extraArgs,
+      })
+    );
   });
 
   it('redirects to transpile if commanded', () => {
@@ -57,6 +77,7 @@ describe('wuzzle', () => {
     process.argv = [...fixedArgs, commandName, extraArg];
     jest.isolateModules(() => require('./wuzzle'));
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
+    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
     expect(process.argv[1]).toBe(resolveRequire('../wuzzle-transpile'));
     expect(process.argv[2]).toBe(extraArg);
     expect(mockedWuzzleTranspileExec).toBeCalled();

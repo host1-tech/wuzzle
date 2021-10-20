@@ -1,11 +1,12 @@
-import { resolveRequire } from '@wuzzle/helpers';
+import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
+import fs from 'fs';
 import path from 'path';
-import { addHook } from 'pirates';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import { register, transform } from './transform';
+import * as transformModule from './transform';
+import { register, transform, unregister } from './transform';
 
-const matchingPaths = ['node_modules/webpack/lib/webpack.js'];
+const matchedModulePath = '/path/to/matched/module';
 
 const applyConfigPaths: Record<string, string> = {
   posix: '/path/to/apply-config',
@@ -23,21 +24,36 @@ const flawCodes: Record<string, string> = {
 };
 
 jest.mock('@wuzzle/helpers');
-jest.mock('pirates');
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('register', () => {
-  it('matches paths', () => {
-    register();
-    const matcher = mocked(addHook).mock.calls[0][1]!.matcher!;
-    expect(matcher).toBeTruthy();
-    matchingPaths.map(p => {
-      expect(matcher(path.posix.normalize(p))).toBe(true);
-      expect(matcher(path.win32.normalize(p))).toBe(true);
-    });
+describe('register/unregister', () => {
+  beforeAll(() => {
+    jest.spyOn(fs, 'readFileSync').mockReturnValue('');
+    jest.spyOn(fs, 'writeFileSync').mockReturnValue();
+    jest.spyOn(transformModule, 'transform').mockReturnValue('');
+    mocked(resolveRequire).mockReturnValue(matchedModulePath);
+  });
+
+  afterAll(() => {
+    mocked(fs.readFileSync).mockRestore();
+    mocked(fs.writeFileSync).mockRestore();
+    mocked(transform).mockRestore();
+    mocked(resolveRequire).mockRestore();
+  });
+
+  it('transforms the matched on registered', () => {
+    register({ commandPath: '' });
+    expect(backupWithRestore).toBeCalledWith(matchedModulePath);
+    expect(mocked(fs.readFileSync).mock.calls[0][0]).toBe(matchedModulePath);
+    expect(mocked(fs.writeFileSync).mock.calls[0][0]).toBe(matchedModulePath);
+  });
+
+  it('recovers the matched on unregistered', () => {
+    unregister({ commandPath: '' });
+    expect(tryRestoreWithRemove).toBeCalledWith(matchedModulePath);
   });
 });
 

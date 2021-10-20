@@ -1,4 +1,4 @@
-import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
 import { EXIT_CODE_ERROR } from '../constants';
 import { areArgsParsableByFlags, execNode, LaunchFunction } from '../utils';
@@ -20,7 +20,7 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
   const extraOptions = {
     Inspect: '--inspect [string]',
     InspectBrk: '--inspect-brk [string]',
-    Help: '-H,--help',
+    Help: '-H,--Help',
   };
 
   if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
@@ -63,18 +63,13 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     args.splice(0, args.length, ...extraProg.args);
   }
 
-  const jestRegisterPath = resolveRequire(`../registers/jest__${jestMajorVersion}.x`);
+  require(`../registers/jest__${jestMajorVersion}.x`).register({
+    commandPath: jestCommandPath,
+  });
 
   execNode({
     nodePath,
     args,
-    execArgs: [
-      ...inspectNodeArgs,
-      '-r',
-      jestRegisterPath,
-      jestCommandPath,
-      ...inspectJestArgs,
-      ...args,
-    ],
+    execArgs: [...inspectNodeArgs, jestCommandPath, ...inspectJestArgs, ...args],
   });
 };

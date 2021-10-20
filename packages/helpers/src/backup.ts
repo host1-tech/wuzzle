@@ -23,3 +23,12 @@ export function restoreWithRemove(targetFilepath: string): void {
 
   fs.renameSync(backupFilepath, targetFilepath);
 }
+
+/**
+ * Same as restoreWithRemove. But keep silent on failure.
+ */
+export function tryRestoreWithRemove(targetFilepath: string): void {
+  try {
+    restoreWithRemove(targetFilepath);
+  } catch {}
+}

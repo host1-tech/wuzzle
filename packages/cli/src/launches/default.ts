@@ -1,4 +1,4 @@
-import { resolveCommandPath, resolveRequire, resolveWebpackSemVer } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { EXIT_CODE_ERROR } from '../constants';
 import { execNode, LaunchFunction } from '../utils';
 
@@ -13,11 +13,8 @@ export const launchDefault: LaunchFunction = ({ nodePath, args, projectPath, com
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const webpackRegisterPath = resolveRequire(`../registers/webpack__${webpackMajorVersion}.x`);
-
-  execNode({
-    nodePath,
-    args,
-    execArgs: ['-r', webpackRegisterPath, defaultCommandPath, ...args],
+  require(`../registers/webpack__${webpackMajorVersion}.x`).register({
+    commandPath: defaultCommandPath,
   });
+  execNode({ nodePath, args, execArgs: [defaultCommandPath, ...args] });
 };

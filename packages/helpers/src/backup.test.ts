@@ -1,7 +1,11 @@
 import fs from 'fs';
 import { mocked } from 'ts-jest/utils';
-
-import { BACKUP_FILE_EXT, backupWithRestore, restoreWithRemove } from './backup';
+import {
+  backupWithRestore,
+  BACKUP_FILE_EXT,
+  restoreWithRemove,
+  tryRestoreWithRemove,
+} from './backup';
 
 jest.spyOn(fs, 'copyFileSync');
 jest.spyOn(fs, 'renameSync');
@@ -14,7 +18,7 @@ beforeEach(() => {
 });
 
 describe('backupWithRestore', () => {
-  it('backups from target but fails restoring', () => {
+  it('backups from target if backup does not exist', () => {
     mocked(fs.copyFileSync).mockImplementation((src: fs.PathLike) => {
       if (src === backupFilepath) throw 0;
     });
@@ -36,9 +40,24 @@ describe('backupWithRestore', () => {
 });
 
 describe('restoreWithRemove', () => {
-  it('restores target and removes the backup', () => {
+  it('restores target and removes backup', () => {
     mocked(fs.renameSync).mockReturnValue();
     restoreWithRemove(targetFilepath);
     expect(fs.renameSync).toHaveBeenCalledWith(backupFilepath, targetFilepath);
+  });
+});
+
+describe('tryRestoreWithRemove', () => {
+  it('does not throw error on failure', () => {
+    mocked(fs.renameSync).mockImplementation(() => {
+      throw new Error();
+    });
+    let error: any;
+    try {
+      tryRestoreWithRemove(targetFilepath);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeFalsy();
   });
 });

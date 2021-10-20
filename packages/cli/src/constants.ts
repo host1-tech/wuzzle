@@ -15,3 +15,6 @@ export const EXIT_CODE_USER_TERMINATION = 130;
 
 // Special charactors
 export const CHAR_CTRL_D = '\x04';
+
+// Other plain constants
+export const ENCODING_TEXT = 'utf-8';

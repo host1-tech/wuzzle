@@ -1,26 +1,29 @@
-import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
+import { register } from '../registers/jest__26.x';
 import { areArgsParsableByFlags, execNode, LaunchOptions } from '../utils';
 import { launchJest } from './jest';
 
 const commandName = 'commandName';
+const commandPath = '/path/to/command';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const jestRegisterPath = '/path/to/register/jest';
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../registers/jest__26.x');
 jest.mock('../utils');
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
-mocked(resolveCommandSemVer).mockReturnValue({} as never);
+mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveCommandSemVer).mockReturnValue({ major: 26 } as never);
 
 describe('launchTest', () => {
   beforeEach(() => {
@@ -28,14 +31,15 @@ describe('launchTest', () => {
   });
 
   it('executes with jest register attached if command resolvable', () => {
-    mocked(resolveRequire).mockReturnValueOnce(jestRegisterPath);
     mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(resolveRequire).toBeCalled();
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.arrayContaining([jestRegisterPath])
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
     );
   });
 
@@ -44,8 +48,10 @@ describe('launchTest', () => {
     (...args) => {
       mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
       launchJest({ ...launchOptions, args });
-      expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-        expect.arrayContaining([...args, '--runInBand'])
+      expect(execNode).toBeCalledWith(
+        expect.objectContaining({
+          execArgs: expect.arrayContaining([...args, '--runInBand']),
+        })
       );
     }
   );
@@ -58,16 +64,25 @@ describe('launchTest', () => {
   ])('overrides %s if %s provided', (inspect, inspectBrk) => {
     mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
     launchJest({ ...launchOptions, args: [inspect, inspectBrk] });
-    const { execArgs } = mocked(execNode).mock.calls[0][0];
-    expect(execArgs).toEqual(expect.arrayContaining([inspectBrk, '--runInBand']));
-    expect(execArgs).toEqual(expect.not.arrayContaining([inspect]));
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([inspectBrk, '--runInBand']),
+      })
+    );
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.not.arrayContaining([inspect]),
+      })
+    );
   });
 
   it('executes w/o --runInBand if node args provided but not inspecting', () => {
     mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
     launchJest(launchOptions);
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.not.arrayContaining(['--runInBand'])
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.not.arrayContaining(['--runInBand']),
+      })
     );
   });
 

@@ -1,5 +1,5 @@
 import execa from 'execa';
-import { EK_COMMAND_ARGS, EXIT_CODE_ERROR } from '../constants';
+import { EXIT_CODE_ERROR } from '../constants';
 
 export interface ExecNodeOptions {
   nodePath?: string;
@@ -15,10 +15,9 @@ export function execNode({
   execOpts = {},
 }: ExecNodeOptions): void {
   try {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
     execa.sync(nodePath, execArgs, { stdio: 'inherit', ...execOpts });
   } catch (e) {
-    console.error(e.stack ?? e);
+    console.error((e as Error).stack ?? e);
     process.exit(EXIT_CODE_ERROR);
   }
 }

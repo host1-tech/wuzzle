@@ -6,6 +6,7 @@ import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map'
 import webpack from 'webpack';
 import { merge } from 'webpack-merge';
 import applyConfig from '../apply-config';
+import { ENCODING_TEXT } from '../constants';
 
 export type TranspileOptions = Partial<TranspileInternalOptions>;
 
@@ -55,7 +56,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     inputPath = path.resolve(internalOptions.inputCodePath);
     correctInputMemoryFileSystem(imfs, { inputPath });
     imfs.mkdirpSync(path.dirname(inputPath));
-    imfs.writeFileSync(inputPath, internalOptions.inputCode, 'utf-8');
+    imfs.writeFileSync(inputPath, internalOptions.inputCode, ENCODING_TEXT);
   } else {
     inputPath = path.resolve(internalOptions.inputPath!);
     try {
@@ -117,7 +118,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   let outputCode: string = '';
   if (!hasErrors) {
     if (omfs) {
-      outputCode = omfs.readFileSync(outputPath, 'utf-8');
+      outputCode = omfs.readFileSync(outputPath, ENCODING_TEXT);
     }
   }
 
@@ -158,7 +159,9 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
       throw 0;
     }
 
-    const inputSource: string = omfs ? outputCode : await pify(fs).readFile(outputPath, 'utf-8');
+    const inputSource: string = omfs
+      ? outputCode
+      : await pify(fs).readFile(outputPath, ENCODING_TEXT);
 
     // Read raw source map
     let rawSourceMap: RawSourceMap;
@@ -167,10 +170,10 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
         Buffer.from(
           inputSource.substring(inputSource.lastIndexOf('\n')).split('base64,')[1],
           'base64'
-        ).toString('utf-8')
+        ).toString(ENCODING_TEXT)
       );
     } else {
-      rawSourceMap = JSON.parse(await pify(fs).readFile(outputPath + '.map', 'utf-8'));
+      rawSourceMap = JSON.parse(await pify(fs).readFile(outputPath + '.map', ENCODING_TEXT));
     }
 
     // Make new source map
@@ -200,7 +203,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
         inputSource.substring(
           0,
           inputSource.indexOf('base64,', inputSource.lastIndexOf('\n')) + 'base64,'.length
-        ) + Buffer.from(newSourceMap, 'utf-8').toString('base64');
+        ) + Buffer.from(newSourceMap, ENCODING_TEXT).toString('base64');
       if (omfs) {
         outputCode = outputSource;
       } else {

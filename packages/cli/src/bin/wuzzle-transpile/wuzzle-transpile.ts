@@ -19,7 +19,7 @@ import {
 } from '../../constants';
 import { transpile } from '../../transpile';
 
-// Set command env variables consistent across 'wuzzle transpile'
+// Set command same env variables as 'wuzzle transpile'
 process.env[EK_COMMAND_NAME] = 'transpile';
 process.env[EK_COMMAND_ARGS] = JSON.stringify(process.argv.slice(2));
 
