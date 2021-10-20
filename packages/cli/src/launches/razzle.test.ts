@@ -2,25 +2,28 @@ import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { register } from '../registers/razzle__3.x';
 import { execNode, LaunchOptions } from '../utils';
 import { launchRazzle } from './razzle';
 
 const commandName = 'commandName';
+const commandPath = '/path/to/command';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const razzleRegisterPath = '/path/to/register/razzle';
 const razzlePreConfigPath = '/path/to/pre-config/razzle';
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../registers/razzle__3.x');
 jest.mock('../utils');
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+mocked(resolveCommandPath).mockReturnValue(commandPath);
 
 describe('launchRazzle', () => {
   beforeEach(() => {
@@ -29,13 +32,15 @@ describe('launchRazzle', () => {
   });
 
   it('executes with register attached and pre config set if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(razzleRegisterPath);
     mocked(resolveRequire).mockReturnValueOnce(razzlePreConfigPath);
     launchRazzle(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveRequire).toBeCalled();
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.arrayContaining([razzleRegisterPath])
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
     );
     expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(razzlePreConfigPath);
   });

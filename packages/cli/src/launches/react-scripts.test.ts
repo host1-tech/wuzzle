@@ -6,42 +6,48 @@ import {
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
+import { register } from '../registers/react-scripts__3.x';
 import { execNode, LaunchOptions } from '../utils';
 import { launchReactScripts } from './react-scripts';
 
 const commandName = 'commandName';
+const commandPath = '/path/to/command';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const reactScriptsRegisterPath = '/path/to/register/react-scripts';
 const reactScriptsPreConfigPath = '/path/to/pre-config/react-scripts';
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../registers/react-scripts__3.x');
 jest.mock('../utils');
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
-mocked(resolveCommandSemVer).mockReturnValue({} as never);
+mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
 
 describe('launchReactScripts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env[EK_INTERNAL_PRE_CONFIG];
+    delete process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK];
   });
 
   it('executes with register attached and pre config set if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(reactScriptsRegisterPath);
     mocked(resolveRequire).mockReturnValueOnce(reactScriptsPreConfigPath);
     launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
     expect(resolveRequire).toBeCalled();
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.arrayContaining([reactScriptsRegisterPath])
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
     );
     expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(reactScriptsPreConfigPath);
     expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');

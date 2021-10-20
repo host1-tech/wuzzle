@@ -2,20 +2,29 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
-import { resolveRequire } from '@wuzzle/helpers';
-import { addHook } from 'pirates';
+import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
+import fs from 'fs';
+import path from 'path';
+import { ENCODING_TEXT } from '../../constants';
+import { RegisterFunction } from '../../utils';
 
-export function register() {
-  const match = /node_modules[\\/]@jest[\\/]core[\\/]build[\\/]cli[\\/]index\.js$/;
+const moduleToMatch = '@jest/core/build/cli';
 
-  const piratesOptions = {
-    exts: ['.js'],
-    matcher: (filepath: string) => match.test(filepath),
-    ignoreNodeModules: false,
-  };
+export const register: RegisterFunction = ({ commandPath }) => {
+  const moduleFilepath = resolveRequire(moduleToMatch, {
+    basedir: path.dirname(commandPath),
+  });
+  backupWithRestore(moduleFilepath);
+  const code = fs.readFileSync(moduleFilepath, ENCODING_TEXT);
+  fs.writeFileSync(moduleFilepath, transform(code));
+};
 
-  addHook(transform, piratesOptions);
-}
+export const unregister: RegisterFunction = ({ commandPath }) => {
+  const moduleFilepath = resolveRequire(moduleToMatch, {
+    basedir: path.dirname(commandPath),
+  });
+  tryRestoreWithRemove(moduleFilepath);
+};
 
 export function transform(code: string): string {
   const ast = parse(code);

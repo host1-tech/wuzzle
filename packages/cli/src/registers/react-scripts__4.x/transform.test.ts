@@ -1,61 +1,41 @@
-import { resolveRequire } from '@wuzzle/helpers';
-import path from 'path';
-import { addHook } from 'pirates';
-import shelljs from 'shelljs';
-import { mocked } from 'ts-jest/utils';
 import { EK_COMMAND_ARGS } from '../../constants';
-import { register, transform } from './transform';
+import { register as registerJest26, unregister as unregisterJest26 } from '../jest__26.x';
+import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
+import { register, unregister } from './transform';
 
-const matchingPaths = ['node_modules/react-scripts/bin/react-scripts.js'];
-
-const subcommands = ['build', 'test', 'start'];
-
-const registerPaths: Record<string, string> = {
-  posix: '/path/to/register',
-  win32: 'D:\\path\\to\\register',
-};
-
-const originalNodePath = process.argv[0];
-
-const goodCodes: Record<string, string> = {
-  ['4.0.0']: shelljs.cat(path.join(__dirname, 'fixtures/react-scripts-bin-react-scripts@4.0.0.txt'))
-    .stdout,
-};
+const commandPath = '/path/to/command';
 
 jest.mock('@wuzzle/helpers');
-jest.mock('pirates');
+jest.mock('../jest__26.x');
+jest.mock('../webpack__4.x');
 
 beforeEach(() => {
   jest.clearAllMocks();
-  process.argv[0] = originalNodePath;
   delete process.env[EK_COMMAND_ARGS];
 });
 
-describe('register', () => {
-  it('matches paths', () => {
-    register();
-    const matcher = mocked(addHook).mock.calls[0][1]!.matcher!;
-    expect(matcher).toBeTruthy();
-    matchingPaths.map(p => {
-      expect(matcher(path.posix.normalize(p))).toBe(true);
-      expect(matcher(path.win32.normalize(p))).toBe(true);
-    });
+describe('register/unregister', () => {
+  it('uses jest register on default registering', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
+    register({ commandPath });
+    expect(registerWebpack4).toBeCalledWith({ commandPath });
   });
-});
 
-describe('transform', () => {
-  describe.each(Object.keys(goodCodes))('%s', (codeFlag: string) => {
-    describe.each(subcommands)('react-scripts %s', (subcommand: string) => {
-      it.each(Object.keys(registerPaths))('works in %s', (platform: string) => {
-        process.env[EK_COMMAND_ARGS] = JSON.stringify([subcommand]);
-        const code = goodCodes[codeFlag];
-        const registerPath = registerPaths[platform];
-        mocked(resolveRequire).mockReturnValueOnce(registerPath);
-        const transformedCode = transform(code);
-        expect(transformedCode).toEqual(
-          expect.stringContaining(registerPath.replace(/\\/g, '\\\\'))
-        );
-      });
-    });
+  it('uses jest register on testing registering', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    register({ commandPath });
+    expect(registerJest26).toBeCalledWith({ commandPath });
+  });
+
+  it('uses jest unregister on default unregistering', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
+    unregister({ commandPath });
+    expect(unregisterWebpack4).toBeCalledWith({ commandPath });
+  });
+
+  it('uses jest unregister on testing unregistering', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    unregister({ commandPath });
+    expect(unregisterJest26).toBeCalledWith({ commandPath });
   });
 });

@@ -11,12 +11,14 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const razzleRegisterPath = resolveRequire('../registers/razzle__3.x');
   process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire('../registers/razzle__3.x/pre-config');
+  require('../registers/razzle__3.x').register({
+    commandPath: razzleCommandPath,
+  });
 
   execNode({
     nodePath,
     args,
-    execArgs: ['-r', razzleRegisterPath, razzleCommandPath, ...args],
+    execArgs: [razzleCommandPath, ...args],
   });
 };

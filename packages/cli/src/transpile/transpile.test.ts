@@ -1,5 +1,6 @@
 import path from 'path';
 import shelljs from 'shelljs';
+import { ENCODING_TEXT } from '../constants';
 import { transpile } from './transpile';
 
 const fixturePath = path.join(__dirname, 'fixtures');
@@ -58,7 +59,7 @@ describe('transpile', () => {
 
   it('throws error on input path not found', async () => {
     const inputPath = '/path/not/found';
-    let error;
+    let error: any;
     try {
       await transpile({ inputPath });
     } catch (e) {
@@ -68,7 +69,7 @@ describe('transpile', () => {
   });
 
   it('throws error on compilation failure', async () => {
-    let error;
+    let error: any;
     try {
       await transpile({ inputPath: throwJs.inputPath });
     } catch (e) {
@@ -154,5 +155,5 @@ function readInlineSourceMap(outputContent: string) {
   return Buffer.from(
     outputContent.substring(outputContent.lastIndexOf('\n')).split('base64,')[1],
     'base64'
-  ).toString('utf-8');
+  ).toString(ENCODING_TEXT);
 }

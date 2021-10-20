@@ -1,7 +1,12 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import findUp from 'find-up';
 import path from 'path';
-import { EK_COMMAND_NAME, EK_RPOJECT_ANCHOR, EXIT_CODE_ERROR } from '../../constants';
+import {
+  EK_COMMAND_ARGS,
+  EK_COMMAND_NAME,
+  EK_RPOJECT_ANCHOR,
+  EXIT_CODE_ERROR,
+} from '../../constants';
 import {
   launchDefault,
   launchJest,
@@ -29,8 +34,9 @@ if (!commandName) {
   process.exit(EXIT_CODE_ERROR);
 }
 
-// Set command name as an env variable to help wuzzle user config setup
+// Set command env variables to help wuzzle user config setup
 process.env[EK_COMMAND_NAME] = commandName;
+process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
 
 const entries: Record<string, LaunchFunction> = {
   ['transpile']: () => {

@@ -1,7 +1,7 @@
 import execa from 'execa';
 import { noop, random } from 'lodash';
 import { mocked } from 'ts-jest/utils';
-import { EK_COMMAND_ARGS, EXIT_CODE_ERROR } from '../constants';
+import { EXIT_CODE_ERROR } from '../constants';
 import { execNode } from './exec-node';
 
 jest.spyOn(execa, 'sync').mockImplementation(noop as never);
@@ -13,12 +13,10 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 describe('execNode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env[EK_COMMAND_ARGS];
   });
 
   it('works with default options', () => {
     execNode({});
-    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify([]));
     expect(execa.sync).toBeCalledWith(process.argv[0], [], { stdio: 'inherit' });
   });
 
@@ -26,7 +24,6 @@ describe('execNode', () => {
     const nodePath = '/path/to/node';
     const args = ['--verbose'];
     execNode({ nodePath, args });
-    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(args));
     expect(execa.sync).toBeCalledWith(nodePath, args, { stdio: 'inherit' });
   });
 
@@ -35,14 +32,12 @@ describe('execNode', () => {
     const args = ['--verbose'];
     const execArgs = ['--help'];
     execNode({ nodePath, args, execArgs });
-    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(args));
     expect(execa.sync).toBeCalledWith(nodePath, execArgs, { stdio: 'inherit' });
   });
 
   it('overrides default execution extra options', () => {
     const execOpts = { stdio: 'pipe' as const };
     execNode({ execOpts });
-    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify([]));
     expect(execa.sync).toBeCalledWith(process.argv[0], [], execOpts);
   });
 

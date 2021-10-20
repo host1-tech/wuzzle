@@ -1,2 +1,1 @@
-import { register } from './transform';
-register();
+export * from './transform';

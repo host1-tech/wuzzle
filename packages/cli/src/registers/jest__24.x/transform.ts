@@ -2,23 +2,43 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
-import { resolveRequire } from '@wuzzle/helpers';
-import { addHook } from 'pirates';
+import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
+import fs from 'fs';
+import path from 'path';
+import { ENCODING_TEXT } from '../../constants';
+import { RegisterFunction } from '../../utils';
 
-export function register() {
-  const matches = [
-    /node_modules[\\/]jest-cli[\\/]build[\\/]cli[\\/]index\.js$/,
-    /node_modules[\\/]@jest[\\/]core[\\/]build[\\/]cli[\\/]index\.js$/,
-  ];
+const modulesToMatch = ['jest-cli/build/cli', '@jest/core/build/cli'];
 
-  const piratesOptions = {
-    exts: ['.js'],
-    matcher: (filepath: string) => matches.some(m => m.test(filepath)),
-    ignoreNodeModules: false,
-  };
+export const register: RegisterFunction = ({ commandPath }) => {
+  let hasTransformed: boolean = false;
+  for (const moduleToMatch of modulesToMatch) {
+    let moduleFilepath: string | undefined;
+    try {
+      moduleFilepath = resolveRequire(moduleToMatch, {
+        basedir: path.dirname(commandPath),
+      });
+    } catch {}
+    if (!moduleFilepath) continue;
+    backupWithRestore(moduleFilepath);
+    const code = fs.readFileSync(moduleFilepath, ENCODING_TEXT);
+    fs.writeFileSync(moduleFilepath, transform(code));
+    hasTransformed = true;
+  }
+  if (!hasTransformed) throw new Error(`Cannot resolve jest from command path '${commandPath}'`);
+};
 
-  addHook(transform, piratesOptions);
-}
+export const unregister: RegisterFunction = ({ commandPath }) => {
+  for (const moduleToMatch of modulesToMatch) {
+    let moduleFilepath: string | undefined;
+    try {
+      moduleFilepath = resolveRequire(moduleToMatch, {
+        basedir: path.dirname(commandPath),
+      });
+      tryRestoreWithRemove(moduleFilepath);
+    } catch {}
+  }
+};
 
 export function transform(code: string): string {
   const ast = parse(code);
