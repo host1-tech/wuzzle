@@ -9,7 +9,8 @@
   ],
   "bin": {
     "wuzzle": "bin/wuzzle.js",
-    "wuzzle-transpile": "bin/wuzzle-transpile.js"
+    "wuzzle-transpile": "bin/wuzzle-transpile.js",
+    "wuzzle-unregister": "bin/wuzzle-unregister.js"
   },
   "engines": {
     "node": ">=10"

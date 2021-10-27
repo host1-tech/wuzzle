@@ -4,8 +4,8 @@ import { register as registerJest26, unregister as unregisterJest26 } from '../j
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 
 export const register: RegisterFunction = options => {
-  const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
-  if (razzleCommand === 'test') {
+  const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  if (reactScriptsCommand === 'test') {
     registerJest26(options);
   } else {
     registerWebpack4(options);
@@ -13,10 +13,6 @@ export const register: RegisterFunction = options => {
 };
 
 export const unregister: RegisterFunction = options => {
-  const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
-  if (razzleCommand === 'test') {
-    unregisterJest26(options);
-  } else {
-    unregisterWebpack4(options);
-  }
+  unregisterWebpack4(options);
+  unregisterJest26(options);
 };
