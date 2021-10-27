@@ -13,10 +13,6 @@ export const register: RegisterFunction = options => {
 };
 
 export const unregister: RegisterFunction = options => {
-  const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
-  if (razzleCommand === 'test') {
-    unregisterJest24(options);
-  } else {
-    unregisterWebpack4(options);
-  }
+  unregisterWebpack4(options);
+  unregisterJest24(options);
 };

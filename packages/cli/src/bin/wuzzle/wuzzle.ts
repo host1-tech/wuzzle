@@ -40,9 +40,12 @@ process.env[EK_COMMAND_ARGS] = JSON.stringify(args);
 
 const entries: Record<string, LaunchFunction> = {
   ['transpile']: () => {
-    process.argv[1] = resolveRequire('../wuzzle-transpile');
-    process.argv.splice(2, 1);
+    process.argv.splice(1, 2, resolveRequire('../wuzzle-transpile'));
     require('../wuzzle-transpile');
+  },
+  ['unregister']: () => {
+    process.argv.splice(1, 2, resolveRequire('../wuzzle-unregister'));
+    require('../wuzzle-unregister');
   },
   ['jest']: launchJest,
   ['mocha']: launchMocha,

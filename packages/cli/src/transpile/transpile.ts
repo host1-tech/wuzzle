@@ -62,7 +62,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     try {
       fs.accessSync(inputPath, fs.constants.R_OK);
     } catch {
-      throw new Error(`Cannot find inputPath '${options.inputPath}'.`);
+      throw new Error(`Cannot find inputPath '${options.inputPath}'`);
     }
   }
   webpackConfig.entry = inputPath;

@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 describe('register/unregister', () => {
-  it('uses jest register on default registering', () => {
+  it('uses webpack register on default registering', () => {
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
     register({ commandPath });
     expect(registerWebpack4).toBeCalledWith({ commandPath });
@@ -27,15 +27,9 @@ describe('register/unregister', () => {
     expect(registerJest26).toBeCalledWith({ commandPath });
   });
 
-  it('uses jest unregister on default unregistering', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
+  it('uses webpack and jest unregister on unregistering', () => {
     unregister({ commandPath });
     expect(unregisterWebpack4).toBeCalledWith({ commandPath });
-  });
-
-  it('uses jest unregister on testing unregistering', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
-    unregister({ commandPath });
     expect(unregisterJest26).toBeCalledWith({ commandPath });
   });
 });

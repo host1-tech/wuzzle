@@ -8,7 +8,7 @@ import {
   EK_RPOJECT_ANCHOR,
   EXIT_CODE_ERROR,
 } from '../../constants';
-import { launchDefault, launchNode } from '../../launches';
+import { launchDefault, launchJest } from '../../launches';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle')];
@@ -17,11 +17,13 @@ const originalProcessArgv = process.argv;
 const extraArgs = ['extraArg'];
 const projectPath = fixturePath;
 
-jest.mock('@wuzzle/helpers');
 jest.mock('../../launches');
 
 const mockedWuzzleTranspileExec = jest.fn();
 jest.mock('../wuzzle-transpile', () => mockedWuzzleTranspileExec());
+
+const mockedWuzzleUnregisterExec = jest.fn();
+jest.mock('../wuzzle-unregister', () => mockedWuzzleUnregisterExec());
 
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
@@ -42,7 +44,7 @@ describe('wuzzle', () => {
   });
 
   it('launches default entry in general', () => {
-    const commandName = 'webpack';
+    const commandName = 'some-workable-command';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
@@ -57,12 +59,12 @@ describe('wuzzle', () => {
   });
 
   it('launches special entry if available', () => {
-    const commandName = 'node';
+    const commandName = 'jest';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
-    expect(launchNode).toBeCalledWith(
+    expect(launchJest).toBeCalledWith(
       expect.objectContaining({
         projectPath,
         commandName,
@@ -83,6 +85,18 @@ describe('wuzzle', () => {
     expect(mockedWuzzleTranspileExec).toBeCalled();
   });
 
+  it('redirects to unregister if commanded', () => {
+    const commandName = 'unregister';
+    const extraArg = 'extraArg';
+    process.argv = [...fixedArgs, commandName, extraArg];
+    jest.isolateModules(() => require('./wuzzle'));
+    expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
+    expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
+    expect(process.argv[1]).toBe(resolveRequire('../wuzzle-unregister'));
+    expect(process.argv[2]).toBe(extraArg);
+    expect(mockedWuzzleUnregisterExec).toBeCalled();
+  });
+
   it('reports error if command not specified', () => {
     process.argv = [...fixedArgs];
     try {
@@ -93,7 +107,7 @@ describe('wuzzle', () => {
   });
 
   it('reports error if anchor not located', () => {
-    const anchorName = 'In iure tenetur dolorum sit illo qui ullam voluptas autem.';
+    const anchorName = 'a4b7e86983e611193697d967fe6ae27fa43e5353';
     process.env[EK_RPOJECT_ANCHOR] = anchorName;
     process.argv = [...fixedArgs];
     try {
