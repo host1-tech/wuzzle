@@ -1,4 +1,5 @@
 import { resolveCommandPath } from '@wuzzle/helpers';
+import { green } from 'chalk';
 import findUp from 'find-up';
 import glob from 'glob';
 import path from 'path';
@@ -22,7 +23,7 @@ const projectPath = path.dirname(anchorPath);
 const [, , commandName] = process.argv;
 
 if (!commandName) {
-  console.error('error: module name not specified.');
+  console.error('error: command name not specified.');
   process.exit(EXIT_CODE_ERROR);
 }
 
@@ -40,3 +41,5 @@ for (const { unregister } of glob
   .map(require)) {
   unregister({ commandPath: resolveCommandPath({ cwd: projectPath, commandName }) });
 }
+
+console.log(green(`Registers on '${commandName}' reverted.`));

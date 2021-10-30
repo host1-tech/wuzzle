@@ -1,7 +1,7 @@
 import glob from 'glob';
 import path from 'path';
 import shelljs from 'shelljs';
-import { genWuzzleExec } from './utils';
+import { genEndToEndExec } from './utils';
 
 interface FixtureInfo {
   fixtureDir: string;
@@ -10,6 +10,7 @@ interface FixtureInfo {
   outputDir?: string;
   outputContents?: Record<string, string>;
   outputMessages?: string[];
+  testUnregister?: boolean;
 }
 
 const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
@@ -21,6 +22,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/index.js']: 'Hi, Webpack 4.x.',
       },
+      testUnregister: true,
     },
     ['5.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/webpack__5.x'),
@@ -29,6 +31,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/index.js']: 'Hi, Webpack 5.x.',
       },
+      testUnregister: true,
     },
   },
   ['electron-webpack']: {
@@ -39,6 +42,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/renderer/renderer.js']: 'Hi, EW 2.x.',
       },
+      testUnregister: true,
     },
   },
   ['jest']: {
@@ -46,16 +50,19 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       fixtureDir: path.join(__dirname, 'fixtures/jest__24.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 24.x.'],
+      testUnregister: true,
     },
     ['25.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/jest__25.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 25.x.'],
+      testUnregister: true,
     },
     ['26.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/jest__26.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 26.x.'],
+      testUnregister: true,
     },
   },
   ['mocha']: {
@@ -78,6 +85,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         '.next/static/chunks/pages/index-*.js': 'Hi, Next 9.x.',
       },
+      testUnregister: true,
     },
   },
   ['node']: {
@@ -95,6 +103,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/public/static/js/bundle.*.js']: 'Hi, Razzle 3.x.',
       },
+      testUnregister: true,
     },
   },
   ['razzle test']: {
@@ -103,6 +112,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       command: 'razzle test --env=jsdom',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, Razzle 3.x.'],
+      testUnregister: true,
     },
   },
   ['react-scripts build']: {
@@ -113,6 +123,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/static/js/main.*.chunk.js']: 'Hi, CRA 3.x.',
       },
+      testUnregister: true,
     },
     ['4.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/react-scripts__4.x'),
@@ -121,6 +132,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/static/js/main.*.chunk.js']: 'Hi, CRA 4.x.',
       },
+      testUnregister: true,
     },
   },
   ['react-scripts test']: {
@@ -129,12 +141,14 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       command: 'react-scripts test',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, CRA 3.x.'],
+      testUnregister: true,
     },
     ['4.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/react-scripts__4.x'),
       command: 'react-scripts test',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, CRA 4.x.'],
+      testUnregister: true,
     },
   },
   ['storybook']: {
@@ -145,6 +159,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['storybook-static/main.*.iframe.bundle.js']: 'Hi, Storybook 6.x.',
       },
+      testUnregister: true,
     },
   },
   ['taro build:h5']: {
@@ -155,6 +170,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/chunk/index_index.js']: 'Hi, Taro 2.x.',
       },
+      testUnregister: true,
     },
   },
   ['taro build:weapp']: {
@@ -165,6 +181,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/pages/index/index.wxml']: 'Hi, Taro 2.x.',
       },
+      testUnregister: true,
     },
   },
   ['transpile']: {
@@ -181,32 +198,69 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
 
 const timeoutInMs = 30000;
 
-describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageFlag => {
-  it.each(Object.keys(fixtureInfoAllInOne[packageFlag]))(
-    `works with ${packageFlag.split(' ')[0]} %s`,
+describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
+  const fixtureInfo = fixtureInfoAllInOne[packageDesc];
+  const moduleName = packageDesc.split(' ')[0];
+  describe.each(Object.keys(fixtureInfo))(
+    `${moduleName} %s`,
     versionFlag => {
-      const { fixtureDir, command, envOverrides, outputDir, outputContents, outputMessages } =
-        fixtureInfoAllInOne[packageFlag][versionFlag];
+      const {
+        fixtureDir,
+        command,
+        envOverrides,
+        outputDir,
+        outputContents,
+        outputMessages,
+        testUnregister,
+      } = fixtureInfo[versionFlag];
+      const commandName = command.split(' ')[0];
 
-      shelljs.cd(fixtureDir);
-      if (outputDir) shelljs.rm('-fr', outputDir);
+      beforeAll(() => {
+        shelljs.cd(fixtureDir);
+        if (outputDir) shelljs.rm('-fr', outputDir);
+      });
 
-      const { stdout, stderr, code: exitCode } = shelljs.exec(genWuzzleExec(command, envOverrides));
+      it(`runs ${command}`, () => {
+        const {
+          stdout,
+          stderr,
+          code: exitCode,
+        } = shelljs.exec(genEndToEndExec({ command, envOverrides }));
 
-      expect(exitCode).toBe(0);
-      expect(stderr).toEqual(expect.stringContaining('Wuzzle process mounted in CWD:'));
+        expect(exitCode).toBe(0);
+        expect(stderr).toEqual(expect.stringContaining('Wuzzle process mounted in CWD:'));
 
-      if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
-      if (outputContents) {
-        Object.keys(outputContents).forEach(outputPath => {
-          expect(shelljs.cat(glob.sync(outputPath)[0]).stdout).toEqual(
-            expect.stringContaining(outputContents[outputPath])
+        if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
+        if (outputContents) {
+          Object.keys(outputContents).forEach(outputPath => {
+            expect(shelljs.cat(glob.sync(outputPath)[0]).stdout).toEqual(
+              expect.stringContaining(outputContents[outputPath])
+            );
+          });
+        }
+        if (outputMessages) {
+          outputMessages.forEach(outputMessage => {
+            expect(stdout + stderr).toEqual(expect.stringContaining(outputMessage));
+          });
+        }
+      });
+
+      if (testUnregister) {
+        it(`unregisters ${commandName}`, () => {
+          expect(
+            shelljs.exec(genEndToEndExec({ command: `unregister ${commandName}`, envOverrides }))
+              .code
+          ).toBe(0);
+
+          const { stderr, code: exitCode } = shelljs.exec(
+            genEndToEndExec({
+              envOverrides: { ...envOverrides, SKIP_PREFLIGHT_CHECK: 'true' },
+              wrapper: 'yarn',
+              command,
+            })
           );
-        });
-      }
-      if (outputMessages) {
-        outputMessages.forEach(outputMessage => {
-          expect(stdout + stderr).toEqual(expect.stringContaining(outputMessage));
+          expect(exitCode).toBe(0);
+          expect(stderr).not.toEqual(expect.stringContaining('Wuzzle process mounted in CWD:'));
         });
       }
     },
