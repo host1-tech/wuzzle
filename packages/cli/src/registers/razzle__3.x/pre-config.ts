@@ -1,13 +1,16 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import path from 'path';
-import { EK_COMMAND_ARGS, EK_COMMAND_NAME } from '../../constants';
+import { WuzzleModifyOptions } from '../../apply-config';
 
 const babelConfigExplorer = cosmiconfigSync('babel');
 
-export default () => {
-  const commandName = process.env[EK_COMMAND_NAME]!;
-  const razzleCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+export default (
+  arg0: unknown,
+  arg1: unknown,
+  { commandName, commandArgs }: WuzzleModifyOptions
+) => {
+  const razzleCommand = commandArgs[0];
 
   if (commandName !== 'razzle') return;
   if (razzleCommand !== 'test') return;

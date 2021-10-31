@@ -1,14 +1,14 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
-import {
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM,
-} from '../../constants';
+import { WuzzleModifyOptions } from '../../apply-config';
+import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
 
-export default () => {
-  const commandName = process.env[EK_COMMAND_NAME]!;
-  const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+export default (
+  arg0: unknown,
+  arg1: unknown,
+  { commandName, commandArgs }: WuzzleModifyOptions
+) => {
+  const reactScriptsCommand = commandArgs[0];
 
   if (commandName !== 'react-scripts') return;
   if (reactScriptsCommand !== 'test') return;

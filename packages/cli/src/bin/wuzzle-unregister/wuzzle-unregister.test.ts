@@ -27,6 +27,7 @@ jest.mock('@wuzzle/helpers', () => ({
   resolveCommandPath: jest.fn(),
 }));
 
+jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
