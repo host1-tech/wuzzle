@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.0-alpha.0](https://github.com/licg9999/wuzzle/compare/v0.2.1-alpha.1...v0.3.0-alpha.0) (2021-10-31)
+
+
+### Features
+
+* backup helper ([ecfa69d](https://github.com/licg9999/wuzzle/commit/ecfa69d1ac04f1debcac84039cdac4cee6e1ca22))
+* setup file based registering ([3c2d0c4](https://github.com/licg9999/wuzzle/commit/3c2d0c42f83c07b79529c52f6f50b442b6cab7e6))
+* setup wuzzle-unregister command ([a1a863e](https://github.com/licg9999/wuzzle/commit/a1a863e3e7df2c029b1a93571fc060df97717ee0))
+
+
+
 ## [0.2.1-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.2.1-alpha.0...v0.2.1-alpha.1) (2021-08-10)
 
 
