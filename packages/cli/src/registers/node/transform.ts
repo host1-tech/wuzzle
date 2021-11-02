@@ -30,6 +30,9 @@ export function register() {
 export function transform(code: string, file: string): string {
   const convertPath = resolveRequire('./convert');
   const nodePath = process.argv[0];
+  // A tens-of-lines file usually takes hundreds of milliseconds to get webpack-compiled.
+  // Compare to it, process spawning only takes less than 1/10 of the time. So here
+  // introduced synchronous process spawning to synchronize an async tranpiling function.
   const { stdout, stderr } = execa.sync(nodePath, [convertPath, file], { input: code });
   process.stderr.write(stderr);
   return stdout;
