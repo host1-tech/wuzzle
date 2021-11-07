@@ -14,7 +14,7 @@ const fixtureDirs = glob.sync('e2e/fixtures/*', {
 
 program.command('install').action(() => {
   fixtureDirs.forEach(fixtureDir => {
-    shelljs.cd(path.resolve(cwd, fixtureDir));
+    shelljs.cd(path.join(cwd, fixtureDir));
     console.log(blue(`Install deps in '${fixtureDir}'`));
     if (shelljs.test('-f', 'package.json')) {
       shelljs.exec('yarn');

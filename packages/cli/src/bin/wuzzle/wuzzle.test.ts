@@ -5,6 +5,7 @@ import shelljs from 'shelljs';
 import {
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_PROJECT_PATH,
   EK_RPOJECT_ANCHOR,
   EXIT_CODE_ERROR,
 } from '../../constants';
@@ -37,6 +38,8 @@ describe('wuzzle', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env[EK_RPOJECT_ANCHOR];
+    delete process.env[EK_PROJECT_PATH];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
     delete process.env[EK_RPOJECT_ANCHOR];
@@ -47,6 +50,7 @@ describe('wuzzle', () => {
     const commandName = 'some-workable-command';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
     expect(launchDefault).toBeCalledWith(
@@ -62,6 +66,7 @@ describe('wuzzle', () => {
     const commandName = 'jest';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
     expect(launchJest).toBeCalledWith(
@@ -78,6 +83,7 @@ describe('wuzzle', () => {
     const extraArg = 'extraArg';
     process.argv = [...fixedArgs, commandName, extraArg];
     jest.isolateModules(() => require('./wuzzle'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
     expect(process.argv[1]).toBe(resolveRequire('../wuzzle-transpile'));
@@ -90,6 +96,7 @@ describe('wuzzle', () => {
     const extraArg = 'extraArg';
     process.argv = [...fixedArgs, commandName, extraArg];
     jest.isolateModules(() => require('./wuzzle'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe(commandName);
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(extraArgs));
     expect(process.argv[1]).toBe(resolveRequire('../wuzzle-unregister'));

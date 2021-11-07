@@ -3,11 +3,19 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import type webpackType from 'webpack';
 import { merge } from 'webpack-merge';
-import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EK_INTERNAL_PRE_CONFIG } from './constants';
+import {
+  EK_CACHE_KEY_OF_ENV_KEYS,
+  EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_COMMAND_ARGS,
+  EK_COMMAND_NAME,
+  EK_INTERNAL_PRE_CONFIG,
+  EK_PROJECT_PATH,
+} from './constants';
 
 const debug = debugFty('@wuzzle/cli:applyConfig');
 
 export interface WuzzleModifyOptions {
+  projectPath: string;
   commandName: string;
   commandArgs: string[];
 }
@@ -20,6 +28,8 @@ export type WuzzleConfigModify = (
 
 export interface WuzzleConfigOptions {
   modify?: WuzzleConfigModify;
+  cacheKeyOfEnvKeys?: string[];
+  cacheKeyOfFilePaths?: string[];
 }
 
 export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
@@ -32,6 +42,7 @@ function applyConfig(
   const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
 
   const wuzzleModifyOptions: WuzzleModifyOptions = {
+    projectPath: process.env[EK_PROJECT_PATH] ?? process.cwd(),
     commandName: process.env[EK_COMMAND_NAME] ?? 'unknown',
     commandArgs: JSON.parse(process.env[EK_COMMAND_ARGS] ?? '[]'),
   };
@@ -66,6 +77,12 @@ function applyConfig(
         Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
       }
     } catch {}
+  }
+  if (optionsToUse.cacheKeyOfEnvKeys) {
+    process.env[EK_CACHE_KEY_OF_ENV_KEYS] = JSON.stringify(optionsToUse.cacheKeyOfEnvKeys);
+  }
+  if (optionsToUse.cacheKeyOfFilePaths) {
+    process.env[EK_CACHE_KEY_OF_FILE_PATHS] = JSON.stringify(optionsToUse.cacheKeyOfFilePaths);
   }
 
   const webpackConfigNewSnapshot = stringify(webpackConfig);

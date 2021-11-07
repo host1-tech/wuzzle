@@ -1,16 +1,34 @@
+import cacache from 'cacache';
+import { createHash } from 'crypto';
 import fs from 'fs';
+import glob from 'glob';
+import { flatten, uniq } from 'lodash';
 import MemoryFileSystem from 'memory-fs';
+import minimatch from 'minimatch';
+import pMap from 'p-map';
 import path from 'path';
 import pify from 'pify';
+import serializeJavascript from 'serialize-javascript';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
+import { promisify } from 'util';
 import webpack from 'webpack';
 import { merge } from 'webpack-merge';
+import mkdirp from 'mkdirp';
 import applyConfig from '../apply-config';
-import { ENCODING_TEXT } from '../constants';
+import {
+  CACHE_BASE_PATH,
+  CACHE_KEY_DEFAULT_OF_ENV_KEYS,
+  CACHE_KEY_DEFAULT_OF_FILE_PATHS,
+  EK_CACHE_KEY_OF_ENV_KEYS,
+  EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_PROJECT_PATH,
+  ENCODING_TEXT,
+} from '../constants';
+import { waitForStream } from '../utils';
 
 export type TranspileOptions = Partial<TranspileInternalOptions>;
 
-interface TranspileInternalOptions {
+export interface TranspileInternalOptions {
   inputPath?: string;
   inputCode: string;
   inputCodePath: string;
@@ -20,7 +38,7 @@ interface TranspileInternalOptions {
   webpackConfig: webpack.Configuration;
 }
 
-const transpileDefaultOptions: TranspileInternalOptions = {
+export const transpileDefaultOptions: TranspileInternalOptions = {
   inputCode: '',
   inputCodePath: 'index.js',
   outputCodePath: 'index.js',
@@ -37,6 +55,9 @@ const transpileDefaultOptions: TranspileInternalOptions = {
     },
   },
 };
+
+export const thisFileContent = fs.readFileSync(__filename);
+export const cachePath = path.join(CACHE_BASE_PATH, 'transpile');
 
 export async function transpile(options: TranspileOptions = {}): Promise<string> {
   const internalOptions: TranspileInternalOptions = {
@@ -102,6 +123,29 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     }
   }
 
+  // Get output from cache
+  const outputCacheKey = await generateCacheKey(internalOptions);
+  try {
+    if (omfs) {
+      return (await cacache.get(cachePath, outputCacheKey)).data.toString(ENCODING_TEXT);
+    } else {
+      if (!(await cacache.get.info(cachePath, outputCacheKey))) throw 0;
+      await mkdirp(path.dirname(outputPath));
+      await waitForStream(
+        cacache.get.stream(cachePath, outputCacheKey).pipe(fs.createWriteStream(outputPath))
+      );
+      if (doesProduceFileSourceMap(webpackConfig.devtool)) {
+        if (!(await cacache.get.info(cachePath, addSourceMapPathExt(outputCacheKey)))) throw 0;
+        await waitForStream(
+          cacache.get
+            .stream(cachePath, addSourceMapPathExt(outputCacheKey))
+            .pipe(fs.createWriteStream(addSourceMapPathExt(outputPath)))
+        );
+      }
+      return '';
+    }
+  } catch {}
+
   // Create webpack compiler and execute
   const webpackCompiler = pify(webpack(webpackConfig));
   if (imfs) {
@@ -141,19 +185,11 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
   // Normalize source map when available
   try {
-    const { devtool } = webpackConfig;
-
-    if (
-      typeof devtool !== 'string' ||
-      devtool.includes('eval') ||
-      !devtool.includes('source-map')
-    ) {
+    if (!doesProduceSourceMap(webpackConfig.devtool)) {
       throw 0;
     }
 
-    const isInline = devtool.includes('inline');
-
-    if (omfs && !isInline) {
+    if (omfs && doesProduceFileSourceMap(webpackConfig.devtool)) {
       // Remove source map url
       outputCode = outputCode.substring(0, outputCode.lastIndexOf('\n'));
       throw 0;
@@ -165,7 +201,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
     // Read raw source map
     let rawSourceMap: RawSourceMap;
-    if (isInline) {
+    if (doesProduceInlineSourceMap(webpackConfig.devtool)) {
       rawSourceMap = JSON.parse(
         Buffer.from(
           inputSource.substring(inputSource.lastIndexOf('\n')).split('base64,')[1],
@@ -173,7 +209,9 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
         ).toString(ENCODING_TEXT)
       );
     } else {
-      rawSourceMap = JSON.parse(await pify(fs).readFile(outputPath + '.map', ENCODING_TEXT));
+      rawSourceMap = JSON.parse(
+        await pify(fs).readFile(addSourceMapPathExt(outputPath), ENCODING_TEXT)
+      );
     }
 
     // Make new source map
@@ -198,7 +236,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     });
 
     // Write new source map
-    if (isInline) {
+    if (doesProduceInlineSourceMap(webpackConfig.devtool)) {
       const outputSource =
         inputSource.substring(
           0,
@@ -210,14 +248,33 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
         await pify(fs).writeFile(outputPath, outputSource);
       }
     } else {
-      await pify(fs).writeFile(outputPath + '.map', newSourceMap);
+      await pify(fs).writeFile(addSourceMapPathExt(outputPath), newSourceMap);
     }
   } catch {}
+
+  // Put output into cache
+  if (omfs) {
+    await cacache.put(cachePath, outputCacheKey, outputCode);
+  } else {
+    await waitForStream(
+      fs.createReadStream(outputPath).pipe(cacache.put.stream(cachePath, outputCacheKey))
+    );
+    if (doesProduceFileSourceMap(webpackConfig.devtool)) {
+      await waitForStream(
+        fs
+          .createReadStream(addSourceMapPathExt(outputPath))
+          .pipe(cacache.put.stream(cachePath, addSourceMapPathExt(outputCacheKey)))
+      );
+    }
+  }
 
   return outputCode;
 }
 
-function correctInputMemoryFileSystem(imfs: MemoryFileSystem, options: { inputPath: string }) {
+export function correctInputMemoryFileSystem(
+  imfs: MemoryFileSystem,
+  options: { inputPath: string }
+) {
   const targetMethods = ['readFile', 'readFileSync', 'stat', 'statSync'] as const;
   targetMethods.forEach(method => {
     const imfsMethod = imfs[method].bind(imfs) as Function;
@@ -226,4 +283,68 @@ function correctInputMemoryFileSystem(imfs: MemoryFileSystem, options: { inputPa
       return args[0] === options.inputPath ? imfsMethod(...args) : fsMethod(...args);
     };
   });
+}
+
+export function addSourceMapPathExt(name: string): string {
+  return name + '.map';
+}
+
+export async function generateCacheKey(options: TranspileOptions): Promise<string> {
+  let cacheKeyOfEnvKeys = CACHE_KEY_DEFAULT_OF_ENV_KEYS;
+  try {
+    cacheKeyOfEnvKeys = JSON.parse(process.env[EK_CACHE_KEY_OF_ENV_KEYS]!);
+  } catch {}
+  const envKeys = Object.keys(process.env).filter(k =>
+    cacheKeyOfEnvKeys.some(g => minimatch(k, g))
+  );
+  const envVals = envKeys.map(k => process.env[k]);
+
+  let cacheKeyOfFilePaths = CACHE_KEY_DEFAULT_OF_FILE_PATHS;
+  try {
+    cacheKeyOfFilePaths = JSON.parse(process.env[EK_CACHE_KEY_OF_FILE_PATHS]!);
+  } catch {}
+  const filePaths = uniq(
+    flatten(
+      await pMap(
+        cacheKeyOfFilePaths,
+        g =>
+          promisify(glob)(g, {
+            cwd: process.env[EK_PROJECT_PATH],
+            dot: true,
+            nodir: true,
+            absolute: true,
+          }),
+        { stopOnError: true }
+      )
+    )
+  );
+  const fileContents = await pMap(filePaths, f => promisify(fs.readFile)(f, ENCODING_TEXT), {
+    stopOnError: true,
+  });
+
+  return createHash('md5')
+    .update(thisFileContent)
+    .update('\0', ENCODING_TEXT)
+    .update(serializeJavascript(options))
+    .update('\0', ENCODING_TEXT)
+    .update(serializeJavascript(envKeys))
+    .update('\0', ENCODING_TEXT)
+    .update(serializeJavascript(envVals))
+    .update('\0', ENCODING_TEXT)
+    .update(serializeJavascript(filePaths))
+    .update('\0', ENCODING_TEXT)
+    .update(serializeJavascript(fileContents))
+    .digest('hex');
+}
+
+export function doesProduceSourceMap(devtool?: webpack.Options.Devtool): boolean {
+  return typeof devtool === 'string' && !devtool.includes('eval') && devtool.includes('source-map');
+}
+
+export function doesProduceInlineSourceMap(devtool?: webpack.Options.Devtool): boolean {
+  return doesProduceSourceMap(devtool) && String(devtool).includes('inline');
+}
+
+export function doesProduceFileSourceMap(devtool?: webpack.Options.Devtool): boolean {
+  return doesProduceSourceMap(devtool) && !String(devtool).includes('inline');
 }

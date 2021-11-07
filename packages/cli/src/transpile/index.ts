@@ -1,1 +1,1 @@
-export * from './transpile';
+export { transpile, TranspileOptions } from './transpile';
