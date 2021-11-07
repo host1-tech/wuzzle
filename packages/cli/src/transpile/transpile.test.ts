@@ -25,6 +25,10 @@ const emptyTs = {
   inputPath: 'src/empty.ts',
   outputPath: `${outputDir}/empty.ts`,
 };
+const changingJs = {
+  inputPath: 'src/changing.js',
+  outputPath: `${outputDir}/changing.js`,
+};
 const babelConfPath = path.join(fixturePath, '.babelrc');
 
 process.env[EK_PROJECT_PATH] = fixturePath;
@@ -252,16 +256,23 @@ describe('generateCacheKey', () => {
     delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
     delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
     delete process.env.BABEL_ENV;
-    shelljs.rm('-f', babelConfPath);
   });
 
-  it('changes on options change', async () => {
-    const hash1 = await generateCacheKey({ inputPath: '/path/to/input1' });
-    const hash2 = await generateCacheKey({ inputPath: '/path/to/input2' });
+  it('changes on input file content change', async () => {
+    fs.writeFileSync(changingJs.inputPath, '1;');
+    const hash1 = await generateCacheKey({ inputPath: changingJs.inputPath });
+    fs.writeFileSync(changingJs.inputPath, '2;');
+    const hash2 = await generateCacheKey({ inputPath: changingJs.inputPath });
     expect(hash1).not.toBe(hash2);
   });
 
-  it('changes on envs change', async () => {
+  it('changes on options change', async () => {
+    const hash1 = await generateCacheKey({ inputCode: '1;' });
+    const hash2 = await generateCacheKey({ inputCode: '2;' });
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('changes on inspected envs change', async () => {
     process.env.BABEL_ENV = 'production';
     const hash1 = await generateCacheKey({});
     process.env.BABEL_ENV = 'development';
@@ -269,7 +280,7 @@ describe('generateCacheKey', () => {
     expect(hash1).not.toBe(hash2);
   });
 
-  it('changes on files change', async () => {
+  it('changes on inspected files change', async () => {
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 1 }));
     const hash1 = await generateCacheKey({});
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 2 }));

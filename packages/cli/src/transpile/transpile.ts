@@ -63,7 +63,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   const internalOptions: TranspileInternalOptions = {
     ...transpileDefaultOptions,
     ...options,
-    webpackConfig: merge(transpileDefaultOptions.webpackConfig, options.webpackConfig || {}),
+    webpackConfig: merge({}, transpileDefaultOptions.webpackConfig, options.webpackConfig || {}),
   };
 
   const imfs = !internalOptions.inputPath && new MemoryFileSystem();
@@ -79,7 +79,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     imfs.mkdirpSync(path.dirname(inputPath));
     imfs.writeFileSync(inputPath, internalOptions.inputCode, ENCODING_TEXT);
   } else {
-    inputPath = path.resolve(internalOptions.inputPath!);
+    inputPath = internalOptions.inputPath = path.resolve(internalOptions.inputPath!);
     try {
       fs.accessSync(inputPath, fs.constants.R_OK);
     } catch {
@@ -290,6 +290,11 @@ export function addSourceMapPathExt(name: string): string {
 }
 
 export async function generateCacheKey(options: TranspileOptions): Promise<string> {
+  let inputFileContent: string = '';
+  if (options.inputPath) {
+    inputFileContent = await promisify(fs.readFile)(options.inputPath, ENCODING_TEXT);
+  }
+
   let cacheKeyOfEnvKeys = CACHE_KEY_DEFAULT_OF_ENV_KEYS;
   try {
     cacheKeyOfEnvKeys = JSON.parse(process.env[EK_CACHE_KEY_OF_ENV_KEYS]!);
@@ -324,6 +329,8 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
 
   return createHash('md5')
     .update(thisFileContent)
+    .update('\0', ENCODING_TEXT)
+    .update(inputFileContent)
     .update('\0', ENCODING_TEXT)
     .update(serializeJavascript(options))
     .update('\0', ENCODING_TEXT)
