@@ -18,5 +18,5 @@ export function resolveCommandPath({
   } catch {
     linkContent = readCmdShim.sync(commandLink);
   }
-  return path.join(commandLink, '..', linkContent);
+  return path.resolve(commandLink, '..', linkContent);
 }
