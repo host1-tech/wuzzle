@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.0-alpha.2](https://github.com/host1-tech/wuzzle/compare/v0.3.0-alpha.1...v0.3.0-alpha.2) (2021-11-07)
+
+
+### Features
+
+* add transpilation caching ([0aef6b8](https://github.com/host1-tech/wuzzle/commit/0aef6b801434b9de8931a5f33ca1ea1e7212802a))
+
+
+
 ## [0.3.0-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.2.1-alpha.1...v0.3.0-alpha.0) (2021-10-31)
 
 
