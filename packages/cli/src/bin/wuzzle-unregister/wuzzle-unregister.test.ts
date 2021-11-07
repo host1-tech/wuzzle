@@ -1,8 +1,11 @@
 import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
+import path from 'path';
+import shelljs from 'shelljs';
 import {
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_PROJECT_PATH,
   EK_RPOJECT_ANCHOR,
   EXIT_CODE_ERROR,
 } from '../../constants';
@@ -12,9 +15,12 @@ import { unregister as unregisterJest26 } from '../../registers/jest__26.x';
 import { unregister as unregisterWebpack4 } from '../../registers/webpack__4.x';
 import { unregister as unregisterWebpack5 } from '../../registers/webpack__5.x';
 
+const fixturePath = path.join(__dirname, 'fixtures');
 const originalProcessArgv = process.argv;
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle-unregister')];
+
 const extraArgs = ['extraArg'];
+const projectPath = fixturePath;
 
 jest.mock('../../registers/jest__24.x');
 jest.mock('../../registers/jest__25.x');
@@ -34,11 +40,16 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 });
 
 describe('wuzzle-unregister', () => {
+  beforeAll(() => {
+    shelljs.cd(fixturePath);
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env[EK_RPOJECT_ANCHOR];
+    delete process.env[EK_PROJECT_PATH];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
-    delete process.env[EK_RPOJECT_ANCHOR];
     process.argv = originalProcessArgv;
   });
 
@@ -46,6 +57,7 @@ describe('wuzzle-unregister', () => {
     const commandName = 'some-workable-command';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle-unregister'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe('unregister');
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify([commandName, ...extraArgs]));
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ commandName }));
@@ -57,6 +69,7 @@ describe('wuzzle-unregister', () => {
     const commandName = 'jest';
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle-unregister'));
+    expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
     expect(process.env[EK_COMMAND_NAME]).toBe('unregister');
     expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify([commandName, ...extraArgs]));
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ commandName }));

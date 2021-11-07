@@ -11,12 +11,12 @@ export function resolveCommandPath({
   cwd = process.cwd(),
   commandName,
 }: ResolveCommandPathOptions): string {
-  const commandLink = path.resolve(cwd, 'node_modules/.bin', commandName);
+  const commandLink = path.join(cwd, 'node_modules/.bin', commandName);
   let linkContent;
   try {
     linkContent = fs.readlinkSync(commandLink);
   } catch {
     linkContent = readCmdShim.sync(commandLink);
   }
-  return path.resolve(commandLink, '..', linkContent);
+  return path.join(commandLink, '..', linkContent);
 }

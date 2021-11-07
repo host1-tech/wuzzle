@@ -1,7 +1,16 @@
+import cacache from 'cacache';
 import path from 'path';
 import shelljs from 'shelljs';
-import { ENCODING_TEXT } from '../constants';
-import { transpile } from './transpile';
+import { mocked } from 'ts-jest/utils';
+import webpack from 'webpack';
+import {
+  EK_CACHE_KEY_OF_ENV_KEYS,
+  EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_PROJECT_PATH,
+  ENCODING_TEXT,
+} from '../constants';
+import { cachePath, transpile, generateCacheKey } from './transpile';
+import fs from 'fs';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const outputDir = 'lib';
@@ -16,24 +25,54 @@ const emptyTs = {
   inputPath: 'src/empty.ts',
   outputPath: `${outputDir}/empty.ts`,
 };
+const babelConfPath = path.join(fixturePath, '.babelrc');
+
+process.env[EK_PROJECT_PATH] = fixturePath;
+
+jest.spyOn(cacache.get, 'info');
+
+jest.mock('webpack', () => {
+  const webpack = jest.requireActual('webpack');
+  return {
+    __esModule: true,
+    default: jest.fn((...params) => webpack(...params)),
+  };
+});
 
 jest.mock('../apply-config');
 
+jest.mock('../constants', () => {
+  const constants = jest.requireActual('../constants');
+  return {
+    ...constants,
+    CACHE_BASE_PATH: path.join(__dirname, 'fixtures/node_modules/.cache', constants.PKG_NAME),
+  };
+});
+
+beforeAll(() => {
+  shelljs.cd(fixturePath);
+});
+
 describe('transpile', () => {
-  beforeAll(() => shelljs.cd(fixturePath));
+  beforeAll(() => {
+    shelljs.rm('-fr', cachePath);
+  });
 
   beforeEach(() => {
     shelljs.rm('-fr', outputDir);
+    jest.clearAllMocks();
   });
 
   it('converts code to code', async () => {
-    const outputCode = await transpile({ inputCode: shelljs.cat(printJs.inputPath).stdout });
-    expectPrintJsOutputContentToBeGood(outputCode);
+    const outputContent = await transpile({ inputCode: shelljs.cat(printJs.inputPath).stdout });
+    expect(webpack).toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
   });
 
   it('converts file to code', async () => {
-    const outputCode = await transpile({ inputPath: printJs.inputPath });
-    expectPrintJsOutputContentToBeGood(outputCode);
+    const outputContent = await transpile({ inputPath: printJs.inputPath });
+    expect(webpack).toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
   });
 
   it('converts code to file', async () => {
@@ -41,7 +80,9 @@ describe('transpile', () => {
       inputCode: shelljs.cat(printJs.inputPath).stdout,
       outputPath: printJs.outputPath,
     });
-    expectPrintJsOutputContentToBeGood(shelljs.cat(printJs.outputPath).stdout);
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
   });
 
   it('converts file to file', async () => {
@@ -49,12 +90,15 @@ describe('transpile', () => {
       inputPath: printJs.inputPath,
       outputPath: printJs.outputPath,
     });
-    expectPrintJsOutputContentToBeGood(shelljs.cat(printJs.outputPath).stdout);
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
   });
 
   it('works with default options', async () => {
-    const outputCode = await transpile();
-    expect(outputCode).toEqual(expect.stringContaining('__webpack_require__'));
+    const outputContent = await transpile();
+    expect(webpack).toBeCalled();
+    expect(outputContent).toEqual(expect.stringContaining('__webpack_require__'));
   });
 
   it('throws error on input path not found', async () => {
@@ -111,11 +155,11 @@ describe('transpile', () => {
   });
 
   it('removes source map url of output code', async () => {
-    const outputCode = await transpile({
+    const outputContent = await transpile({
       inputPath: printJs.inputPath,
       webpackConfig: { devtool: 'source-map' },
     });
-    expect(outputCode.substr(outputCode.lastIndexOf('\n'))).toEqual(
+    expect(outputContent.substr(outputContent.lastIndexOf('\n'))).toEqual(
       expect.not.stringContaining('sourceMappingURL')
     );
   });
@@ -132,28 +176,122 @@ describe('transpile', () => {
   });
 
   it('corrects inline source map of output code', async () => {
-    const outputCode = await transpile({
+    const outputContent = await transpile({
       inputPath: printJs.inputPath,
       webpackConfig: { devtool: 'inline-source-map' },
     });
-    expect(JSON.parse(readInlineSourceMap(outputCode)).sources).toEqual([
+    expect(JSON.parse(readInlineSourceMap(outputContent)).sources).toEqual([
       path.resolve(printJs.inputPath),
     ]);
   });
+
+  it('reads cache to output code if cached', async () => {
+    const outputContent = await transpile({ inputCode: shelljs.cat(printJs.inputPath).stdout });
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+  });
+
+  it('reads cache to output bundle file if cached', async () => {
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+    });
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+  });
+
+  it('reads cache to output bundle file and its source map if all cached', async () => {
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+    expect(JSON.parse(shelljs.cat(printJs.outputPath + '.map').stdout).sources).toEqual([
+      path.resolve(printJs.inputPath),
+    ]);
+  });
+
+  it('compiles to output bundle file and its source map if source map not cached', async () => {
+    [{}, null].forEach(o => mocked(cacache.get.info).mockResolvedValueOnce(o as never));
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+    expect(JSON.parse(shelljs.cat(printJs.outputPath + '.map').stdout).sources).toEqual([
+      path.resolve(printJs.inputPath),
+    ]);
+  });
+
+  function expectPrintJsOutputContentToBeGood(outputContent: string) {
+    ['__webpack_require__', 'console.log', 'Hi,'].forEach(s =>
+      expect(outputContent).toEqual(expect.stringContaining(s))
+    );
+    ['I am a dep.', 'We are constants.'].forEach(s =>
+      expect(outputContent).toEqual(expect.not.stringContaining(s))
+    );
+  }
+
+  function readInlineSourceMap(outputContent: string) {
+    return Buffer.from(
+      outputContent.substring(outputContent.lastIndexOf('\n')).split('base64,')[1],
+      'base64'
+    ).toString(ENCODING_TEXT);
+  }
 });
 
-function expectPrintJsOutputContentToBeGood(outputContent: string) {
-  ['__webpack_require__', 'console.log', 'Hi,'].forEach(s =>
-    expect(outputContent).toEqual(expect.stringContaining(s))
-  );
-  ['I am a dep.', 'We are constants.'].forEach(s =>
-    expect(outputContent).toEqual(expect.not.stringContaining(s))
-  );
-}
+describe('generateCacheKey', () => {
+  beforeEach(() => {
+    delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
+    delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
+    delete process.env.BABEL_ENV;
+    shelljs.rm('-f', babelConfPath);
+  });
 
-function readInlineSourceMap(outputContent: string) {
-  return Buffer.from(
-    outputContent.substring(outputContent.lastIndexOf('\n')).split('base64,')[1],
-    'base64'
-  ).toString(ENCODING_TEXT);
-}
+  it('changes on options change', async () => {
+    const hash1 = await generateCacheKey({ inputPath: '/path/to/input1' });
+    const hash2 = await generateCacheKey({ inputPath: '/path/to/input2' });
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('changes on envs change', async () => {
+    process.env.BABEL_ENV = 'production';
+    const hash1 = await generateCacheKey({});
+    process.env.BABEL_ENV = 'development';
+    const hash2 = await generateCacheKey({});
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('changes on files change', async () => {
+    fs.writeFileSync(babelConfPath, JSON.stringify({ v: 1 }));
+    const hash1 = await generateCacheKey({});
+    fs.writeFileSync(babelConfPath, JSON.stringify({ v: 2 }));
+    const hash2 = await generateCacheKey({});
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it(`sets inspected envs by "${EK_CACHE_KEY_OF_ENV_KEYS}"`, async () => {
+    process.env[EK_CACHE_KEY_OF_ENV_KEYS] = JSON.stringify([]);
+    process.env.BABEL_ENV = 'production';
+    const hash1 = await generateCacheKey({});
+    process.env.BABEL_ENV = 'development';
+    const hash2 = await generateCacheKey({});
+    expect(hash1).toBe(hash2);
+  });
+
+  it(`sets inspected files by "${EK_CACHE_KEY_OF_FILE_PATHS}"`, async () => {
+    process.env[EK_CACHE_KEY_OF_FILE_PATHS] = JSON.stringify([]);
+    fs.writeFileSync(babelConfPath, JSON.stringify({ v: 1 }));
+    const hash1 = await generateCacheKey({});
+    fs.writeFileSync(babelConfPath, JSON.stringify({ v: 2 }));
+    const hash2 = await generateCacheKey({});
+    expect(hash1).toBe(hash2);
+  });
+});

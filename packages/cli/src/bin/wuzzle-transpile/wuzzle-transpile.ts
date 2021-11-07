@@ -9,15 +9,27 @@ import os from 'os';
 import pMap from 'p-map';
 import path from 'path';
 import rimraf from 'rimraf';
+import findUp from 'find-up';
 import type webpack from 'webpack';
 import {
   CHAR_CTRL_D,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_PROJECT_PATH,
+  EK_RPOJECT_ANCHOR,
   EXIT_CODE_ERROR,
   EXIT_CODE_USER_TERMINATION,
 } from '../../constants';
 import { transpile } from '../../transpile';
+
+const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
+const anchorPath = findUp.sync(anchorName);
+if (!anchorPath) {
+  console.error(`error: '${anchorName}' not located.`);
+  process.exit(EXIT_CODE_ERROR);
+}
+const projectPath = path.dirname(anchorPath);
+process.env[EK_PROJECT_PATH] = projectPath;
 
 // Set command same env variables as 'wuzzle transpile'
 process.env[EK_COMMAND_NAME] = 'transpile';
@@ -158,7 +170,7 @@ async function launchExec() {
 
   async function action(inputPath: string) {
     inputPath = path.resolve(inputPath);
-    const outputPath = path.resolve(outDir, path.relative(basePath, inputPath));
+    const outputPath = path.join(outDir, path.relative(basePath, inputPath));
     try {
       await transpile({
         inputPath,
@@ -184,14 +196,14 @@ async function launchExec() {
 
   function remove(inputPath: string) {
     inputPath = path.resolve(inputPath);
-    const outputPath = path.resolve(outDir, path.relative(basePath, inputPath));
+    const outputPath = path.join(outDir, path.relative(basePath, inputPath));
     rimraf.sync(outputPath);
     inputPathsCompiled[inputPath] = false;
     verboseLog(grey(`File '${path.relative(process.cwd(), inputPath)}' removed.`));
   }
 
   forceLog(blue(`Start compiling '${inputGlobs.join(`' '`)}'.`));
-  await pMap(inputPaths, action, { concurrency });
+  await pMap(inputPaths, action, { concurrency, stopOnError: true });
   forceLog(green('All files compiled.'));
 
   // Create watcher for recompiling

@@ -3,3 +3,4 @@ export * from './are-args-parsable-by-flags';
 export * from './exec-node';
 export * from './launch-function';
 export * from './register-function';
+export * from './wait-for-stream';

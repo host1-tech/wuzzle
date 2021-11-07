@@ -4,6 +4,8 @@ import { mocked } from 'ts-jest/utils';
 import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
 import preConfig from './pre-config';
 
+const projectPath = '/path/to/project';
+
 jest.mock('@wuzzle/helpers');
 
 describe('preConfig.ts', () => {
@@ -14,13 +16,13 @@ describe('preConfig.ts', () => {
   it('returns empty on unknown command name given', () => {
     const commandName = 'unknown';
     const commandArgs = ['test'];
-    expect(preConfig(0, 0, { commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
   });
 
   it('returns empty on unknown command args given', () => {
     const commandName = 'react-scripts';
     const commandArgs = ['unknown'];
-    expect(preConfig(0, 0, { commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
   });
 
   it(
@@ -29,7 +31,7 @@ describe('preConfig.ts', () => {
     () => {
       const commandName = 'react-scripts';
       const commandArgs = ['test'];
-      const webpackConfig = preConfig(0, 0, { commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'automatic'
@@ -49,7 +51,7 @@ describe('preConfig.ts', () => {
         }
         return '';
       });
-      const webpackConfig = preConfig(0, 0, { commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'classic'
@@ -64,7 +66,7 @@ describe('preConfig.ts', () => {
       const commandName = 'react-scripts';
       const commandArgs = ['test'];
       process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
-      const webpackConfig = preConfig(0, 0, { commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'classic'

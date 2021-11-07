@@ -10,6 +10,8 @@ import {
   CHAR_CTRL_D,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_PROJECT_PATH,
+  EK_RPOJECT_ANCHOR,
   EXIT_CODE_ERROR,
   EXIT_CODE_USER_TERMINATION,
 } from '../../constants';
@@ -19,6 +21,7 @@ const fixturePath = path.join(__dirname, 'fixtures');
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle-transpile')];
 const originalProcessArgv = process.argv;
 
+const projectPath = fixturePath;
 const inputDir = 'src';
 const outputDir = 'lib';
 const printJs = {
@@ -63,6 +66,8 @@ describe('wuzzle-transpile', () => {
     shelljs.mkdir('-p', outputDir);
     shelljs.touch(outdatedOutputFile);
     jest.clearAllMocks();
+    delete process.env[EK_RPOJECT_ANCHOR];
+    delete process.env[EK_PROJECT_PATH];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
     process.argv = originalProcessArgv;
@@ -70,14 +75,18 @@ describe('wuzzle-transpile', () => {
   });
 
   it(
-    'by default, cleans output dir, auto resolves paths, ' +
-      'runs in development mode, produces no source map, ' +
-      'prints compilation logs',
+    'by default, ' +
+      'sets envs, cleans output dir, ' +
+      'auto resolves paths, runs in development mode, ' +
+      'produces no source map, prints compilation logs',
     async () => {
       const inputGlob = `${inputDir}/**/*`;
       const inputPaths = [constantsJs.inputPath, printJs.inputPath, utilsParseJs.inputPath];
       process.argv = [...fixedArgs, inputGlob, '-d', outputDir];
       jest.isolateModules(() => require('./wuzzle-transpile'));
+      expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
+      expect(process.env[EK_COMMAND_NAME]).toBe('transpile');
+      expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(process.argv.slice(2)));
       expect(shelljs.test('-f', outdatedOutputFile)).toBe(false);
       await waitForExpect(() => expect(transpile).toBeCalledTimes(inputPaths.length));
       [constantsJs, printJs, utilsParseJs].forEach(({ inputPath, outputPath }, i) => {
@@ -145,7 +154,7 @@ describe('wuzzle-transpile', () => {
       mocked(transpile).mockClear();
       chokidarEventHandlers[event](printJs.inputPath);
       await waitForExpect(() => expect(transpile).toBeCalled());
-      expect(includesLog(console.log, `File '${printJs.inputPath}' recompiled.`));
+      expect(includesLog(console.log, `File '${printJs.inputPath}' recompiled.`)).toBe(true);
     }
 
     shelljs.mkdir('-p', outputDir);
@@ -190,7 +199,33 @@ describe('wuzzle-transpile', () => {
     } catch {}
     await waitForExpect(() => expect(transpile).toBeCalled());
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(includesLog(console.log, `File '${printJs.inputPath}' compilation failed.`));
+    expect(includesLog(console.log, `File '${printJs.inputPath}' compilation failed.`)).toBe(true);
+  });
+
+  it('reports error stack info if available on failure', async () => {
+    const errorMessage = '31a09224f4637755df5b7188342e16df1a90091b';
+    mocked(process.exit).mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
+    mocked(transpile).mockImplementationOnce(() => {
+      throw 0;
+    });
+    process.argv = [...fixedArgs, printJs.inputPath, '-d', outputDir];
+    try {
+      jest.isolateModules(() => require('./wuzzle-transpile'));
+    } catch {}
+    await waitForExpect(() => expect(includesLog(console.error, errorMessage)).toBe(true));
+  });
+
+  it('reports error if anchor not located', () => {
+    const anchorName = 'a4b7e86983e611193697d967fe6ae27fa43e5353';
+    process.env[EK_RPOJECT_ANCHOR] = anchorName;
+    process.argv = [...fixedArgs];
+    try {
+      jest.isolateModules(() => require('./wuzzle-transpile'));
+    } catch {}
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+    expect(console.error).toBeCalledWith(expect.stringContaining(anchorName));
   });
 
   it('validates input globs and reports error if not given', async () => {

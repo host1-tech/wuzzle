@@ -4,10 +4,25 @@ import debugFty from 'debug';
 import { uniqueId } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
-import applyConfig, { WuzzleModifyOptions } from './apply-config';
-import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EK_INTERNAL_PRE_CONFIG } from './constants';
+import applyConfig, {
+  WuzzleConfigModify,
+  WuzzleConfigOptions,
+  WuzzleModifyOptions,
+} from './apply-config';
+import {
+  EK_CACHE_KEY_OF_ENV_KEYS,
+  EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_COMMAND_ARGS,
+  EK_COMMAND_NAME,
+  EK_INTERNAL_PRE_CONFIG,
+  EK_PROJECT_PATH,
+} from './constants';
 
-const defaultModifyOptions: WuzzleModifyOptions = { commandName: 'unknown', commandArgs: [] };
+const defaultModifyOptions: WuzzleModifyOptions = {
+  projectPath: process.cwd(),
+  commandName: 'unknown',
+  commandArgs: [],
+};
 
 jest.mock('@wuzzle/helpers', () => ({ ...jest.requireActual('@wuzzle/helpers'), diff: jest.fn() }));
 
@@ -35,9 +50,12 @@ const mockedInternalPreConfig = require(internalPreConfigPath).default as jest.M
 describe('applyConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env[EK_PROJECT_PATH];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
     delete process.env[EK_INTERNAL_PRE_CONFIG];
+    delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
+    delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
   });
 
   it('does nothing with no config found', () => {
@@ -46,8 +64,8 @@ describe('applyConfig', () => {
   });
 
   it(`uses side effect of 'modify'`, () => {
-    const wuzzleConfig = {
-      modify: jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+    const wuzzleConfig: WuzzleConfigOptions = {
+      modify: jest.fn((webpackConfig: webpack.Configuration) => {
         webpackConfig.output = {};
       }),
     };
@@ -59,8 +77,8 @@ describe('applyConfig', () => {
   });
 
   it(`uses returned value of 'modify'`, () => {
-    const wuzzleConfig = {
-      modify: jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+    const wuzzleConfig: WuzzleConfigOptions = {
+      modify: jest.fn((webpackConfig: webpack.Configuration) => {
         return { ...webpackConfig, output: {} };
       }),
     };
@@ -72,7 +90,7 @@ describe('applyConfig', () => {
   });
 
   it(`uses exported function as 'modify'`, () => {
-    const wuzzleConfig = jest.fn().mockImplementation((webpackConfig: webpack.Configuration) => {
+    const wuzzleConfig: WuzzleConfigModify = jest.fn((webpackConfig: webpack.Configuration) => {
       return { ...webpackConfig, output: {} };
     });
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
@@ -107,15 +125,36 @@ describe('applyConfig', () => {
   });
 
   it('passes wuzzle envs as modify options', () => {
-    const wuzzleConfig = jest.fn();
+    const wuzzleConfig: WuzzleConfigModify = jest.fn();
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    const projectPath = 'projectPath';
     const commandName = 'commandName';
     const commandArgs = [uniqueId()];
+    process.env[EK_PROJECT_PATH] = projectPath;
     process.env[EK_COMMAND_NAME] = commandName;
     process.env[EK_COMMAND_ARGS] = JSON.stringify(commandArgs);
     const webpackConfig: webpack.Configuration = {};
     applyConfig(webpackConfig, webpack);
-    expect(wuzzleConfig).toBeCalledWith(webpackConfig, webpack, { commandName, commandArgs });
+    expect(wuzzleConfig).toBeCalledWith(webpackConfig, webpack, {
+      projectPath,
+      commandName,
+      commandArgs,
+    });
+  });
+
+  it('passes cache key fields as wuzzle envs', () => {
+    const wuzzleConfig: WuzzleConfigOptions = {
+      cacheKeyOfEnvKeys: ['*_ENV'],
+      cacheKeyOfFilePaths: ['*rc'],
+    };
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    applyConfig({}, webpack);
+    expect(process.env[EK_CACHE_KEY_OF_ENV_KEYS]).toBe(
+      JSON.stringify(wuzzleConfig.cacheKeyOfEnvKeys)
+    );
+    expect(process.env[EK_CACHE_KEY_OF_FILE_PATHS]).toBe(
+      JSON.stringify(wuzzleConfig.cacheKeyOfFilePaths)
+    );
   });
 
   it('collects debug info and prints', () => {
