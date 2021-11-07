@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.0-alpha.3](https://github.com/host1-tech/wuzzle/compare/v0.3.0-alpha.2...v0.3.0-alpha.3) (2021-11-07)
+
+
+### Bug Fixes
+
+* add input file content into account ([393ce97](https://github.com/host1-tech/wuzzle/commit/393ce976de7fb1dc3a99f427ded5bd5d9642542f))
+
+
+
 ## [0.3.0-alpha.2](https://github.com/host1-tech/wuzzle/compare/v0.3.0-alpha.1...v0.3.0-alpha.2) (2021-11-07)
 
 
