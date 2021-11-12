@@ -170,7 +170,7 @@ describe('applyConfig', () => {
       'Wuzzle config to apply:',
       'Webpack config with difference:',
     ].forEach((log, i) => {
-      expect(mockedDebug.mock.calls[i][0]).toEqual(expect.stringContaining(log));
+      expect(mockedDebug.mock.calls[i][0]).toBe(log);
     });
   });
 });

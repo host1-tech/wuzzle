@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
+import { EK_DRY_RUN } from '../../constants';
 import * as transformModule from './transform';
 import { register, transform, unregister } from './transform';
 
@@ -60,6 +61,7 @@ describe('transform', () => {
       expect(transformedCode).toEqual(
         expect.stringContaining(applyConfigPath.replace(/\\/g, '\\\\'))
       );
+      expect(transformedCode).toEqual(expect.stringContaining(EK_DRY_RUN));
     });
   });
 });

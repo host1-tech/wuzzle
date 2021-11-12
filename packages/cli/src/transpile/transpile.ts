@@ -5,6 +5,7 @@ import glob from 'glob';
 import { flatten, uniq } from 'lodash';
 import MemoryFileSystem from 'memory-fs';
 import minimatch from 'minimatch';
+import mkdirp from 'mkdirp';
 import pMap from 'p-map';
 import path from 'path';
 import pify from 'pify';
@@ -13,7 +14,6 @@ import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map'
 import { promisify } from 'util';
 import webpack from 'webpack';
 import { merge } from 'webpack-merge';
-import mkdirp from 'mkdirp';
 import applyConfig from '../apply-config';
 import {
   CACHE_BASE_PATH,
@@ -21,6 +21,7 @@ import {
   CACHE_KEY_DEFAULT_OF_FILE_PATHS,
   EK_CACHE_KEY_OF_ENV_KEYS,
   EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_DRY_RUN,
   EK_PROJECT_PATH,
   ENCODING_TEXT,
 } from '../constants';
@@ -121,6 +122,10 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
       outputPath = path.format(outputPathParsed);
       Object.assign(webpackConfig.output, { filename: outputPathParsed.base });
     }
+  }
+
+  if (process.env[EK_DRY_RUN]) {
+    return '';
   }
 
   // Get output from cache
@@ -344,14 +349,14 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
     .digest('hex');
 }
 
-export function doesProduceSourceMap(devtool?: webpack.Options.Devtool): boolean {
+export function doesProduceSourceMap(devtool?: webpack.Options.Devtool): devtool is string {
   return typeof devtool === 'string' && !devtool.includes('eval') && devtool.includes('source-map');
 }
 
-export function doesProduceInlineSourceMap(devtool?: webpack.Options.Devtool): boolean {
-  return doesProduceSourceMap(devtool) && String(devtool).includes('inline');
+export function doesProduceInlineSourceMap(devtool?: webpack.Options.Devtool): devtool is string {
+  return doesProduceSourceMap(devtool) && devtool.includes('inline');
 }
 
-export function doesProduceFileSourceMap(devtool?: webpack.Options.Devtool): boolean {
-  return doesProduceSourceMap(devtool) && !String(devtool).includes('inline');
+export function doesProduceFileSourceMap(devtool?: webpack.Options.Devtool): devtool is string {
+  return doesProduceSourceMap(devtool) && !devtool.includes('inline');
 }

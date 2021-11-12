@@ -5,7 +5,7 @@ import * as t from '@babel/types';
 import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
 import path from 'path';
-import { ENCODING_TEXT } from '../../constants';
+import { EK_DRY_RUN, ENCODING_TEXT } from '../../constants';
 import { RegisterFunction } from '../../utils';
 
 const moduleToMatch = 'webpack/lib/webpack';
@@ -57,6 +57,19 @@ export function transform(code: string): string {
           `require('${resolveRequire('../../apply-config').replace(/\\/g, '\\\\')}').default(${
             path.node.name
           },require('..'))`
+        );
+      }
+      if (
+        path.node.name === 'options' &&
+        t.isAssignmentExpression(path.parent) &&
+        t.isCallExpression(path.parent.right) &&
+        t.isMemberExpression(path.parent.right.callee) &&
+        t.isNewExpression(path.parent.right.callee.object) &&
+        t.isIdentifier(path.parent.right.callee.object.callee) &&
+        path.parent.right.callee.object.callee.name === targetId.name
+      ) {
+        path.parentPath.insertAfter(
+          parse(`if(process.env.${EK_DRY_RUN})process.exit();`).program.body[0]
         );
       }
     },

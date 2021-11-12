@@ -1,10 +1,14 @@
 import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
+import { noop } from 'lodash';
+import os from 'os';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
+import { EK_DRY_RUN } from '../../constants';
+import { transform as transformNode } from '../node/transform';
 import * as transformModule from './transform';
-import { transform, register, unregister } from './transform';
+import { register, transform, unregister } from './transform';
 
 const commandPath = '/path/to/command';
 const matchedModulePath = '/path/to/matched/module';
@@ -27,9 +31,16 @@ const flawCodes: Record<string, string> = {
 
 jest.mock('@wuzzle/helpers');
 jest.mock('pirates');
+jest.mock('../node/transform');
+
+jest.spyOn(process, 'exit').mockImplementation(() => {
+  throw 0;
+});
+jest.spyOn(process.stderr, 'write').mockImplementation(noop as never);
 
 beforeEach(() => {
   jest.clearAllMocks();
+  delete process.env[EK_DRY_RUN];
 });
 
 describe('register/unregister', () => {
@@ -69,6 +80,20 @@ describe('register/unregister', () => {
     }
     expect(error.message).toEqual(expect.stringContaining(commandPath));
   });
+
+  it(
+    'calls node transform to print config info and ' +
+      'terminates process if registering in dry-run mode',
+    () => {
+      process.env[EK_DRY_RUN] = 'true';
+      try {
+        register({ commandPath });
+      } catch {}
+      expect(transformNode).toBeCalled();
+      expect(process.stderr.write).toBeCalledWith(os.EOL);
+      expect(process.exit).toBeCalled();
+    }
+  );
 });
 
 describe('transform', () => {

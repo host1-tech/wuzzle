@@ -1,13 +1,5 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import findUp from 'find-up';
-import path from 'path';
-import {
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_PROJECT_PATH,
-  EK_RPOJECT_ANCHOR,
-  EXIT_CODE_ERROR,
-} from '../../constants';
+import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
 import {
   launchDefault,
   launchJest,
@@ -16,23 +8,17 @@ import {
   launchRazzle,
   launchReactScripts,
 } from '../../launches';
-import { LaunchFunction } from '../../utils';
+import { checkToUseDryRunMode, LaunchFunction, locateProjectAnchor } from '../../utils';
 
-const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
-const anchorPath = findUp.sync(anchorName);
-if (!anchorPath) {
-  console.error(`error: '${anchorName}' not located.`);
-  process.exit(EXIT_CODE_ERROR);
-}
-const projectPath = path.dirname(anchorPath);
-process.env[EK_PROJECT_PATH] = projectPath;
-
+const projectPath = locateProjectAnchor();
 const [nodePath, , commandName, ...args] = process.argv;
 
 if (!commandName) {
   console.error('error: command name not specified.');
   process.exit(EXIT_CODE_ERROR);
 }
+
+checkToUseDryRunMode(args);
 
 // Set command env variables to help wuzzle user config setup
 process.env[EK_COMMAND_NAME] = commandName;

@@ -10,12 +10,12 @@ import {
   CHAR_CTRL_D,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
-  EK_PROJECT_PATH,
-  EK_RPOJECT_ANCHOR,
+  EK_DRY_RUN,
   EXIT_CODE_ERROR,
   EXIT_CODE_USER_TERMINATION,
 } from '../../constants';
 import { transpile } from '../../transpile';
+import { locateProjectAnchor, dryRunModeCommandOptionName } from '../../utils';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle-transpile')];
@@ -39,6 +39,13 @@ const utilsParseJs = {
 const outdatedOutputFile = `${outputDir}/oudated`;
 
 jest.mock('../../transpile');
+
+jest.mock('../../utils', () => ({
+  ...jest.requireActual('../../utils'),
+  locateProjectAnchor: jest.fn(),
+}));
+mocked(locateProjectAnchor).mockReturnValue(projectPath);
+
 jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
@@ -66,8 +73,7 @@ describe('wuzzle-transpile', () => {
     shelljs.mkdir('-p', outputDir);
     shelljs.touch(outdatedOutputFile);
     jest.clearAllMocks();
-    delete process.env[EK_RPOJECT_ANCHOR];
-    delete process.env[EK_PROJECT_PATH];
+    delete process.env[EK_DRY_RUN];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
     process.argv = originalProcessArgv;
@@ -84,7 +90,7 @@ describe('wuzzle-transpile', () => {
       const inputPaths = [constantsJs.inputPath, printJs.inputPath, utilsParseJs.inputPath];
       process.argv = [...fixedArgs, inputGlob, '-d', outputDir];
       jest.isolateModules(() => require('./wuzzle-transpile'));
-      expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
+      expect(locateProjectAnchor).toBeCalled();
       expect(process.env[EK_COMMAND_NAME]).toBe('transpile');
       expect(process.env[EK_COMMAND_ARGS]).toBe(JSON.stringify(process.argv.slice(2)));
       expect(shelljs.test('-f', outdatedOutputFile)).toBe(false);
@@ -181,6 +187,32 @@ describe('wuzzle-transpile', () => {
     expect(mocked(chokidar.watch).mock.calls[0][1]).toMatchObject({ ignored: ignoredGlobs });
   });
 
+  it(
+    `with '${dryRunModeCommandOptionName}', ` +
+      `sets up dry-run mode, ` +
+      `calls tranpsile to print config info`,
+    async () => {
+      process.argv = [
+        ...fixedArgs,
+        `${inputDir}/**/*`,
+        '-d',
+        outputDir,
+        dryRunModeCommandOptionName,
+      ];
+      jest.isolateModules(() => require('./wuzzle-transpile'));
+      expect(process.argv).not.toContain(dryRunModeCommandOptionName);
+      expect(process.env[EK_DRY_RUN]).toBeTruthy();
+      await waitForExpect(() => expect(transpile).toBeCalledTimes(1));
+      let error: any;
+      try {
+        await waitForExpect(() => expect(transpile).toBeCalledTimes(2), 1000);
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeTruthy();
+    }
+  );
+
   it('reports warning if no input path found', async () => {
     const inexistentPath = 'src/inexistent.js';
     process.argv = [...fixedArgs, inexistentPath, '-d', outputDir];
@@ -215,17 +247,6 @@ describe('wuzzle-transpile', () => {
       jest.isolateModules(() => require('./wuzzle-transpile'));
     } catch {}
     await waitForExpect(() => expect(includesLog(console.error, errorMessage)).toBe(true));
-  });
-
-  it('reports error if anchor not located', () => {
-    const anchorName = 'a4b7e86983e611193697d967fe6ae27fa43e5353';
-    process.env[EK_RPOJECT_ANCHOR] = anchorName;
-    process.argv = [...fixedArgs];
-    try {
-      jest.isolateModules(() => require('./wuzzle-transpile'));
-    } catch {}
-    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(console.error).toBeCalledWith(expect.stringContaining(anchorName));
   });
 
   it('validates input globs and reports error if not given', async () => {

@@ -1,25 +1,10 @@
 import { resolveCommandPath } from '@wuzzle/helpers';
 import { green } from 'chalk';
-import findUp from 'find-up';
 import glob from 'glob';
-import path from 'path';
-import {
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_PROJECT_PATH,
-  EK_RPOJECT_ANCHOR,
-  EXIT_CODE_ERROR,
-} from '../../constants';
+import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
+import { locateProjectAnchor } from '../../utils';
 
-const anchorName = process.env[EK_RPOJECT_ANCHOR] || 'package.json';
-const anchorPath = findUp.sync(anchorName);
-if (!anchorPath) {
-  console.error(`error: '${anchorName}' not located.`);
-  process.exit(EXIT_CODE_ERROR);
-}
-const projectPath = path.dirname(anchorPath);
-process.env[EK_PROJECT_PATH] = projectPath;
-
+const projectPath = locateProjectAnchor();
 const [, , commandName] = process.argv;
 
 if (!commandName) {
