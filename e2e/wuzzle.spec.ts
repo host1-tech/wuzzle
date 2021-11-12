@@ -10,6 +10,7 @@ interface FixtureInfo {
   outputDir?: string;
   outputContents?: Record<string, string>;
   outputMessages?: string[];
+  testDryRun?: boolean;
   testUnregister?: boolean;
 }
 

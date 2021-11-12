@@ -4,6 +4,7 @@ import debugFty from 'debug';
 import type webpackType from 'webpack';
 import { merge } from 'webpack-merge';
 import {
+  DN_APPLY_CONFIG,
   EK_CACHE_KEY_OF_ENV_KEYS,
   EK_CACHE_KEY_OF_FILE_PATHS,
   EK_COMMAND_ARGS,
@@ -12,7 +13,7 @@ import {
   EK_PROJECT_PATH,
 } from './constants';
 
-const debug = debugFty('@wuzzle/cli:applyConfig');
+const debug = debugFty(DN_APPLY_CONFIG);
 
 export interface WuzzleModifyOptions {
   projectPath: string;

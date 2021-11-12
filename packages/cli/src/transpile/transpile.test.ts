@@ -6,6 +6,7 @@ import webpack from 'webpack';
 import {
   EK_CACHE_KEY_OF_ENV_KEYS,
   EK_CACHE_KEY_OF_FILE_PATHS,
+  EK_DRY_RUN,
   EK_PROJECT_PATH,
   ENCODING_TEXT,
 } from '../constants';
@@ -65,6 +66,7 @@ describe('transpile', () => {
   beforeEach(() => {
     shelljs.rm('-fr', outputDir);
     jest.clearAllMocks();
+    delete process.env[EK_DRY_RUN];
   });
 
   it('converts code to code', async () => {
@@ -232,6 +234,13 @@ describe('transpile', () => {
     expect(JSON.parse(shelljs.cat(printJs.outputPath + '.map').stdout).sources).toEqual([
       path.resolve(printJs.inputPath),
     ]);
+  });
+
+  it('skips actual processing and returns empty text in dry run mode', async () => {
+    process.env[EK_DRY_RUN] = 'true';
+    const outputContent = await transpile();
+    expect(webpack).not.toBeCalled();
+    expect(outputContent).toBeFalsy();
   });
 
   function expectPrintJsOutputContentToBeGood(outputContent: string) {
