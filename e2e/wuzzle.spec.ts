@@ -23,6 +23,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/index.js']: 'Hi, Webpack 4.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
     ['5.x']: {
@@ -32,6 +33,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/index.js']: 'Hi, Webpack 5.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -43,6 +45,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/renderer/renderer.js']: 'Hi, EW 2.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -51,18 +54,21 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       fixtureDir: path.join(__dirname, 'fixtures/jest__24.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 24.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
     ['25.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/jest__25.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 25.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
     ['26.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/jest__26.x'),
       command: 'jest',
       outputMessages: ['Hi, Jest 26.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -71,11 +77,13 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       fixtureDir: path.join(__dirname, 'fixtures/mocha__7.x'),
       command: 'mocha src/index.test.js',
       outputMessages: ['Hi, Mocha 7.x.'],
+      testDryRun: true,
     },
     ['8.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/mocha__8.x'),
       command: 'mocha src/index.test.js',
       outputMessages: ['Hi, Mocha 8.x.'],
+      testDryRun: true,
     },
   },
   ['next']: {
@@ -86,6 +94,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         '.next/static/chunks/pages/index-*.js': 'Hi, Next 9.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -94,6 +103,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       fixtureDir: path.join(__dirname, 'fixtures/node'),
       command: 'node src/index.js',
       outputMessages: ['Hi, Node.'],
+      testDryRun: true,
     },
   },
   ['razzle build']: {
@@ -104,6 +114,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/public/static/js/bundle.*.js']: 'Hi, Razzle 3.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -113,6 +124,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       command: 'razzle test --env=jsdom',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, Razzle 3.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -124,6 +136,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/static/js/main.*.chunk.js']: 'Hi, CRA 3.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
     ['4.x']: {
@@ -133,6 +146,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/static/js/main.*.chunk.js']: 'Hi, CRA 4.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -142,6 +156,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       command: 'react-scripts test',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, CRA 3.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
     ['4.x']: {
@@ -149,6 +164,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       command: 'react-scripts test',
       envOverrides: { CI: 'true' },
       outputMessages: ['Hi, CRA 4.x.'],
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -160,6 +176,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['storybook-static/main.*.iframe.bundle.js']: 'Hi, Storybook 6.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -171,6 +188,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/chunk/index_index.js']: 'Hi, Taro 2.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -182,6 +200,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['dist/pages/index/index.wxml']: 'Hi, Taro 2.x.',
       },
+      testDryRun: true,
       testUnregister: true,
     },
   },
@@ -193,6 +212,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['lib/index.js']: 'Hi, WT.',
       },
+      testDryRun: true,
     },
   },
 };
@@ -212,12 +232,16 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
         outputDir,
         outputContents,
         outputMessages,
+        testDryRun,
         testUnregister,
       } = fixtureInfo[versionFlag];
       const commandName = command.split(' ')[0];
 
       beforeAll(() => {
         shelljs.cd(fixtureDir);
+      });
+
+      beforeEach(() => {
         if (outputDir) shelljs.rm('-fr', outputDir);
       });
 
@@ -245,6 +269,30 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
           });
         }
       });
+
+      if (testDryRun) {
+        it(`runs ${command} in dry-run mode'`, () => {
+          const {
+            stdout,
+            stderr,
+            code: exitCode,
+          } = shelljs.exec(genEndToEndExec({ command: `${command} --dry-run`, envOverrides }));
+
+          expect(exitCode).toBe(0);
+          expect(stderr).toEqual(expect.stringContaining('Wuzzle process mounted in CWD:'));
+
+          if (outputContents) {
+            Object.keys(outputContents).forEach(outputPath => {
+              expect(glob.sync(outputPath)).toHaveLength(0);
+            });
+          }
+          if (outputMessages) {
+            outputMessages.forEach(outputMessage => {
+              expect(stdout + stderr).toEqual(expect.not.stringContaining(outputMessage));
+            });
+          }
+        });
+      }
 
       if (testUnregister) {
         it(`unregisters ${commandName}`, () => {
