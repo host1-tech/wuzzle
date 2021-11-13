@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.0-alpha.4](https://github.com/licg9999/wuzzle/compare/v0.3.0-alpha.3...v0.3.0-alpha.4) (2021-11-13)
+
+
+### Features
+
+* setup dry-run mode ([8efc0aa](https://github.com/licg9999/wuzzle/commit/8efc0aa7f84d0d66cb259a558c64e5cabe7417d8))
+
+
+
 ## [0.3.0-alpha.3](https://github.com/licg9999/wuzzle/compare/v0.3.0-alpha.2...v0.3.0-alpha.3) (2021-11-07)
 
 
