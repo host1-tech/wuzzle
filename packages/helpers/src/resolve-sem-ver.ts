@@ -26,7 +26,7 @@ export function resolveWebpackSemVer(commandPath: string): SemVer {
     throw new Error(`Cannot locate webpack package from command '${commandPath}'`);
   }
   const { version } = JSON.parse(fs.readFileSync(packageJsonPath).toString());
-  const parsedVersion = semver.parse(version)!;
+  const parsedVersion = semver.parse(version);
   if (!parsedVersion) {
     throw new Error(`Cannot parse webpack version from command '${commandPath}'`);
   }

@@ -1,11 +1,21 @@
 import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { EXIT_CODE_ERROR } from '../constants';
-import { applyNodeLikeExtraOptions, execNode, LaunchFunction } from '../utils';
+import {
+  applyNodeLikeExtraOptions,
+  execNode,
+  LaunchFunction,
+  tmplLogForGlobalResolving,
+} from '../utils';
 
 export const launchMocha: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let mochaCommandPath: string;
   try {
-    mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    try {
+      mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    } catch {
+      mochaCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
+      console.log(tmplLogForGlobalResolving({ commandName, commandPath: mochaCommandPath }));
+    }
   } catch {
     console.error(`error: failed to resolve command '${commandName}'.`);
     process.exit(EXIT_CODE_ERROR);

@@ -25,9 +25,11 @@
     "find-up": "^5.0.0",
     "read-cmd-shim": "^2.0.0",
     "resolve": "^1.20.0",
-    "semver": "^7.3.5"
+    "semver": "^7.3.5",
+    "which": "^2.0.2"
   },
   "devDependencies": {
-    "@types/diff": "^4.0.2"
+    "@types/diff": "^4.0.2",
+    "@types/which": "^2.0.1"
   }
 }

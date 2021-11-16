@@ -4,7 +4,7 @@ import {
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
-import { execNode, LaunchFunction } from '../utils';
+import { execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
 
 export const launchReactScripts: LaunchFunction = ({
   nodePath,
@@ -15,7 +15,16 @@ export const launchReactScripts: LaunchFunction = ({
   let reactScriptsCommandPath: string;
   let reactScriptsMajorVersion: number;
   try {
-    reactScriptsCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    try {
+      reactScriptsCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    } catch {
+      reactScriptsCommandPath = resolveCommandPath({
+        cwd: projectPath,
+        commandName,
+        fromGlobals: true,
+      });
+      console.log(tmplLogForGlobalResolving({ commandName, commandPath: reactScriptsCommandPath }));
+    }
     reactScriptsMajorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
   } catch {
     console.error(`error: failed to resolve command '${commandName}'.`);

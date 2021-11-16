@@ -1,5 +1,4 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import path from 'path';
 import { WuzzleModifyOptions } from '../../apply-config';
 
 export default (
@@ -22,7 +21,7 @@ export default (
             {
               loader: resolveRequire('babel-loader'),
               options: {
-                presets: [resolveRequire(path.resolve('node_modules/babel-preset-react-app'))],
+                presets: [resolveRequire('babel-preset-react-app', { basedir: process.cwd() })],
               },
             },
           ],

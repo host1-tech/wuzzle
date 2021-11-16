@@ -1,13 +1,23 @@
 import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
 import { EXIT_CODE_ERROR } from '../constants';
-import { areArgsParsableByFlags, execNode, LaunchFunction } from '../utils';
+import {
+  areArgsParsableByFlags,
+  execNode,
+  LaunchFunction,
+  tmplLogForGlobalResolving,
+} from '../utils';
 
 export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let jestCommandPath: string;
   let jestMajorVersion: number;
   try {
-    jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    try {
+      jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    } catch {
+      jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
+      console.log(tmplLogForGlobalResolving({ commandName, commandPath: jestCommandPath }));
+    }
     jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
   } catch {
     console.error(`error: failed to resolve command '${commandName}'.`);

@@ -55,7 +55,6 @@ describe('transform', () => {
     expect(resolveRequire).toBeCalled();
     const [, args, opts] = mocked(execa.sync).mock.calls[0] as unknown[];
     expect(args).toEqual(expect.arrayContaining([convertPath, file]));
-    expect(opts).toMatchObject({ input: code });
-    expect(process.stderr.write).toBeCalled();
+    expect(opts).toMatchObject({ input: code, stderr: 'inherit' });
   });
 });

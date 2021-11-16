@@ -3,11 +3,17 @@ import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/jest__26.x';
-import { areArgsParsableByFlags, execNode, LaunchOptions } from '../utils';
+import {
+  areArgsParsableByFlags,
+  execNode,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
 import { launchJest } from './jest';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
+const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
@@ -18,10 +24,12 @@ const launchOptions: LaunchOptions = {
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/jest__26.x');
 jest.mock('../utils');
+jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
 mocked(resolveCommandSemVer).mockReturnValue({ major: 26 } as never);
 
@@ -30,10 +38,27 @@ describe('launchTest', () => {
     jest.clearAllMocks();
   });
 
-  it('executes with jest register attached if command resolvable', () => {
+  it('executes with jest register attached if command resolved', () => {
     mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
+    expect(resolveCommandSemVer).toBeCalled();
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
+    );
+  });
+
+  it('resolves jest global if command not resolved from locals', () => {
+    mocked(resolveCommandPath).mockImplementationOnce(() => {
+      throw 0;
+    });
+    mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
+    launchJest(launchOptions);
+    expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
+    expect(console.log).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
     expect(register).toBeCalledWith({ commandPath });
     expect(execNode).toBeCalledWith(
@@ -86,10 +111,14 @@ describe('launchTest', () => {
     );
   });
 
-  it('exits with error code and error message if command not resolvable', () => {
-    mocked(resolveCommandPath).mockImplementationOnce(() => {
-      throw 0;
-    });
+  it('exits with error code and error message if command not resolved', () => {
+    mocked(resolveCommandPath)
+      .mockImplementationOnce(() => {
+        throw 0;
+      })
+      .mockImplementationOnce(() => {
+        throw 0;
+      });
     mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     try {
       launchJest(launchOptions);

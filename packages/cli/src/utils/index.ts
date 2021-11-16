@@ -5,4 +5,5 @@ export * from './exec-node';
 export * from './launch-function';
 export * from './locate-project-anchor';
 export * from './register-function';
+export * from './tmpl-logs';
 export * from './wait-for-stream';

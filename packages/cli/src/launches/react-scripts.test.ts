@@ -7,11 +7,12 @@ import {
   EXIT_CODE_ERROR,
 } from '../constants';
 import { register } from '../registers/react-scripts__3.x';
-import { execNode, LaunchOptions } from '../utils';
+import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
 import { launchReactScripts } from './react-scripts';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
+const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
@@ -23,10 +24,12 @@ const reactScriptsPreConfigPath = '/path/to/pre-config/react-scripts';
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/react-scripts__3.x');
 jest.mock('../utils');
+jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
 mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
 
@@ -42,7 +45,25 @@ describe('launchReactScripts', () => {
     launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(resolveRequire).toBeCalled();
+    expect(register).toBeCalledWith({ commandPath });
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([commandPath]),
+      })
+    );
+    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(reactScriptsPreConfigPath);
+    expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
+  });
+
+  it('resolves react-scripts global if command not resolved from locals', () => {
+    mocked(resolveCommandPath).mockImplementationOnce(() => {
+      throw 0;
+    });
+    mocked(resolveRequire).mockReturnValueOnce(reactScriptsPreConfigPath);
+    launchReactScripts(launchOptions);
+    expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
+    expect(console.log).toBeCalledWith(logForGlobalResolving);
+    expect(resolveCommandSemVer).toBeCalled();
     expect(register).toBeCalledWith({ commandPath });
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
@@ -54,9 +75,13 @@ describe('launchReactScripts', () => {
   });
 
   it('exits with error code and error message if command not resolved', () => {
-    mocked(resolveCommandPath).mockImplementationOnce(() => {
-      throw 0;
-    });
+    mocked(resolveCommandPath)
+      .mockImplementationOnce(() => {
+        throw 0;
+      })
+      .mockImplementationOnce(() => {
+        throw 0;
+      });
     try {
       launchReactScripts(launchOptions);
     } catch {}

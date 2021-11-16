@@ -12,15 +12,15 @@
   "scripts": {
     "build": "ts-node scripts/build.ts",
     "watch": "yarn build --watch",
-    "clean": "run-s clean:*",
+    "clean": "run-s \"fixtures clean\" clean:*",
     "clean:built": "rimraf \"packages/*/@(lib|tsconfig.tsbuildinfo)\"",
     "clean:coverage": "rimraf coverage",
     "clean:cache": "rimraf node_modules/.cache \"packages/*/node_modules/.cache\" \"e2e/fixtures/*/node_modules/.cache\"",
-    "clean:installed": "rimraf node_modules \"packages/*/node_modules\" \"e2e/fixtures/*/node_modules\"",
+    "clean:installed": "rimraf node_modules \"packages/*/node_modules\"",
     "test": "jest --testPathIgnorePatterns e2e --cache",
     "test:watch": "yarn test --watch",
     "coverage": "yarn test --coverage",
-    "e2e": "jest --testPathIgnorePatterns packages --no-cache",
+    "e2e": "jest --testPathIgnorePatterns packages --no-cache --testTimeout 30000",
     "lint": "run-p lint:*",
     "lint:eslint": "yarn eslint",
     "lint:prettier": "yarn prettier --check",
@@ -33,7 +33,7 @@
     "release:pre": "lerna version --conventional-prerelease",
     "publish:npm": "lerna publish from-package --registry https://registry.npmjs.org",
     "postinstall": "yarn build",
-    "fixtures:install": "ts-node scripts/fixtures.ts install"
+    "fixtures": "ts-node scripts/fixtures.ts"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [

@@ -7,10 +7,8 @@ import shelljs from 'shelljs';
 import path from 'path';
 
 const cwd = process.cwd();
-
-const fixtureDirs = glob.sync('e2e/fixtures/*', {
-  ignore: ['**/node_modules/**'],
-});
+const fixtureDir = 'e2e/fixtures';
+const fixtureDirs = glob.sync(fixtureDir + '/*', { ignore: ['**/*-global', '**/node_modules'] });
 
 program.command('install').action(() => {
   fixtureDirs.forEach(fixtureDir => {
@@ -22,6 +20,11 @@ program.command('install').action(() => {
       console.log(grey(`No 'package.json' found, skip '${fixtureDir}'`));
     }
   });
+});
+
+program.command('clean').action(() => {
+  shelljs.cd(path.join(cwd, fixtureDir));
+  shelljs.rm('-fr', '*-global', 'node_modules', '*/node_modules', '*/yarn.lock');
 });
 
 program.parse(process.argv);
