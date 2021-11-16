@@ -1,6 +1,5 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
-import path from 'path';
 import { WuzzleModifyOptions } from '../../apply-config';
 
 const babelConfigExplorer = cosmiconfigSync('babel');
@@ -27,7 +26,7 @@ export default (
               options: {
                 presets: babelConfigExplorer.search()
                   ? []
-                  : [resolveRequire(path.resolve('node_modules/razzle/babel'))],
+                  : [resolveRequire('razzle/babel', { basedir: process.cwd() })],
               },
             },
           ],

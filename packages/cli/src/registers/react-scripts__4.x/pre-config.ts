@@ -1,5 +1,4 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import path from 'path';
 import { WuzzleModifyOptions } from '../../apply-config';
 import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
 
@@ -25,7 +24,7 @@ export default (
               options: {
                 presets: [
                   [
-                    resolveRequire(path.resolve('node_modules/babel-preset-react-app')),
+                    resolveRequire('babel-preset-react-app', { basedir: process.cwd() }),
                     {
                       runtime: hasNewJsxRuntime() ? 'automatic' : 'classic',
                     },
@@ -84,7 +83,7 @@ function hasNewJsxRuntime() {
   }
 
   try {
-    resolveRequire(path.resolve('node_modules/react/jsx-runtime'));
+    resolveRequire('react/jsx-runtime', { basedir: process.cwd() });
     return true;
   } catch {
     return false;

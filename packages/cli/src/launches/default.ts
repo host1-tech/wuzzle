@@ -1,12 +1,17 @@
 import { resolveCommandPath, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { EXIT_CODE_ERROR } from '../constants';
-import { execNode, LaunchFunction } from '../utils';
+import { execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
 
 export const launchDefault: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let defaultCommandPath: string;
   let webpackMajorVersion: number;
   try {
-    defaultCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    try {
+      defaultCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
+    } catch {
+      defaultCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
+      console.log(tmplLogForGlobalResolving({ commandName, commandPath: defaultCommandPath }));
+    }
     webpackMajorVersion = resolveWebpackSemVer(defaultCommandPath).major;
   } catch {
     console.error(`error: command '${commandName}' not supported.`);

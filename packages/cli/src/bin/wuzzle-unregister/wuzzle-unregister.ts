@@ -24,7 +24,16 @@ for (const { unregister } of glob
     cwd: __dirname,
   })
   .map(require)) {
-  unregister({ commandPath: resolveCommandPath({ cwd: projectPath, commandName }) });
+  const commandPaths: string[] = [];
+  try {
+    commandPaths.push(resolveCommandPath({ cwd: projectPath, commandName }));
+  } catch {}
+  try {
+    commandPaths.push(resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true }));
+  } catch {}
+  for (const commandPath of commandPaths) {
+    unregister({ commandPath });
+  }
 }
 
-console.log(green(`Registers on '${commandName}' reverted.`));
+console.log(green(`Reverted registers on '${commandName}'.`));
