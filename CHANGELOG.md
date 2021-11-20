@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1-alpha.0](https://github.com/licg9999/wuzzle/compare/v0.3.0...v0.3.1-alpha.0) (2021-11-20)
+
+
+### Features
+
+* support resolving command from globals ([7650036](https://github.com/licg9999/wuzzle/commit/76500366ccbcec512e4bc27ecc8d467716a875d2))
+
+
+### Bug Fixes
+
+* tweak global command resolving to work with win32 ([1fd3eed](https://github.com/licg9999/wuzzle/commit/1fd3eed843b83f7d036740e90ea53230579c984f))
+
+
+
 ## [0.3.0](https://github.com/licg9999/wuzzle/compare/v0.3.0-alpha.4...v0.3.0) (2021-11-13)
 
 **Note:** Version bump only for package wuzzle
