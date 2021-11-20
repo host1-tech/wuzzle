@@ -12,7 +12,7 @@ interface FixtureInfo {
   outputDir?: string;
   outputContents?: Record<string, string>;
   outputMessages?: string[];
-  testGlobal?: boolean;
+  testGlobal?: boolean | 'with-install';
   testDryRun?: boolean;
   testUnregister?: boolean;
 }
@@ -126,7 +126,7 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       outputContents: {
         ['build/public/static/js/bundle.*.js']: 'Hi, Razzle 3.x.',
       },
-      testGlobal: true,
+      testGlobal: 'with-install',
       testDryRun: true,
       testUnregister: true,
     },
@@ -281,7 +281,9 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
         });
         shelljs.cp('-fr', globalContents, globalDir);
         shelljs.cd(globalDir);
-        shelljs.exec('yarn --prod');
+        if (testGlobal === 'with-install') {
+          shelljs.exec('yarn --prod');
+        }
         shelljs.ln('-s', path.join(fixtureDir, 'node_modules'), globalNodeModules);
         process.env.PATH = `${path.join(fixtureDir, 'node_modules/.bin')}${
           process.platform === 'win32' ? ';' : ':'

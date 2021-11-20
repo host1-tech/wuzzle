@@ -16,7 +16,7 @@ export function resolveCommandPath({
 }: ResolveCommandPathOptions): string {
   let commandLink: string = path.join(cwd, 'node_modules/.bin', commandName);
   if (fromGlobals) {
-    commandLink = which.sync(commandName);
+    commandLink = which.sync(commandName).replace(/\.cmd$/i, '');
   }
 
   let linkinkContent: string;

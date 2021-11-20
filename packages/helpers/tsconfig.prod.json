@@ -1,1 +1,8 @@
-../cli/tsconfig.prod.json
+{
+  "extends": "../../tsconfig.prod.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "include": ["src"]
+}
