@@ -27,6 +27,9 @@ import {
 } from '../constants';
 import { waitForStream } from '../utils';
 
+const thisFileContent = fs.readFileSync(__filename);
+const packageJsonContent = fs.readFileSync(path.join(__dirname, '../../package.json'));
+
 export type TranspileOptions = Partial<TranspileInternalOptions>;
 
 export interface TranspileInternalOptions {
@@ -57,7 +60,6 @@ export const transpileDefaultOptions: TranspileInternalOptions = {
   },
 };
 
-export const thisFileContent = fs.readFileSync(__filename);
 export const cachePath = path.join(CACHE_BASE_PATH, 'transpile');
 
 export async function transpile(options: TranspileOptions = {}): Promise<string> {
@@ -334,6 +336,8 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
 
   return createHash('md5')
     .update(thisFileContent)
+    .update('\0', ENCODING_TEXT)
+    .update(packageJsonContent)
     .update('\0', ENCODING_TEXT)
     .update(inputFileContent)
     .update('\0', ENCODING_TEXT)
