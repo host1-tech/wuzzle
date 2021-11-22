@@ -8,3 +8,6 @@ export function getCacheKey() {
 export function process(code: string, file: string): string {
   return transform(code, file);
 }
+
+// Adapt to Jest latest(27+) format
+export default { getCacheKey, process };

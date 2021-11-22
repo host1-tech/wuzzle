@@ -22,6 +22,14 @@ const goodCodes: Record<string, string> = {
     .stdout,
   ['25.5.4']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@25.5.4.txt'))
     .stdout,
+  ['26.0.0']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@26.0.0.txt'))
+    .stdout,
+  ['26.6.3']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@26.6.3.txt'))
+    .stdout,
+  ['27.0.0']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@27.0.0.txt'))
+    .stdout,
+  ['27.3.1']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@27.3.1.txt'))
+    .stdout,
 };
 
 const flawCodes: Record<string, string> = {
@@ -29,7 +37,6 @@ const flawCodes: Record<string, string> = {
 };
 
 jest.mock('@wuzzle/helpers');
-jest.mock('pirates');
 jest.mock('../node/transform');
 
 jest.spyOn(process, 'exit').mockImplementation(() => {
