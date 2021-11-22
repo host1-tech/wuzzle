@@ -80,6 +80,14 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       testDryRun: true,
       testUnregister: true,
     },
+    ['27.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/jest__27.x'),
+      command: 'jest',
+      outputMessages: ['Hi, Jest 27.x.'],
+      testGlobal: true,
+      testDryRun: true,
+      testUnregister: true,
+    },
   },
   ['mocha']: {
     ['7.x']: {
