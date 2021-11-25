@@ -1,4 +1,4 @@
-import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
@@ -27,6 +27,7 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
 
 describe('launchRazzle', () => {
   beforeEach(() => {
@@ -38,6 +39,7 @@ describe('launchRazzle', () => {
     mocked(resolveRequire).mockReturnValueOnce(razzlePreConfigPath);
     launchRazzle(launchOptions);
     expect(resolveCommandPath).toBeCalled();
+    expect(resolveCommandSemVer).toBeCalled();
     expect(register).toBeCalledWith({ commandPath });
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
@@ -55,6 +57,7 @@ describe('launchRazzle', () => {
     launchRazzle(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(console.log).toBeCalledWith(logForGlobalResolving);
+    expect(resolveCommandSemVer).toBeCalled();
     expect(register).toBeCalledWith({ commandPath });
     expect(execNode).toBeCalledWith(
       expect.objectContaining({

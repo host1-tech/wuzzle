@@ -1,9 +1,10 @@
-import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
 
 export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let razzleCommandPath: string;
+  let razzleMajorVersion: number;
   try {
     try {
       razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
@@ -11,13 +12,16 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
       razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
       console.log(tmplLogForGlobalResolving({ commandName, commandPath: razzleCommandPath }));
     }
+    razzleMajorVersion = resolveCommandSemVer(razzleCommandPath).major;
   } catch {
     console.error(`error: failed to resolve command '${commandName}'.`);
     process.exit(EXIT_CODE_ERROR);
   }
 
-  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire('../registers/razzle__3.x/pre-config');
-  require('../registers/razzle__3.x').register({
+  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
+    `../registers/razzle__${razzleMajorVersion}.x/pre-config`
+  );
+  require(`../registers/razzle__${razzleMajorVersion}.x`).register({
     commandPath: razzleCommandPath,
   });
 
