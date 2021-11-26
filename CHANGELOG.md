@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1-alpha.1](https://github.com/licg9999/wuzzle/compare/v0.3.1-alpha.0...v0.3.1-alpha.1) (2021-11-26)
+
+
+### Features
+
+* support jest 27 and refactor ([b1b3460](https://github.com/licg9999/wuzzle/commit/b1b3460bd7199715742153a382dc5a733bc13916))
+* support razzle 4 ([e3719f9](https://github.com/licg9999/wuzzle/commit/e3719f91b15f5e2d62810063319b2c6741f1d120))
+
+
+### Bug Fixes
+
+* detect webpack version in razzle 4 handling ([34602ca](https://github.com/licg9999/wuzzle/commit/34602ca0cf1657beacbf308e0f690f66b6509e3c))
+* read package.json on cache key calculation ([3113077](https://github.com/licg9999/wuzzle/commit/31130773a63c76e2fbb7f05bfeb86f0836a6b663))
+
+
+
 ## [0.3.1-alpha.0](https://github.com/licg9999/wuzzle/compare/v0.3.0...v0.3.1-alpha.0) (2021-11-20)
 
 
