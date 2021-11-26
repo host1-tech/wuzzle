@@ -14,7 +14,7 @@
     "wuzzle-unregister": "bin/wuzzle-unregister.js"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "repository": {
     "type": "git",
