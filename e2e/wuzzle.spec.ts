@@ -265,6 +265,19 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       testDryRun: true,
     },
   },
+  ['vue-cli-service build']: {
+    ['4.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/vue-cli-service__4.x'),
+      command: 'vue-cli-service build',
+      outputDir: 'dist',
+      outputContents: {
+        ['dist/js/app*.js']: 'Hi, Vue CLI 4.x.',
+      },
+      testGlobal: true,
+      testDryRun: true,
+      testUnregister: true,
+    },
+  },
 };
 
 const originalEnvPath = process.env.PATH;
