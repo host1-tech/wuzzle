@@ -265,13 +265,41 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       testDryRun: true,
     },
   },
+  ['uni-app build:h5']: {
+    ['2.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/uni-app__2.x'),
+      command: 'vue-cli-service uni-build',
+      envOverrides: { UNI_PLATFORM: 'h5' },
+      outputDir: 'dist',
+      outputContents: {
+        ['dist/dev/h5/static/js/pages-index-index.js']: 'Hi, uni-app 2.x.',
+      },
+      testDryRun: true,
+      testUnregister: true,
+      // Won't test 'uni-app' global because it fails to locate output dir
+    },
+  },
+  ['uni-app build:mp-weixin']: {
+    ['2.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/uni-app__2.x'),
+      command: 'vue-cli-service uni-build',
+      envOverrides: { UNI_PLATFORM: 'mp-weixin' },
+      outputDir: 'dist',
+      outputContents: {
+        ['dist/dev/mp-weixin/pages/index/index.wxml']: 'Hi, uni-app 2.x.',
+      },
+      testDryRun: true,
+      testUnregister: true,
+      // Won't test 'uni-app' global because it fails to locate output dir
+    },
+  },
   ['vue-cli-service build']: {
     ['4.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/vue-cli-service__4.x'),
       command: 'vue-cli-service build',
       outputDir: 'dist',
       outputContents: {
-        ['dist/js/app*.js']: 'Hi, Vue CLI 4.x.',
+        ['dist/js/app.js']: 'Hi, Vue CLI 4.x.',
       },
       testGlobal: true,
       testDryRun: true,
@@ -300,12 +328,12 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
     const commandName = command.split(' ')[0];
 
     beforeEach(() => {
-      if (outputDir) shelljs.rm('-fr', outputDir);
       process.env.PATH = originalEnvPath;
     });
 
     it(`runs ${command}`, () => {
       shelljs.cd(fixtureDir);
+      if (outputDir) shelljs.rm('-fr', outputDir);
       const result = shelljs.exec(genEndToEndExec({ command, envOverrides }));
       verifyCompilationResult(result);
     });
@@ -323,6 +351,7 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
         });
         shelljs.cp('-fr', globalContents, globalDir);
         shelljs.cd(globalDir);
+        if (outputDir) shelljs.rm('-fr', outputDir);
         if (testGlobal === 'with-install') {
           shelljs.exec('yarn --prod');
         }
@@ -341,6 +370,7 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
     if (testDryRun) {
       it(`runs ${command} in dry-run mode`, () => {
         shelljs.cd(fixtureDir);
+        if (outputDir) shelljs.rm('-fr', outputDir);
         const {
           stdout,
           stderr,
