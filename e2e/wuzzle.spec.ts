@@ -126,6 +126,19 @@ const fixtureInfoAllInOne: Record<string, Record<string, FixtureInfo>> = {
       testDryRun: true,
     },
   },
+  ['nuxt']: {
+    ['2.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/nuxt__2.x'),
+      command: 'nuxt build',
+      outputDir: '.nuxt',
+      outputContents: {
+        '.nuxt/dist/client/*.js': 'Hi, Nuxt 2.x.',
+      },
+      testGlobal: true,
+      testDryRun: true,
+      testUnregister: true,
+    },
+  },
   ['razzle build']: {
     ['3.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/razzle__3.x'),
@@ -419,7 +432,7 @@ describe.each(Object.keys(fixtureInfoAllInOne))('wuzzle %s', packageDesc => {
       if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
       if (outputContents) {
         Object.keys(outputContents).forEach(outputPath => {
-          expect(shelljs.cat(glob.sync(outputPath)[0]).stdout).toEqual(
+          expect(shelljs.cat(...glob.sync(outputPath)).stdout).toEqual(
             expect.stringContaining(outputContents[outputPath])
           );
         });
