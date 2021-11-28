@@ -6,7 +6,7 @@ export interface GenEndToEndExecOptions {
   wrapper?: string;
 }
 
-export function genEndToEndExec(options: GenEndToEndExecOptions) {
+export function genEndToEndExec(options: GenEndToEndExecOptions): string {
   const {
     command,
     envOverrides = {},
