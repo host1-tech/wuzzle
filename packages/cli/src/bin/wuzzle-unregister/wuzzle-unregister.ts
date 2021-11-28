@@ -32,8 +32,10 @@ for (const { unregister } of glob
     commandPaths.push(resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true }));
   } catch {}
   for (const commandPath of commandPaths) {
-    unregister({ commandPath });
+    try {
+      unregister({ commandPath });
+    } catch {}
   }
 }
 
-console.log(green(`Reverted registers on '${commandName}'.`));
+console.log(green(`Reverted registering on '${commandName}'.`));

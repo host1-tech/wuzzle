@@ -1,9 +1,23 @@
+# Coverage directory used by tools like istanbul
+coverage
+
+# Nyc test coverage
+.nyc_output
+
+# Dependency directories
 node_modules
+
+# Cache files
+.cache
+cache
+
+# Fixture directories
+fixtures
+
+# Generated outputs
 lib
 es
 dist
 out
 build
-coverage
-fixtures
-.nyc_output
+*.tgz

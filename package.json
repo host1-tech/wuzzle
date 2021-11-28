@@ -20,7 +20,7 @@
     "test": "jest --testPathIgnorePatterns e2e --cache",
     "test:watch": "yarn test --watch",
     "coverage": "yarn test --coverage",
-    "e2e": "jest --testPathIgnorePatterns packages --no-cache --testTimeout 30000",
+    "e2e": "jest --testPathIgnorePatterns packages --no-cache --testTimeout 30000 --maxWorkers 75%",
     "lint": "run-p lint:*",
     "lint:eslint": "yarn eslint",
     "lint:prettier": "yarn prettier --check",
@@ -33,7 +33,7 @@
     "release:pre": "lerna version --conventional-prerelease",
     "publish:npm": "lerna publish from-package --registry https://registry.npmjs.org",
     "postinstall": "yarn build",
-    "fixtures": "ts-node scripts/fixtures.ts"
+    "fixtures": "ts-node scripts/fixtures/index.ts"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
@@ -75,7 +75,8 @@
     "lerna": "^3.22.1",
     "lint-staged": "^10.2.11",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.0.5",
+    "p-map": "^4.0.0",
+    "prettier": "^2.4.1",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.4",
     "ts-jest": "^26.2.0",
