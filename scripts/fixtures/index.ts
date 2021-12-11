@@ -16,7 +16,9 @@ const fixtureDirs = glob.sync('**/fixtures/*', {
 });
 
 program.command('install').action(async () => {
-  await pMap(fixtureDirs, action, { concurrency: os.cpus().length });
+  await pMap(fixtureDirs, action, {
+    concurrency: process.platform === 'win32' ? 1 : os.cpus().length,
+  });
   async function action(fixtureDir: string) {
     const installPath = require.resolve('./install');
     const nodePath = process.argv[0];
