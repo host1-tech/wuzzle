@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/register": "^7.16.5",
+    "babel-loader": "^8.2.3",
+    "mocha": "^8.1.3"
+  }
+}
