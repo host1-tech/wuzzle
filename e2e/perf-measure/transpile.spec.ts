@@ -6,8 +6,8 @@ executeTests({
   ['transpile']: {
     ['current']: {
       fixtureDir: path.join(__dirname, 'fixtures/transpile'),
-      bareCommand: `babel 'src' --ignore '**/*.test.js' -d out`,
-      wuzzleCommand: `transpile 'src/**/*' --ignore '**/*.test.js' --no-clean -d out`,
+      bareCommand: `babel "src" --ignore "**/*.test.js" -d out`,
+      wuzzleCommand: `transpile "src/**/*" --ignore "**/*.test.js" --no-clean -d out`,
       cleanup() {
         shelljs.rm('-fr', 'out');
       },
