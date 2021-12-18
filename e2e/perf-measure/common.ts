@@ -9,11 +9,11 @@ export interface TestCase {
   fixtureDir: string;
   bareCommand: string;
   wuzzleCommand: string;
-  cleanup?: string | string[];
+  cleanup?: () => void;
   tmplContent: string;
   tmplTesting: string;
-  totalFileCounts: Record<string, number>;
-  perSubDirFileCounts: Record<string, number>;
+  totalTestFileCounts: Record<string, number>;
+  perSubDirTestFileCounts: Record<string, number>;
   perFileLineCounts: Record<string, number>;
   only?: boolean;
   skip?: boolean;
@@ -44,8 +44,8 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
         cleanup,
         tmplContent,
         tmplTesting,
-        totalFileCounts,
-        perSubDirFileCounts,
+        totalTestFileCounts,
+        perSubDirTestFileCounts,
         perFileLineCounts,
         only,
         skip,
@@ -53,7 +53,6 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
       const bareExec = path.join(fixtureDir, 'node_modules/.bin', bareCommand);
       const wuzzleExec = genEndToEndExec({ command: wuzzleCommand });
       const wuzzleCommandName = wuzzleCommand.split(' ')[0];
-      const cleanupExecs = cleanup ? (Array.isArray(cleanup) ? cleanup : [cleanup]) : [];
       const cacheDir = path.join(fixtureDir, 'node_modules/.cache');
       const srcDir = path.join(fixtureDir, srcDirName);
       const tmplContentCompiled = template(tmplContent);
@@ -85,14 +84,14 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           logImmediately();
         });
 
-        forEach(totalFileCounts, (totalFileCount, totalFileLabel) => {
-          forEach(perSubDirFileCounts, (perSubDirFileCount, perSubDirFileLabel) => {
+        forEach(totalTestFileCounts, (totalTestFileCount, totalTestFileLabel) => {
+          forEach(perSubDirTestFileCounts, (perSubDirTestFileCount, perSubDirTestFileLabel) => {
             forEach(perFileLineCounts, (perFileLineCount, perFileLineLabel) => {
-              const subDirCount = Math.ceil(totalFileCount / perSubDirFileCount);
+              const subDirCount = Math.ceil(totalTestFileCount / perSubDirTestFileCount);
               doTest(
                 'measures by ' +
-                  `${totalFileLabel} ${perSubDirFileLabel} ${perFileLineLabel} files`,
-                { subDirCount, perSubDirFileCount, perFileLineCount }
+                  `${totalTestFileLabel} ${perSubDirTestFileLabel} ${perFileLineLabel} files`,
+                { subDirCount, perSubDirTestFileCount, perFileLineCount }
               );
             });
           });
@@ -102,7 +101,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           testName: string,
           opts: {
             subDirCount: number;
-            perSubDirFileCount: number;
+            perSubDirTestFileCount: number;
             perFileLineCount: number;
           }
         ) {
@@ -120,7 +119,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
                     path.join(subDir, 'index.js'),
                     tmplContentCompiled({ lineCount: opts.perFileLineCount })
                   );
-                  times(opts.perSubDirFileCount, j => {
+                  times(opts.perSubDirTestFileCount, j => {
                     fs.writeFileSync(
                       path.join(subDir, `${j}.test.js`),
                       tmplTestingCompiled({ lineCount: opts.perFileLineCount })
@@ -130,11 +129,13 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               });
 
               const bareMsElapsed = itSection('measures bare execution', () => {
-                shelljs.exec(genEndToEndExec({ command: `unregister ${wuzzleCommandName}` }), {
-                  silent,
-                });
+                if (wuzzleCommandName !== 'transpile') {
+                  shelljs.exec(genEndToEndExec({ command: `unregister ${wuzzleCommandName}` }), {
+                    silent,
+                  });
+                }
                 shelljs.rm('-fr', cacheDir);
-                cleanupExecs.forEach(exec => shelljs.exec(exec, { silent }));
+                cleanup?.();
 
                 const bareTimeStart = Date.now();
                 const bareResult = shelljs.exec(bareExec, { silent });
@@ -145,7 +146,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
 
               const wuzzleMsElapsed = itSection('measures wuzzle execution', () => {
                 shelljs.rm('-fr', cacheDir);
-                cleanupExecs.forEach(exec => shelljs.exec(exec, { silent }));
+                cleanup?.();
 
                 const wuzzleTimeStart = Date.now();
                 const wuzzleResult = shelljs.exec(wuzzleExec, { silent });
