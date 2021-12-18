@@ -5,8 +5,8 @@ executeTests({
   ['mocha']: {
     ['8.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/mocha__8.x'),
-      bareCommand: `mocha -r @babel/register -j 1 'src/**/*'`,
-      wuzzleCommand: `mocha -j 1 'src/**/*'`,
+      bareCommand: `mocha -r @babel/register -j 1 "src/**/*"`,
+      wuzzleCommand: `mocha -j 1 "src/**/*"`,
       tmplContent:
         `<% _.times(lineCount, i => { %>` +
         `export const getGreeting<%= i %> = async () => 'Hi, <%= i %>.';
