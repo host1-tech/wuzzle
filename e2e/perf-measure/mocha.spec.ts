@@ -17,8 +17,8 @@ import * as $ from '.';
 <% _.times(lineCount, i => { %>` +
         `it('Hi, <%= i %>.', async () => assert((await $.getGreeting<%= i %>()) === 'Hi, <%= i %>.'));
 <% }); %>`,
-      totalFileCounts: { ['only a few']: 2, ['plenty of']: 20 },
-      perSubDirFileCounts: { ['non-overlapping']: 1, ['25%-overlapping']: 2 },
+      totalTestFileCounts: { ['only a few']: 2, ['plenty of']: 20 },
+      perSubDirTestFileCounts: { ['non-overlapping']: 1, ['25%-overlapping']: 2 },
       perFileLineCounts: { ['small']: 1, ['big']: 500 },
     },
   },

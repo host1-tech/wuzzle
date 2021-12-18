@@ -14,8 +14,8 @@ const tmplTesting =
   `it('Hi, <%= i %>.', async () => expect(await $.getGreeting<%= i %>()).toBe('Hi, <%= i %>.'));
 <% }); %>`;
 
-const totalFileCounts = { ['only a few']: 2, ['plenty of']: 20 };
-const perSubDirFileCounts = { ['non-overlapping']: 1, ['25%-overlapping']: 2 };
+const totalTestFileCounts = { ['only a few']: 2, ['plenty of']: 20 };
+const perSubDirTestFileCounts = { ['non-overlapping']: 1, ['25%-overlapping']: 2 };
 const perFileLineCounts = { ['small']: 1, ['big']: 500 };
 
 executeTests({
@@ -26,8 +26,8 @@ executeTests({
       wuzzleCommand,
       tmplContent,
       tmplTesting,
-      totalFileCounts,
-      perSubDirFileCounts,
+      totalTestFileCounts,
+      perSubDirTestFileCounts,
       perFileLineCounts,
     },
     ['27.x']: {
@@ -36,8 +36,8 @@ executeTests({
       wuzzleCommand,
       tmplContent,
       tmplTesting,
-      totalFileCounts,
-      perSubDirFileCounts,
+      totalTestFileCounts,
+      perSubDirTestFileCounts,
       perFileLineCounts,
     },
   },
