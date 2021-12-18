@@ -8,15 +8,8 @@ import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 
-shelljs.cd(path.resolve('e2e'));
-
-const fixtureDirs = glob.sync('**/fixtures/*', {
-  absolute: true,
-  ignore: ['**/*-global/**', '**/node_modules/**'],
-});
-
-program.command('install').action(async () => {
-  await pMap(fixtureDirs, action, {
+program.command('install [dirs...]').action(async dirs => {
+  await pMap(getFixtureDirs(dirs), action, {
     concurrency: process.platform === 'linux' ? os.cpus().length : 1,
   });
   async function action(fixtureDir: string) {
@@ -32,11 +25,24 @@ program.command('install').action(async () => {
   }
 });
 
-program.command('clean').action(() => {
-  fixtureDirs.forEach(fixtureDir => {
+program.command('clean [dirs...]').action(dirs => {
+  getFixtureDirs(dirs).forEach(fixtureDir => {
     shelljs.cd(fixtureDir);
     shelljs.rm('-fr', '*-global', 'node_modules', 'yarn.lock');
   });
 });
 
 program.parse(process.argv);
+
+function getFixtureDirs(dirs: string[]) {
+  const fixtureDirs: string[] = [];
+  (dirs.length ? dirs : ['e2e']).forEach(dir => {
+    fixtureDirs.push(
+      ...glob.sync(path.join(dir, '**/fixtures/*'), {
+        absolute: true,
+        ignore: ['**/*-global/**', '**/node_modules/**'],
+      })
+    );
+  });
+  return fixtureDirs;
+}

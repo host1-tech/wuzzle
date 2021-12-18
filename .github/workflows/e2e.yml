@@ -13,6 +13,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
+    env:
+      TEST_DIRS: e2e/feasibility-check
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,6 +27,6 @@ jobs:
       - name: Install, build and prepare fixtures
         run: |
           yarn
-          yarn fixtures install
+          yarn fixtures install ${{ env.TEST_DIRS }}
       - name: Test end to end cases
-        run: yarn e2e
+        run: yarn e2e ${{ env.TEST_DIRS }}
