@@ -60,6 +60,7 @@ pnpm-lock.yaml
 
 # Changing fixtures
 *-global
+e2e/perf-measure/fixtures/**/index.js
 e2e/perf-measure/fixtures/**/src
 packages/cli/src/transpile/fixtures/.babelrc
 packages/cli/src/transpile/fixtures/src/changing.js

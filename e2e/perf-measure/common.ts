@@ -3,12 +3,12 @@ import fs from 'fs';
 import { forEach, template, times } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
-import { genEndToEndExec, itSection, logImmediately } from '../utils';
+import { itSection, logImmediately } from '../utils';
 
 export interface TestCase {
   fixtureDir: string;
-  bareCommand: string;
-  wuzzleCommand: string;
+  bareExec: string;
+  wuzzleExec: string;
   cleanup?: () => void;
   tmplContent: string;
   tmplTesting: string;
@@ -23,6 +23,14 @@ export type TestCasesInGroups = Record<string, Record<string, TestCase>>;
 
 export const testTimeout = 180000;
 export const srcDirName = 'src';
+export const subDirPrefix = 't';
+export const contentFileName = 'index.js';
+export const testingFileSuffix = '.test.js';
+export const tmplTopLevelContentCompiled = template(
+  `<% _.times(lineCount, i => { %>` +
+    `import * as ${subDirPrefix}<%= i %> from './${srcDirName}/${subDirPrefix}<%= i %>';
+<% }); %>`
+);
 export const silent = true;
 
 interface ReportItem {
@@ -39,8 +47,8 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
     Object.keys(fixtureInfo).forEach(versionFlag => {
       const {
         fixtureDir,
-        bareCommand,
-        wuzzleCommand,
+        bareExec,
+        wuzzleExec,
         cleanup,
         tmplContent,
         tmplTesting,
@@ -50,11 +58,9 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
         only,
         skip,
       } = fixtureInfo[versionFlag];
-      const bareExec = path.join(fixtureDir, 'node_modules/.bin', bareCommand);
-      const wuzzleExec = genEndToEndExec({ command: wuzzleCommand });
-      const wuzzleCommandName = wuzzleCommand.split(' ')[0];
       const cacheDir = path.join(fixtureDir, 'node_modules/.cache');
       const srcDir = path.join(fixtureDir, srcDirName);
+      const topLevelContentFile = path.join(fixtureDir, contentFileName);
       const tmplContentCompiled = template(tmplContent);
       const tmplTestingCompiled = template(tmplTesting);
 
@@ -113,27 +119,26 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
 
               itSection('prepares files for executions', () => {
                 times(opts.subDirCount, i => {
-                  const subDir = path.join(srcDir, `t${i}`);
+                  const subDir = path.join(srcDir, `${subDirPrefix}${i}`);
                   shelljs.mkdir('-p', subDir);
                   fs.writeFileSync(
-                    path.join(subDir, 'index.js'),
+                    path.join(subDir, contentFileName),
                     tmplContentCompiled({ lineCount: opts.perFileLineCount })
                   );
                   times(opts.perSubDirTestFileCount, j => {
                     fs.writeFileSync(
-                      path.join(subDir, `${j}.test.js`),
+                      path.join(subDir, `${j}${testingFileSuffix}`),
                       tmplTestingCompiled({ lineCount: opts.perFileLineCount })
                     );
                   });
                 });
+                fs.writeFileSync(
+                  topLevelContentFile,
+                  tmplTopLevelContentCompiled({ lineCount: opts.subDirCount })
+                );
               });
 
               const bareMsElapsed = itSection('measures bare execution', () => {
-                if (wuzzleCommandName !== 'transpile') {
-                  shelljs.exec(genEndToEndExec({ command: `unregister ${wuzzleCommandName}` }), {
-                    silent,
-                  });
-                }
                 shelljs.rm('-fr', cacheDir);
                 cleanup?.();
 

@@ -1,13 +1,20 @@
 import path from 'path';
 import shelljs from 'shelljs';
+import { genEndToEndExec } from '../utils';
 import { executeTests } from './common';
 
 executeTests({
   ['transpile']: {
     ['current']: {
       fixtureDir: path.join(__dirname, 'fixtures/transpile'),
-      bareCommand: `babel "src" --ignore "**/*.test.js" -d out`,
-      wuzzleCommand: `transpile "src/**/*" --ignore "**/*.test.js" --no-clean -d out`,
+      bareExec: path.join(
+        __dirname,
+        'fixtures/transpile/node_modules/.bin',
+        `babel "src" --ignore "**/*.test.js" -d out`
+      ),
+      wuzzleExec: genEndToEndExec({
+        command: `transpile "src/**/*" --ignore "**/*.test.js" --no-clean -d out`,
+      }),
       cleanup() {
         shelljs.rm('-fr', 'out');
       },
