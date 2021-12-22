@@ -3,7 +3,7 @@ import fs from 'fs';
 import { forEach, template, times } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
-import { itSection, logImmediately } from '../utils';
+import { logImmediately } from '../utils';
 
 export interface TestCase {
   fixtureDir: string;
@@ -32,6 +32,7 @@ export const tmplTopLevelContentCompiled = template(
 <% }); %>`
 );
 export const silent = true;
+export const shouldSimplify = Boolean(process.env.CI);
 
 interface ReportItem {
   testName?: string;
@@ -87,9 +88,9 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
             JSON.stringify(overviewReport)
           );
           logImmediately();
-          logImmediately();
         });
 
+        const breakEarlyFlag = !shouldSimplify;
         forEach(totalTestFileCounts, (totalTestFileCount, totalTestFileLabel) => {
           forEach(perSubDirTestFileCounts, (perSubDirTestFileCount, perSubDirTestFileLabel) => {
             forEach(perFileLineCounts, (perFileLineCount, perFileLineLabel) => {
@@ -99,8 +100,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
                   `${totalTestFileLabel} ${perSubDirTestFileLabel} ${perFileLineLabel} files`,
                 { subDirCount, perSubDirTestFileCount, perFileLineCount }
               );
+              return breakEarlyFlag;
             });
+            return breakEarlyFlag;
           });
+          return breakEarlyFlag;
         });
 
         function doTest(
@@ -115,50 +119,44 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
             testName,
             () => {
               logImmediately(bgBlue(overviewName), blue(`${testName}:`), 'processing...');
-              logImmediately();
 
-              itSection('prepares files for executions', () => {
-                times(opts.subDirCount, i => {
-                  const subDir = path.join(srcDir, `${subDirPrefix}${i}`);
-                  shelljs.mkdir('-p', subDir);
-                  fs.writeFileSync(
-                    path.join(subDir, contentFileName),
-                    tmplContentCompiled({ lineCount: opts.perFileLineCount })
-                  );
-                  times(opts.perSubDirTestFileCount, j => {
-                    fs.writeFileSync(
-                      path.join(subDir, `${j}${testingFileSuffix}`),
-                      tmplTestingCompiled({ lineCount: opts.perFileLineCount })
-                    );
-                  });
-                });
+              // prepares files for executions
+              times(opts.subDirCount, i => {
+                const subDir = path.join(srcDir, `${subDirPrefix}${i}`);
+                shelljs.mkdir('-p', subDir);
                 fs.writeFileSync(
-                  topLevelContentFile,
-                  tmplTopLevelContentCompiled({ lineCount: opts.subDirCount })
+                  path.join(subDir, contentFileName),
+                  tmplContentCompiled({ lineCount: opts.perFileLineCount })
                 );
+                times(opts.perSubDirTestFileCount, j => {
+                  fs.writeFileSync(
+                    path.join(subDir, `${j}${testingFileSuffix}`),
+                    tmplTestingCompiled({ lineCount: opts.perFileLineCount })
+                  );
+                });
               });
+              fs.writeFileSync(
+                topLevelContentFile,
+                tmplTopLevelContentCompiled({ lineCount: opts.subDirCount })
+              );
 
-              const bareMsElapsed = itSection('measures bare execution', () => {
-                shelljs.rm('-fr', cacheDir);
-                cleanup?.();
+              // measures bare execution
+              shelljs.rm('-fr', cacheDir);
+              cleanup?.();
+              const bareTimeStart = Date.now();
+              const bareResult = shelljs.exec(bareExec, { silent });
+              const bareTimeClose = Date.now();
+              expect(bareResult.code).toBe(0);
+              const bareMsElapsed = bareTimeClose - bareTimeStart;
 
-                const bareTimeStart = Date.now();
-                const bareResult = shelljs.exec(bareExec, { silent });
-                const bareTimeClose = Date.now();
-                expect(bareResult.code).toBe(0);
-                return bareTimeClose - bareTimeStart;
-              });
-
-              const wuzzleMsElapsed = itSection('measures wuzzle execution', () => {
-                shelljs.rm('-fr', cacheDir);
-                cleanup?.();
-
-                const wuzzleTimeStart = Date.now();
-                const wuzzleResult = shelljs.exec(wuzzleExec, { silent });
-                const wuzzleTimeClose = Date.now();
-                expect(wuzzleResult.code).toBe(0);
-                return wuzzleTimeClose - wuzzleTimeStart;
-              });
+              // measures wuzzle execution
+              shelljs.rm('-fr', cacheDir);
+              cleanup?.();
+              const wuzzleTimeStart = Date.now();
+              const wuzzleResult = shelljs.exec(wuzzleExec, { silent });
+              const wuzzleTimeClose = Date.now();
+              expect(wuzzleResult.code).toBe(0);
+              const wuzzleMsElapsed = wuzzleTimeClose - wuzzleTimeStart;
 
               // Prints individual report and collects overview report
               const slowDownRatio = wuzzleMsElapsed / bareMsElapsed;
@@ -167,8 +165,6 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
                 blue(`${testName}:`),
                 JSON.stringify({ bareMsElapsed, wuzzleMsElapsed, slowDownRatio })
               );
-              logImmediately();
-              logImmediately();
               if (slowDownRatio < overviewReport.best.slowDownRatio) {
                 overviewReport.best.testName = testName;
                 overviewReport.best.slowDownRatio = slowDownRatio;
