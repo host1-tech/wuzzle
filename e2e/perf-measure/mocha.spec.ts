@@ -1,12 +1,21 @@
+import execa from 'execa';
 import path from 'path';
+import { genEndToEndExec } from '../utils';
 import { executeTests } from './common';
 
 executeTests({
   ['mocha']: {
     ['8.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/mocha__8.x'),
-      bareCommand: `mocha -r @babel/register -j 1 "src/**/*"`,
-      wuzzleCommand: `mocha -j 1 "src/**/*"`,
+      bareExec: path.join(
+        __dirname,
+        'fixtures/mocha__8.x/node_modules/.bin',
+        `mocha -r @babel/register -j 1 "src/**/*"`
+      ),
+      wuzzleExec: genEndToEndExec({ command: `mocha -j 1 "src/**/*"` }),
+      cleanup() {
+        execa.commandSync(genEndToEndExec({ command: 'unregister mocha' }));
+      },
       tmplContent:
         `<% _.times(lineCount, i => { %>` +
         `export const getGreeting<%= i %> = async () => 'Hi, <%= i %>.';
