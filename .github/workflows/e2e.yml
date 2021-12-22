@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     env:
-      TEST_DIRS: e2e/feasibility-check
+      TEST_DIRS: e2e/feasibility-check e2e/perf-measure
     steps:
       - name: Checkout
         uses: actions/checkout@v2
