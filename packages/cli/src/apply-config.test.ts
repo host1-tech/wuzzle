@@ -14,9 +14,11 @@ import {
   EK_CACHE_KEY_OF_FILE_PATHS,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
 } from './constants';
+import { stdoutDebugLog } from './utils';
 
 const defaultModifyOptions: WuzzleModifyOptions = {
   projectPath: process.cwd(),
@@ -56,6 +58,7 @@ describe('applyConfig', () => {
     delete process.env[EK_INTERNAL_PRE_CONFIG];
     delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
     delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
+    delete process.env[EK_DRY_RUN];
   });
 
   it('does nothing with no config found', () => {
@@ -172,5 +175,11 @@ describe('applyConfig', () => {
     ].forEach((log, i) => {
       expect(mockedDebug.mock.calls[i][0]).toBe(log);
     });
+  });
+
+  it('logs into stdout in dry-run mode', () => {
+    process.env[EK_DRY_RUN] = 'true';
+    applyConfig({}, webpack);
+    expect(mockedDebug.log).toBe(stdoutDebugLog);
   });
 });

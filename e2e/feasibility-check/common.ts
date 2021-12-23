@@ -13,7 +13,7 @@ export interface TestCase {
   skipNormal?: boolean;
   testGlobal?: boolean | 'with-install';
   testDryRun?: boolean;
-  testUnregister?: boolean;
+  testUnregister?: boolean | Pick<TestCase, 'envOverrides'>;
   only?: boolean;
   skip?: boolean;
 }
@@ -82,14 +82,14 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           shelljs.rm('-fr', globalDir);
         });
 
-        (skipNormal ? it.skip : it)(`runs ${command}`, () => {
+        (skipNormal ? it.skip : it)(`runs '${command}'`, () => {
           const result = shelljs.exec(genEndToEndExec({ command, envOverrides }), { silent });
           verifyCompilationResult(result);
         });
 
         if (testGlobal) {
           it(
-            `runs ${command} from globals`,
+            `runs '${command}' from globals`,
             () => {
               shelljs.mkdir(globalDir);
               const globalContents = glob.sync(path.join(fixtureDir, '*'), {
@@ -120,7 +120,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
 
         if (testDryRun) {
           it(
-            `runs ${command} in dry-run mode`,
+            `runs '${command}' in dry-run mode`,
             () => {
               const {
                 stdout,
@@ -131,7 +131,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               });
 
               expect(exitCode).toBe(0);
-              expect(stderr).toEqual(expect.stringContaining(wuzzleMountingText));
+              expect(stdout).toEqual(expect.stringContaining(wuzzleMountingText));
 
               if (outputContents) {
                 Object.keys(outputContents).forEach(outputPath => {
@@ -149,6 +149,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
         }
 
         if (testUnregister) {
+          const unregisterOpts = typeof testUnregister === 'object' ? testUnregister : {};
+          const yarnEnvOverrides = {
+            ...envOverrides,
+            ...unregisterOpts.envOverrides,
+          };
           it(
             `unregisters ${commandName}`,
             () => {
@@ -160,11 +165,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               ).toBe(0);
 
               const { stderr, code: exitCode } = shelljs.exec(
-                genEndToEndExec({
-                  envOverrides: { ...envOverrides, SKIP_PREFLIGHT_CHECK: 'true' },
-                  wrapper: 'yarn',
-                  command,
-                }),
+                genEndToEndExec({ envOverrides: yarnEnvOverrides, wrapper: 'yarn', command }),
                 { silent }
               );
               expect(exitCode).toBe(0);
