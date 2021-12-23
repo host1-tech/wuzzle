@@ -10,8 +10,7 @@ import { getDefaultNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../util
 
 export function register() {
   if (process.env[EK_DRY_RUN]) {
-    transform();
-    process.stderr.write(os.EOL);
+    printDryRunLog();
     process.exit();
   }
 
@@ -35,18 +34,24 @@ export function register() {
   addHook(transform, piratesOptions);
 }
 
-export function transform(
-  code: string = '',
-  file: string = transpileDefaultOptions.inputCodePath
-): string {
+export function transform(code: string, file: string): string {
   const convertPath = resolveRequire('./convert');
   const nodePath = process.argv[0];
-  // A tens-of-lines file usually takes hundreds of milliseconds to get webpack-compiled.
-  // Compare to it, process spawning only takes less than 1/10 of the time. So here
-  // introduced synchronous process spawning to synchronize an async tranpiling function.
+  // Uses synchronous process spawning to deasync the tranpiling.
+  // It's slow but it's effective.
   const { stdout } = execa.sync(nodePath, [convertPath, file], {
     input: code,
     stderr: 'inherit',
   });
   return stdout;
+}
+
+export function printDryRunLog(): void {
+  const convertPath = resolveRequire('./convert');
+  const nodePath = process.argv[0];
+  execa.sync(nodePath, [convertPath, transpileDefaultOptions.inputCodePath], {
+    input: '',
+    stdout: 'inherit',
+    stderr: 'inherit',
+  });
 }

@@ -4,18 +4,16 @@ import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { EK_DRY_RUN, ENCODING_TEXT } from '../../constants';
 import { RegisterFunction } from '../../utils';
-import { transform as transformNode } from '../node/transform';
+import { printDryRunLog } from '../node/transform';
 
 const moduleToMatch = '@jest/core/build/cli';
 
 export const register: RegisterFunction = ({ commandPath }) => {
   if (process.env[EK_DRY_RUN]) {
-    transformNode();
-    process.stderr.write(os.EOL);
+    printDryRunLog();
     process.exit();
   }
 

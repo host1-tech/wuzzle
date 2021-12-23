@@ -37,13 +37,12 @@ describe('register', () => {
     expect(mocked(addHook).mock.calls[0][1]?.exts).toEqual(expect.arrayContaining(options.exts));
   });
 
-  it('calls transform to print config info and terminates process in dry-run mode', () => {
+  it('prints config info and terminates process in dry-run mode', () => {
     process.env[EK_DRY_RUN] = 'true';
     try {
       register();
     } catch {}
     expect(execa.sync).toBeCalled();
-    expect(process.stderr.write).toBeCalledWith(os.EOL);
     expect(process.exit).toBeCalled();
   });
 });

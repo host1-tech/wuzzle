@@ -1,6 +1,7 @@
 import { diff, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
+import { InspectOptions } from 'util';
 import type webpackType from 'webpack';
 import { merge } from 'webpack-merge';
 import {
@@ -9,9 +10,11 @@ import {
   EK_CACHE_KEY_OF_FILE_PATHS,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
 } from './constants';
+import { stderrDebugLog, stdoutDebugLog } from './utils';
 
 const debug = debugFty(DN_APPLY_CONFIG);
 
@@ -35,10 +38,20 @@ export interface WuzzleConfigOptions {
 
 export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
-function applyConfig(
+export function applyConfig(
   webpackConfig: webpackType.Configuration,
   webpack: typeof webpackType
 ): webpackType.Configuration {
+  const stringifyOpts: InspectOptions = {};
+  if (process.env[EK_DRY_RUN]) {
+    stringifyOpts.colors = process.stdout.isTTY;
+    debug.log = stdoutDebugLog;
+  } else {
+    stringifyOpts.colors = process.stderr.isTTY;
+    debug.log = stderrDebugLog;
+  }
+  debug.useColors = stringifyOpts.colors;
+
   debug('Wuzzle process mounted in CWD:', process.cwd());
   const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
 
@@ -59,7 +72,7 @@ function applyConfig(
     } catch {}
   }
 
-  const webpackConfigOldSnapshot = stringify(webpackConfig);
+  const webpackConfigOldSnapshot = stringify(webpackConfig, stringifyOpts);
 
   const optionsToUse: WuzzleConfigOptions = {};
 
@@ -69,7 +82,7 @@ function applyConfig(
   } else {
     Object.assign(optionsToUse, configLoaded);
   }
-  debug('Wuzzle config to apply:', stringify(configLoaded));
+  debug('Wuzzle config to apply:', stringify(configLoaded, stringifyOpts));
 
   if (optionsToUse.modify) {
     try {
@@ -86,7 +99,7 @@ function applyConfig(
     process.env[EK_CACHE_KEY_OF_FILE_PATHS] = JSON.stringify(optionsToUse.cacheKeyOfFilePaths);
   }
 
-  const webpackConfigNewSnapshot = stringify(webpackConfig);
+  const webpackConfigNewSnapshot = stringify(webpackConfig, stringifyOpts);
 
   debug(
     'Webpack config with difference:',

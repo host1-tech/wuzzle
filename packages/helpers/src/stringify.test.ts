@@ -17,13 +17,13 @@ describe('stringify', () => {
     const input = { regular: /expression/ };
     const output = stringify(input);
     expect(output).toBe(inspectOutput);
-    expect(inspect).toBeCalledWith(input, { colors: true, depth: Infinity });
+    expect(inspect).toBeCalledWith(input, { depth: Infinity });
   });
 
   it('works with custom options', () => {
     const input = { regular: /expression/ };
-    const output = stringify(input, { depth: 2, showHidden: true });
+    const output = stringify(input, { depth: 2, colors: true });
     expect(output).toBe(inspectOutput);
-    expect(inspect).toBeCalledWith(input, { colors: true, depth: 2, showHidden: true });
+    expect(inspect).toBeCalledWith(input, { depth: 2, colors: true });
   });
 });

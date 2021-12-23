@@ -1,12 +1,11 @@
 import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
 import { noop } from 'lodash';
-import os from 'os';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import { EK_DRY_RUN } from '../../constants';
-import { transform as transformNode } from '../node/transform';
+import { printDryRunLog } from '../node/transform';
 import * as transformModule from './transform';
 import { register, transform } from './transform';
 
@@ -74,19 +73,14 @@ describe('register/unregister', () => {
     expect(tryRestoreWithRemove).toBeCalledWith(matchedModulePath);
   });
 
-  it(
-    'calls node transform to print config info and ' +
-      'terminates process if registering in dry-run mode',
-    () => {
-      process.env[EK_DRY_RUN] = 'true';
-      try {
-        register({ commandPath: '' });
-      } catch {}
-      expect(transformNode).toBeCalled();
-      expect(process.stderr.write).toBeCalledWith(os.EOL);
-      expect(process.exit).toBeCalled();
-    }
-  );
+  it('prints config info and terminates process if registering in dry-run mode', () => {
+    process.env[EK_DRY_RUN] = 'true';
+    try {
+      register({ commandPath: '' });
+    } catch {}
+    expect(printDryRunLog).toBeCalled();
+    expect(process.exit).toBeCalled();
+  });
 });
 
 describe('transform', () => {
