@@ -1,6 +1,6 @@
 {
   "name": "@wuzzle/cli",
-  "version": "0.3.1-alpha.1",
+  "version": "0.3.1-alpha.2",
   "description": "Wuzzle command line interface.",
   "keywords": [],
   "license": "MIT",
@@ -33,7 +33,7 @@
     "@babel/types": "^7.11.0",
     "@svgr/webpack": "^5.5.0",
     "@types/find-cache-dir": "^3.2.1",
-    "@wuzzle/helpers": "^0.3.1-alpha.0",
+    "@wuzzle/helpers": "^0.3.1-alpha.2",
     "babel-loader": "^8.2.2",
     "cacache": "^15.3.0",
     "chalk": "^4.1.0",
