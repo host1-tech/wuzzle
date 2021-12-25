@@ -1,12 +1,20 @@
 import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import { EXIT_CODE_ERROR } from '../constants';
+import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
 } from '../utils';
+
+export interface JestExtraOptions {
+  webpack: boolean;
+}
+
+export function getDefaultJestExtraOptions(): JestExtraOptions {
+  return { webpack: true };
+}
 
 export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let jestCommandPath: string;
@@ -24,45 +32,54 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     process.exit(EXIT_CODE_ERROR);
   }
 
+  const jestExtraOptions: JestExtraOptions = getDefaultJestExtraOptions();
+
   const inspectNodeArgs: string[] = [];
   const inspectJestArgs: string[] = [];
 
-  const extraOptions = {
+  const commandExtraOptions = {
+    NoWebpack: '--no-webpack',
     Inspect: '--inspect [string]',
     InspectBrk: '--inspect-brk [string]',
     Help: '-H,--Help',
   };
 
-  if (areArgsParsableByFlags({ args, flags: Object.values(extraOptions) })) {
-    const extraProg = new Command();
+  if (areArgsParsableByFlags({ args, flags: Object.values(commandExtraOptions) })) {
+    const commandExtraProg = new Command();
 
-    extraProg
-      .option(extraOptions.Inspect, 'activate inspector')
-      .option(extraOptions.InspectBrk, 'activate inspector and break at start of user scrip')
-      .helpOption(extraOptions.Help, 'Output usage information.')
+    commandExtraProg
+      .option(commandExtraOptions.NoWebpack, 'Skip webpack based transforming')
+      .option(commandExtraOptions.Inspect, 'Activate inspector')
+      .option(
+        commandExtraOptions.InspectBrk,
+        'Activate inspector and break at start of user script'
+      )
+      .helpOption(commandExtraOptions.Help, 'Output usage information.')
       .allowUnknownOption();
 
-    extraProg.parse([nodePath, 'wuzzle-jest', ...args]);
+    commandExtraProg.parse([nodePath, 'wuzzle-jest', ...args]);
 
-    if (extraProg.inspect === true) {
-      extraProg.inspect = '';
+    if (commandExtraProg.inspect === true) {
+      commandExtraProg.inspect = '';
     }
-    if (typeof extraProg.inspect === 'string') {
+    if (typeof commandExtraProg.inspect === 'string') {
       inspectNodeArgs.splice(
         0,
         inspectNodeArgs.length,
-        extraProg.inspect ? `--inspect=${extraProg.inspect}` : '--inspect'
+        commandExtraProg.inspect ? `--inspect=${commandExtraProg.inspect}` : '--inspect'
       );
     }
 
-    if (extraProg.inspectBrk === true) {
-      extraProg.inspectBrk = '';
+    if (commandExtraProg.inspectBrk === true) {
+      commandExtraProg.inspectBrk = '';
     }
-    if (typeof extraProg.inspectBrk === 'string') {
+    if (typeof commandExtraProg.inspectBrk === 'string') {
       inspectNodeArgs.splice(
         0,
         inspectNodeArgs.length,
-        extraProg.inspectBrk ? `--inspect-brk=${extraProg.inspectBrk}` : '--inspect-brk'
+        commandExtraProg.inspectBrk
+          ? `--inspect-brk=${commandExtraProg.inspectBrk}`
+          : '--inspect-brk'
       );
     }
 
@@ -70,8 +87,12 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
       inspectJestArgs.splice(0, inspectJestArgs.length, '--runInBand');
     }
 
-    args.splice(0, args.length, ...extraProg.args);
+    jestExtraOptions.webpack = commandExtraProg.webpack;
+
+    args.splice(0, args.length, ...commandExtraProg.args);
   }
+
+  process.env[EK_JEST_EXTRA_OPTIONS] = JSON.stringify(jestExtraOptions);
 
   require(`../registers/jest__${jestMajorVersion}.x`).register({
     commandPath: jestCommandPath,

@@ -1,7 +1,6 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import execa from 'execa';
 import { noop } from 'lodash';
-import os from 'os';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
