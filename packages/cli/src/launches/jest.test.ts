@@ -1,15 +1,10 @@
 import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
-import { EXIT_CODE_ERROR } from '../constants';
+import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/jest__26.x';
-import {
-  areArgsParsableByFlags,
-  execNode,
-  LaunchOptions,
-  tmplLogForGlobalResolving,
-} from '../utils';
-import { launchJest } from './jest';
+import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
+import { getDefaultJestExtraOptions, launchJest } from './jest';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
@@ -23,7 +18,11 @@ const launchOptions: LaunchOptions = {
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/jest__26.x');
-jest.mock('../utils');
+jest.mock('../utils', () => ({
+  ...jest.requireActual('../utils'),
+  execNode: jest.fn(),
+  tmplLogForGlobalResolving: jest.fn(),
+}));
 jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
@@ -36,10 +35,10 @@ mocked(resolveCommandSemVer).mockReturnValue({ major: 26 } as never);
 describe('launchTest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env[EK_JEST_EXTRA_OPTIONS];
   });
 
   it('executes with jest register attached if command resolved', () => {
-    mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
@@ -55,7 +54,6 @@ describe('launchTest', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(console.log).toBeCalledWith(logForGlobalResolving);
@@ -68,10 +66,25 @@ describe('launchTest', () => {
     );
   });
 
+  it('exits with error code and error message if command not resolved', () => {
+    mocked(resolveCommandPath)
+      .mockImplementationOnce(() => {
+        throw 0;
+      })
+      .mockImplementationOnce(() => {
+        throw 0;
+      });
+    try {
+      launchJest(launchOptions);
+    } catch {}
+    expect(console.error).toBeCalledWith(expect.stringContaining(commandName));
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+    expect(execNode).not.toBeCalled();
+  });
+
   it.each([['--inspect'], ['--inspect=8080'], ['--inspect-brk'], ['--inspect-brk=8080']])(
-    'supports %s',
+    `supports '%s'`,
     (...args) => {
-      mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
       launchJest({ ...launchOptions, args });
       expect(execNode).toBeCalledWith(
         expect.objectContaining({
@@ -86,8 +99,7 @@ describe('launchTest', () => {
     ['--inspect=8080', '--inspect-brk'],
     ['--inspect', '--inspect-brk=8088'],
     ['--inspect=8080', '--inspect-brk=8088'],
-  ])('overrides %s if %s provided', (inspect, inspectBrk) => {
-    mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
+  ])(`overrides '%s' if '%s' provided`, (inspect, inspectBrk) => {
     launchJest({ ...launchOptions, args: [inspect, inspectBrk] });
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
@@ -102,7 +114,6 @@ describe('launchTest', () => {
   });
 
   it('executes w/o --runInBand if node args provided but not inspecting', () => {
-    mocked(areArgsParsableByFlags).mockReturnValueOnce(true);
     launchJest(launchOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
@@ -111,20 +122,15 @@ describe('launchTest', () => {
     );
   });
 
-  it('exits with error code and error message if command not resolved', () => {
-    mocked(resolveCommandPath)
-      .mockImplementationOnce(() => {
-        throw 0;
-      })
-      .mockImplementationOnce(() => {
-        throw 0;
-      });
-    mocked(areArgsParsableByFlags).mockReturnValueOnce(false);
-    try {
-      launchJest(launchOptions);
-    } catch {}
-    expect(console.error).toBeCalledWith(expect.stringContaining(commandName));
-    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(execNode).not.toBeCalled();
+  it('passes on certian extra options', () => {
+    launchJest(launchOptions);
+    expect(process.env[EK_JEST_EXTRA_OPTIONS]).toEqual(
+      JSON.stringify(getDefaultJestExtraOptions())
+    );
+
+    launchJest({ ...launchOptions, args: ['--no-webpack'] });
+    expect(process.env[EK_JEST_EXTRA_OPTIONS]).toEqual(
+      JSON.stringify({ ...getDefaultJestExtraOptions(), webpack: false })
+    );
   });
 });

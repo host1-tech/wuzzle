@@ -1,7 +1,5 @@
 import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
-import { noop } from 'lodash';
-import os from 'os';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';

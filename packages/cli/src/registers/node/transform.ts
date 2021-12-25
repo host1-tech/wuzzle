@@ -1,7 +1,6 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import execa from 'execa';
 import { mergeWith, uniq } from 'lodash';
-import os from 'os';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { EK_DRY_RUN, EK_NODE_LIKE_EXTRA_OPTIONS } from '../../constants';
