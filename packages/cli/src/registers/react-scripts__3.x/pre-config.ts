@@ -6,10 +6,10 @@ export default (
   arg2: unknown,
   { commandName, commandArgs }: WuzzleModifyOptions
 ) => {
-  const reactScriptsCommand = commandArgs[0];
+  const reactScriptsSubCommand = commandArgs[0];
 
   if (commandName !== 'react-scripts') return;
-  if (reactScriptsCommand !== 'test') return;
+  if (reactScriptsSubCommand !== 'test') return;
 
   return {
     module: {

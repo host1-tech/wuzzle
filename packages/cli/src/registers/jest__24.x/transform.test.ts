@@ -3,13 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import { EK_DRY_RUN } from '../../constants';
-import { printDryRunLog } from '../node/transform';
-import * as transformModule from './transform';
+import { getCurrentJestExtraOptions } from '../../utils';
 import { register, transform, unregister } from './transform';
-
-const commandPath = '/path/to/command';
-const matchedModulePath = '/path/to/matched/module';
 
 const transformerPaths: Record<string, string> = {
   posix: '/path/to/transformer',
@@ -28,8 +23,7 @@ const flawCodes: Record<string, string> = {
 };
 
 jest.mock('@wuzzle/helpers');
-jest.mock('pirates');
-jest.mock('../node/transform');
+jest.mock('../../utils');
 
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
@@ -37,31 +31,31 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  delete process.env[EK_DRY_RUN];
 });
 
 describe('register/unregister', () => {
+  const commandPath = '/path/to/command';
+  const matchedModulePath = '/path/to/matched/module';
+
   beforeAll(() => {
     jest.spyOn(fs, 'readFileSync').mockReturnValue('');
     jest.spyOn(fs, 'writeFileSync').mockReturnValue();
-    jest.spyOn(transformModule, 'transform').mockReturnValue('');
     mocked(resolveRequire).mockReturnValue(matchedModulePath);
   });
 
   afterAll(() => {
     mocked(fs.readFileSync).mockRestore();
     mocked(fs.writeFileSync).mockRestore();
-    mocked(transform).mockRestore();
-    mocked(resolveRequire).mockRestore();
+    mocked(resolveRequire).mockReset();
   });
 
   it('transforms the matched on registered', () => {
-    register({ commandPath });
+    register({ commandPath: '' });
     expect(backupWithRestore).toBeCalledWith(matchedModulePath);
   });
 
   it('recovers the matched on unregistered', () => {
-    unregister({ commandPath });
+    unregister({ commandPath: '' });
     expect(tryRestoreWithRemove).toBeCalledWith(matchedModulePath);
   });
 
@@ -77,35 +71,77 @@ describe('register/unregister', () => {
     }
     expect(error.message).toEqual(expect.stringContaining(commandPath));
   });
-
-  it('prints config info and terminates process if registering in dry-run mode', () => {
-    process.env[EK_DRY_RUN] = 'true';
-    try {
-      register({ commandPath });
-    } catch {}
-    expect(printDryRunLog).toBeCalled();
-    expect(process.exit).toBeCalled();
-  });
 });
 
 describe('transform', () => {
+  const alteredTransformerPaths: Record<string, string> = {
+    posix: '/path/to/altered-transformer',
+    win32: 'D:\\path\\to\\altered-transformer',
+  };
+
+  const applyConfigPaths: Record<string, string> = {
+    posix: '/path/to/apply-config',
+    win32: 'D:\\path\\to\\apply-config',
+  };
+
+  const nodeTransformPaths: Record<string, string> = {
+    posix: '/path/to/node/transform',
+    win32: 'D:\\path\\to\\node\\transform',
+  };
+
+  const resolvedPaths: Record<string, Record<string, string>> = {
+    './altered-transformer': alteredTransformerPaths,
+    '../../apply-config': applyConfigPaths,
+    '../node/transform': nodeTransformPaths,
+  };
+
+  beforeAll(() => {
+    mocked(getCurrentJestExtraOptions).mockReturnValue({ webpack: true });
+  });
+
+  afterAll(() => {
+    mocked(getCurrentJestExtraOptions).mockReset();
+  });
+
+  afterEach(() => {
+    mocked(resolveRequire).mockReset();
+  });
+
   describe.each(Object.keys(goodCodes))('%s', (codeFlag: string) => {
-    it.each(Object.keys(transformerPaths))('works in %s', (platform: string) => {
+    it.each(['posix', 'win32'])('works in %s', (platform: string) => {
+      mocked(resolveRequire).mockImplementation(id => resolvedPaths[id][platform]);
       const code = goodCodes[codeFlag];
-      const transformerPath = transformerPaths[platform];
-      mocked(resolveRequire).mockReturnValueOnce(transformerPath);
       const transformedCode = transform(code);
-      expect(transformedCode).toEqual(
-        expect.stringContaining(transformerPath.replace(/\\/g, '\\\\'))
+      [alteredTransformerPaths, applyConfigPaths, nodeTransformPaths].forEach(paths =>
+        expect(transformedCode).toEqual(
+          expect.stringContaining(paths[platform].replace(/\\/g, '\\\\'))
+        )
       );
     });
   });
 
-  it.each(Object.keys(flawCodes))('breaks with %s', (codeFlag: string) => {
-    const code = flawCodes[codeFlag];
-    const transformerPath = transformerPaths['posix'];
-    mocked(resolveRequire).mockReturnValueOnce(transformerPath);
+  it('skips webpack specific handling if specified', () => {
+    mocked(getCurrentJestExtraOptions).mockReturnValueOnce({ webpack: false });
+    const codeFlag = '24.0.0';
+    const platform = 'posix';
+    mocked(resolveRequire).mockImplementation(id => resolvedPaths[id][platform]);
+    const code = goodCodes[codeFlag];
     const transformedCode = transform(code);
-    expect(transformedCode).toEqual(expect.not.stringContaining(transformerPath));
+    [applyConfigPaths].forEach(paths =>
+      expect(transformedCode).toEqual(expect.stringContaining(paths[platform]))
+    );
+    [alteredTransformerPaths, nodeTransformPaths].forEach(paths =>
+      expect(transformedCode).toEqual(expect.not.stringContaining(paths[platform]))
+    );
+  });
+
+  it.each(Object.keys(flawCodes))('breaks with %s', (codeFlag: string) => {
+    const platform = 'posix';
+    mocked(resolveRequire).mockImplementation(id => resolvedPaths[id][platform]);
+    const code = flawCodes[codeFlag];
+    const transformedCode = transform(code);
+    [alteredTransformerPaths, applyConfigPaths, nodeTransformPaths].forEach(paths =>
+      expect(transformedCode).toEqual(expect.not.stringContaining(paths[platform]))
+    );
   });
 });

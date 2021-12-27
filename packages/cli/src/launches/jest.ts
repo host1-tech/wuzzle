@@ -4,17 +4,11 @@ import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,
   execNode,
+  getDefaultJestExtraOptions,
+  getJestExtraCommandOpts,
   LaunchFunction,
   tmplLogForGlobalResolving,
 } from '../utils';
-
-export interface JestExtraOptions {
-  webpack: boolean;
-}
-
-export function getDefaultJestExtraOptions(): JestExtraOptions {
-  return { webpack: true };
-}
 
 export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let jestCommandPath: string;
@@ -32,53 +26,50 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const jestExtraOptions: JestExtraOptions = getDefaultJestExtraOptions();
+  const jestExtraOptions = getDefaultJestExtraOptions();
 
   const inspectNodeArgs: string[] = [];
   const inspectJestArgs: string[] = [];
 
-  const commandExtraOptions = {
-    NoWebpack: '--no-webpack',
-    Inspect: '--inspect [string]',
-    InspectBrk: '--inspect-brk [string]',
-    Help: '-H,--Help',
-  };
+  const extraCommandOpts = {
+    ...getJestExtraCommandOpts(),
+    Inspect: ['--inspect [string]', 'Activate inspector.'],
+    InspectBrk: ['--inspect-brk [string]', 'Activate inspector and break at start of user script.'],
+    Help: ['-H,--Help', 'Output usage information.'],
+  } as const;
 
-  if (areArgsParsableByFlags({ args, flags: Object.values(commandExtraOptions) })) {
-    const commandExtraProg = new Command();
+  if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {
+    const extraCommandProg = new Command();
 
-    commandExtraProg
-      .option(commandExtraOptions.NoWebpack, 'Skip webpack based transforming')
-      .option(commandExtraOptions.Inspect, 'Activate inspector')
-      .option(
-        commandExtraOptions.InspectBrk,
-        'Activate inspector and break at start of user script'
-      )
-      .helpOption(commandExtraOptions.Help, 'Output usage information.')
+    extraCommandProg
+      .option(...extraCommandOpts.NoWebpack)
+      .option(...extraCommandOpts.Inspect)
+      .option(...extraCommandOpts.InspectBrk)
+      .helpOption(...extraCommandOpts.Help)
       .allowUnknownOption();
 
-    commandExtraProg.parse([nodePath, 'wuzzle-jest', ...args]);
+    extraCommandProg.parse([nodePath, 'wuzzle-jest', ...args]);
 
-    if (commandExtraProg.inspect === true) {
-      commandExtraProg.inspect = '';
+    if (extraCommandProg.inspect === true) {
+      extraCommandProg.inspect = '';
     }
-    if (typeof commandExtraProg.inspect === 'string') {
+    if (typeof extraCommandProg.inspect === 'string') {
       inspectNodeArgs.splice(
         0,
         inspectNodeArgs.length,
-        commandExtraProg.inspect ? `--inspect=${commandExtraProg.inspect}` : '--inspect'
+        extraCommandProg.inspect ? `--inspect=${extraCommandProg.inspect}` : '--inspect'
       );
     }
 
-    if (commandExtraProg.inspectBrk === true) {
-      commandExtraProg.inspectBrk = '';
+    if (extraCommandProg.inspectBrk === true) {
+      extraCommandProg.inspectBrk = '';
     }
-    if (typeof commandExtraProg.inspectBrk === 'string') {
+    if (typeof extraCommandProg.inspectBrk === 'string') {
       inspectNodeArgs.splice(
         0,
         inspectNodeArgs.length,
-        commandExtraProg.inspectBrk
-          ? `--inspect-brk=${commandExtraProg.inspectBrk}`
+        extraCommandProg.inspectBrk
+          ? `--inspect-brk=${extraCommandProg.inspectBrk}`
           : '--inspect-brk'
       );
     }
@@ -87,9 +78,9 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
       inspectJestArgs.splice(0, inspectJestArgs.length, '--runInBand');
     }
 
-    jestExtraOptions.webpack = commandExtraProg.webpack;
+    jestExtraOptions.webpack = extraCommandProg.webpack;
 
-    args.splice(0, args.length, ...commandExtraProg.args);
+    args.splice(0, args.length, ...extraCommandProg.args);
   }
 
   process.env[EK_JEST_EXTRA_OPTIONS] = JSON.stringify(jestExtraOptions);

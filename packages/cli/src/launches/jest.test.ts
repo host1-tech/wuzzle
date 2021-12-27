@@ -3,8 +3,13 @@ import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/jest__26.x';
-import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
-import { getDefaultJestExtraOptions, launchJest } from './jest';
+import {
+  execNode,
+  getDefaultJestExtraOptions,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
+import { launchJest } from './jest';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
@@ -122,7 +127,7 @@ describe('launchTest', () => {
     );
   });
 
-  it('passes on certian extra options', () => {
+  it('passes on certian extra options as envs', () => {
     launchJest(launchOptions);
     expect(process.env[EK_JEST_EXTRA_OPTIONS]).toEqual(
       JSON.stringify(getDefaultJestExtraOptions())

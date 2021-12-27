@@ -4,8 +4,8 @@ import { register as registerJest26, unregister as unregisterJest26 } from '../j
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 
 export const register: RegisterFunction = options => {
-  const reactScriptsCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
-  if (reactScriptsCommand === 'test') {
+  const reactScriptsSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  if (reactScriptsSubCommand === 'test') {
     registerJest26(options);
   } else {
     registerWebpack4(options);

@@ -2,10 +2,36 @@ import { Command } from 'commander';
 import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
 import {
   applyNodeLikeExtraOptions,
+  getCurrentNodeLikeExtraOptions,
   getDefaultNodeLikeExtraOptions,
+  getNodeLikeExtraCommandOpts,
+  NodeLikeExtraOptions,
 } from './apply-node-like-extra-options';
 
 jest.spyOn(Command.prototype, 'parse');
+
+describe('getDefaultNodeLikeExtraOptions', () => {
+  it('works', () => expect(getDefaultNodeLikeExtraOptions()).toBeTruthy());
+});
+
+describe('getCurrentNodeLikeExtraOptions', () => {
+  beforeEach(() => {
+    delete process.env[EK_NODE_LIKE_EXTRA_OPTIONS];
+  });
+
+  it('works', () => {
+    const nodeLikeExtraOptions: NodeLikeExtraOptions = { exts: ['.ts'] };
+    process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(nodeLikeExtraOptions);
+    expect(getCurrentNodeLikeExtraOptions()).toEqual({
+      ...getDefaultNodeLikeExtraOptions(),
+      exts: ['.js', '.ts'],
+    });
+  });
+});
+
+describe('getNodeLikeExtraCommandOpts', () => {
+  it('works', () => expect(getNodeLikeExtraCommandOpts()).toBeTruthy());
+});
 
 describe('applyNodeLikeExtraOptions', () => {
   beforeEach(() => {

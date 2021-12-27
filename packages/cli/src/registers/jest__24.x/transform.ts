@@ -6,17 +6,11 @@ import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle
 import fs from 'fs';
 import path from 'path';
 import { EK_DRY_RUN, ENCODING_TEXT } from '../../constants';
-import { RegisterFunction } from '../../utils';
-import { printDryRunLog } from '../node/transform';
+import { getCurrentJestExtraOptions, RegisterFunction } from '../../utils';
 
 const modulesToMatch = ['jest-cli/build/cli', '@jest/core/build/cli'];
 
 export const register: RegisterFunction = ({ commandPath }) => {
-  if (process.env[EK_DRY_RUN]) {
-    printDryRunLog();
-    process.exit();
-  }
-
   let hasTransformed: boolean = false;
   for (const moduleToMatch of modulesToMatch) {
     let moduleFilepath: string | undefined;
@@ -69,15 +63,29 @@ export function transform(code: string): string {
         );
 
         if (targetPath) {
-          const transformerPath = resolveRequire('./altered-transformer');
-
-          const { program } = parse(
-            `configs.forEach(config => config.transform.splice(` +
-              `0, config.transform.length, ` +
-              `['.', '${transformerPath.replace(/\\/g, '\\\\')}', {}]));`
+          const { webpack } = getCurrentJestExtraOptions();
+          targetPath.insertAfter(
+            parse(
+              (webpack
+                ? `configs.forEach(config => config.transform.splice(0,config.transform.length,` +
+                  `['.','${resolveRequire('./altered-transformer').replace(/\\/g, '\\\\')}',{}]));`
+                : '') +
+                //
+                `configs.forEach(config => require('${resolveRequire('../../apply-config').replace(
+                  /\\/g,
+                  '\\\\'
+                )}').applyJest(config,require('../..')));` +
+                //
+                `if(process.env.${EK_DRY_RUN}){` +
+                (webpack
+                  ? `require('${resolveRequire('../node/transform').replace(
+                      /\\/g,
+                      '\\\\'
+                    )}').printDryRunLog();`
+                  : '') +
+                `process.exit();}`
+            ).program.body
           );
-
-          targetPath.insertAfter(program.body[0]);
         }
       }
     },

@@ -1,9 +1,14 @@
 import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
-import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { EK_COMMAND_ARGS, EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/razzle__3.x';
-import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
+import {
+  applyJestExtraOptions,
+  execNode,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
 import { launchRazzle } from './razzle';
 
 const commandName = 'commandName';
@@ -32,6 +37,7 @@ mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
 describe('launchRazzle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env[EK_COMMAND_ARGS] = '[]';
     delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
@@ -65,6 +71,12 @@ describe('launchRazzle', () => {
       })
     );
     expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(razzlePreConfigPath);
+  });
+
+  it('prepares jest extra options on testing command', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    launchRazzle(launchOptions);
+    expect(applyJestExtraOptions).toBeCalled();
   });
 
   it('exits with error code and error message if command not resolved', () => {

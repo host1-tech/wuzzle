@@ -18,6 +18,12 @@ import { stderrDebugLog, stdoutDebugLog } from './utils';
 
 const debug = debugFty(DN_APPLY_CONFIG);
 
+type WebpackConfig = webpackType.Configuration;
+type Webpack = typeof webpackType;
+
+type JestConfig = Record<string, unknown>;
+type JestCore = {};
+
 export interface WuzzleModifyOptions {
   projectPath: string;
   commandName: string;
@@ -25,41 +31,31 @@ export interface WuzzleModifyOptions {
 }
 
 export type WuzzleConfigModify = (
-  webpackConfig: webpackType.Configuration,
-  webpack: typeof webpackType,
+  webpackConfig: WebpackConfig,
+  webpack: Webpack,
   modifyOptions: WuzzleModifyOptions
-) => webpackType.Configuration | void;
+) => WebpackConfig | void;
 
 export interface WuzzleConfigOptions {
   modify?: WuzzleConfigModify;
   cacheKeyOfEnvKeys?: string[];
   cacheKeyOfFilePaths?: string[];
+  jest?: (
+    jestConfig: JestConfig,
+    jestCore: JestCore,
+    modifyOptions: WuzzleModifyOptions
+  ) => JestConfig | void;
 }
 
 export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
-export function applyConfig(
-  webpackConfig: webpackType.Configuration,
-  webpack: typeof webpackType
-): webpackType.Configuration {
+export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): WebpackConfig {
   const stringifyOpts: InspectOptions = {};
-  if (process.env[EK_DRY_RUN]) {
-    stringifyOpts.colors = process.stdout.isTTY;
-    debug.log = stdoutDebugLog;
-  } else {
-    stringifyOpts.colors = process.stderr.isTTY;
-    debug.log = stderrDebugLog;
-  }
-  debug.useColors = stringifyOpts.colors;
+  applyDryRunTweaks(stringifyOpts);
 
   debug('Wuzzle process mounted in CWD:', process.cwd());
-  const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
 
-  const wuzzleModifyOptions: WuzzleModifyOptions = {
-    projectPath: process.env[EK_PROJECT_PATH] ?? process.cwd(),
-    commandName: process.env[EK_COMMAND_NAME] ?? 'unknown',
-    commandArgs: JSON.parse(process.env[EK_COMMAND_ARGS] ?? '[]'),
-  };
+  const wuzzleModifyOptions = getWuzzleModifyOptions();
 
   const internalPreConfigPath = process.env[EK_INTERNAL_PRE_CONFIG];
   if (internalPreConfigPath) {
@@ -74,14 +70,7 @@ export function applyConfig(
 
   const webpackConfigOldSnapshot = stringify(webpackConfig, stringifyOpts);
 
-  const optionsToUse: WuzzleConfigOptions = {};
-
-  const configLoaded = wuzzleConfigExplorer.search()?.config || {};
-  if (typeof configLoaded === 'function') {
-    optionsToUse.modify = configLoaded;
-  } else {
-    Object.assign(optionsToUse, configLoaded);
-  }
+  const { optionsToUse, configLoaded } = loadWuzzleConfig();
   debug('Wuzzle config to apply:', stringify(configLoaded, stringifyOpts));
 
   if (optionsToUse.modify) {
@@ -106,6 +95,68 @@ export function applyConfig(
     diff(webpackConfigOldSnapshot, webpackConfigNewSnapshot)
   );
   return webpackConfig;
+}
+
+export function applyJest(jestConfig: JestConfig, jestCore: JestCore): JestConfig {
+  const stringifyOpts: InspectOptions = {};
+  applyDryRunTweaks(stringifyOpts);
+
+  debug('Wuzzle process mounted in CWD:', process.cwd());
+
+  const wuzzleModifyOptions = getWuzzleModifyOptions();
+
+  const jestConfigOldSnapshot = stringify(jestConfig, stringifyOpts);
+
+  const { optionsToUse, configLoaded } = loadWuzzleConfig();
+  debug('Wuzzle config to apply:', stringify(configLoaded, stringifyOpts));
+
+  if (optionsToUse.jest) {
+    try {
+      const jestConfigToMerge = optionsToUse.jest(jestConfig, jestCore, wuzzleModifyOptions);
+      if (jestConfigToMerge) {
+        Object.assign(jestConfig, merge(jestConfig, jestConfigToMerge));
+      }
+    } catch {}
+  }
+  const jestConfigNewSnapshot = stringify(jestConfig, stringifyOpts);
+
+  debug('Jest config with difference:', diff(jestConfigOldSnapshot, jestConfigNewSnapshot));
+  return jestConfig;
+}
+
+export function applyDryRunTweaks(stringifyOpts: InspectOptions): void {
+  if (process.env[EK_DRY_RUN]) {
+    stringifyOpts.colors = process.stdout.isTTY;
+    debug.log = stdoutDebugLog;
+  } else {
+    stringifyOpts.colors = process.stderr.isTTY;
+    debug.log = stderrDebugLog;
+  }
+  debug.useColors = stringifyOpts.colors;
+}
+
+export function getWuzzleModifyOptions(): WuzzleModifyOptions {
+  return {
+    projectPath: process.env[EK_PROJECT_PATH] ?? process.cwd(),
+    commandName: process.env[EK_COMMAND_NAME] ?? 'unknown',
+    commandArgs: JSON.parse(process.env[EK_COMMAND_ARGS] ?? '[]'),
+  };
+}
+
+export function loadWuzzleConfig(): {
+  optionsToUse: WuzzleConfigOptions;
+  configLoaded: WuzzleConfig;
+} {
+  const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
+
+  const optionsToUse: WuzzleConfigOptions = {};
+  const configLoaded: WuzzleConfig = wuzzleConfigExplorer.search()?.config || {};
+  if (typeof configLoaded === 'function') {
+    optionsToUse.modify = configLoaded;
+  } else {
+    Object.assign(optionsToUse, configLoaded);
+  }
+  return { optionsToUse, configLoaded };
 }
 
 export default applyConfig;

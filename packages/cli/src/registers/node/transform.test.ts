@@ -4,7 +4,8 @@ import { noop } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
-import { EK_DRY_RUN, EK_NODE_LIKE_EXTRA_OPTIONS } from '../../constants';
+import { EK_DRY_RUN } from '../../constants';
+import { getCurrentNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
 import { register, transform } from './transform';
 
 const code = `console.log('Hello, world.')`;
@@ -14,6 +15,7 @@ const convertPath = '/path/to/convert';
 jest.mock('@wuzzle/helpers');
 jest.mock('pirates');
 jest.mock('source-map-support');
+jest.mock('../../utils');
 
 jest.spyOn(execa, 'sync').mockReturnValue({} as never);
 jest.spyOn(process, 'exit').mockImplementation(() => {
@@ -24,16 +26,18 @@ jest.spyOn(process.stderr, 'write').mockImplementation(noop as never);
 beforeEach(() => {
   jest.clearAllMocks();
   delete process.env[EK_DRY_RUN];
-  delete process.env[EK_NODE_LIKE_EXTRA_OPTIONS];
 });
 
 describe('register', () => {
   it('extends options', () => {
-    const options = { exts: ['.es'], more: 'future usage' };
-    process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(options);
+    const nodeLikeExtraOptions: NodeLikeExtraOptions = { exts: ['.es'] };
+    mocked(getCurrentNodeLikeExtraOptions).mockReturnValueOnce(nodeLikeExtraOptions);
     register();
     expect(sourceMapSupport.install).toBeCalled();
-    expect(mocked(addHook).mock.calls[0][1]?.exts).toEqual(expect.arrayContaining(options.exts));
+    expect(mocked(addHook)).toBeCalledWith(
+      transform,
+      expect.objectContaining(nodeLikeExtraOptions)
+    );
   });
 
   it('prints config info and terminates process in dry-run mode', () => {
