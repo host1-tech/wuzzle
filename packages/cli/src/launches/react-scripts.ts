@@ -1,10 +1,16 @@
 import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
 import {
+  EK_COMMAND_ARGS,
   EK_INTERNAL_PRE_CONFIG,
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
-import { execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
+import {
+  applyJestExtraOptions,
+  execNode,
+  LaunchFunction,
+  tmplLogForGlobalResolving,
+} from '../utils';
 
 export const launchReactScripts: LaunchFunction = ({
   nodePath,
@@ -12,6 +18,11 @@ export const launchReactScripts: LaunchFunction = ({
   projectPath,
   commandName,
 }) => {
+  const reactScriptSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  if (reactScriptSubCommand === 'test') {
+    applyJestExtraOptions({ nodePath, name: 'wuzzle-react-scripts-test', args });
+  }
+
   let reactScriptsCommandPath: string;
   let reactScriptsMajorVersion: number;
   try {
@@ -35,6 +46,7 @@ export const launchReactScripts: LaunchFunction = ({
   process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
     `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
   );
+
   require(`../registers/react-scripts__${reactScriptsMajorVersion}.x`).register({
     commandPath: reactScriptsCommandPath,
   });

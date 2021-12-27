@@ -2,12 +2,18 @@ import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzl
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import {
+  EK_COMMAND_ARGS,
   EK_INTERNAL_PRE_CONFIG,
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
 import { register } from '../registers/react-scripts__3.x';
-import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
+import {
+  applyJestExtraOptions,
+  execNode,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
 import { launchReactScripts } from './react-scripts';
 
 const commandName = 'commandName';
@@ -36,6 +42,7 @@ mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
 describe('launchReactScripts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env[EK_COMMAND_ARGS] = '[]';
     delete process.env[EK_INTERNAL_PRE_CONFIG];
     delete process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK];
   });
@@ -72,6 +79,12 @@ describe('launchReactScripts', () => {
     );
     expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(reactScriptsPreConfigPath);
     expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
+  });
+
+  it('prepares jest extra options on testing command', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    launchReactScripts(launchOptions);
+    expect(applyJestExtraOptions).toBeCalled();
   });
 
   it('exits with error code and error message if command not resolved', () => {

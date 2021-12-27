@@ -1,1 +1,6 @@
-export { transpile, TranspileOptions } from './transpile';
+export {
+  transpile,
+  transpileDefaultOptions,
+  TranspileInternalOptions,
+  TranspileOptions,
+} from './transpile';

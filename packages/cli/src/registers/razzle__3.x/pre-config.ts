@@ -9,10 +9,10 @@ export default (
   arg1: unknown,
   { commandName, commandArgs }: WuzzleModifyOptions
 ) => {
-  const razzleCommand = commandArgs[0];
+  const razzleSubCommand = commandArgs[0];
 
   if (commandName !== 'razzle') return;
-  if (razzleCommand !== 'test') return;
+  if (razzleSubCommand !== 'test') return;
 
   return {
     module: {

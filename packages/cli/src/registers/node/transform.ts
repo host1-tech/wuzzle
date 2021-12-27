@@ -1,11 +1,10 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import execa from 'execa';
-import { mergeWith, uniq } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
-import { EK_DRY_RUN, EK_NODE_LIKE_EXTRA_OPTIONS } from '../../constants';
-import { transpileDefaultOptions } from '../../transpile/transpile';
-import { getDefaultNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
+import { EK_DRY_RUN } from '../../constants';
+import { transpileDefaultOptions } from '../../transpile';
+import { getCurrentNodeLikeExtraOptions } from '../../utils';
 
 export function register() {
   if (process.env[EK_DRY_RUN]) {
@@ -15,18 +14,8 @@ export function register() {
 
   sourceMapSupport.install({ hookRequire: true });
 
-  const options: NodeLikeExtraOptions = getDefaultNodeLikeExtraOptions();
-
-  try {
-    mergeWith(options, JSON.parse(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]!), (lVal, rVal) => {
-      if (Array.isArray(lVal) && Array.isArray(rVal)) {
-        return uniq([...lVal, ...rVal]);
-      }
-    });
-  } catch {}
-
   const piratesOptions = {
-    ...options,
+    ...getCurrentNodeLikeExtraOptions(),
     ignoreNodeModules: true,
   };
 
