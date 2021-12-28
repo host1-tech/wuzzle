@@ -10,6 +10,7 @@ export interface TestCase {
   outputDir?: string;
   outputContents?: Record<string, string>;
   outputMessages?: string[];
+  debugTexts?: string[];
   skipNormal?: boolean;
   testGlobal?: boolean | 'with-install';
   testDryRun?: boolean;
@@ -38,6 +39,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
         outputDir,
         outputContents,
         outputMessages,
+        debugTexts,
         skipNormal,
         testGlobal,
         testDryRun,
@@ -56,6 +58,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
       }: shelljs.ExecOutputReturnValue) {
         expect(exitCode).toBe(0);
         expect(stderr).toEqual(expect.stringContaining(wuzzleMountingText));
+        if (debugTexts) {
+          debugTexts.forEach(debugText => {
+            expect(stderr).toEqual(expect.stringContaining(debugText));
+          });
+        }
 
         if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
         if (outputContents) {
@@ -132,6 +139,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
 
               expect(exitCode).toBe(0);
               expect(stdout).toEqual(expect.stringContaining(wuzzleMountingText));
+              if (debugTexts) {
+                debugTexts.forEach(debugText => {
+                  expect(stdout).toEqual(expect.stringContaining(debugText));
+                });
+              }
 
               if (outputContents) {
                 Object.keys(outputContents).forEach(outputPath => {
@@ -170,6 +182,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               );
               expect(exitCode).toBe(0);
               expect(stderr).not.toEqual(expect.stringContaining(wuzzleMountingText));
+              if (debugTexts) {
+                debugTexts.forEach(debugText => {
+                  expect(stderr).not.toEqual(expect.stringContaining(debugText));
+                });
+              }
             },
             testTimeout
           );
