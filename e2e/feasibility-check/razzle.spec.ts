@@ -30,18 +30,18 @@ executeTests({
   ['razzle test']: {
     ['3.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/razzle__3.x'),
-      command: 'razzle test --env=jsdom',
-      envOverrides: { CI: 'true' },
+      command: 'razzle test --env=jsdom --watchAll=false',
       outputMessages: ['Hi, Razzle 3.x.'],
+      debugTexts: ['Jest config with difference:'],
       testGlobal: true,
       testDryRun: true,
       testUnregister: true,
     },
     ['4.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/razzle__4.x'),
-      command: 'razzle test --env=jsdom',
-      envOverrides: { CI: 'true' },
+      command: 'razzle test --env=jsdom --watchAll=false',
       outputMessages: ['Hi, Razzle 4.x.'],
+      debugTexts: ['Jest config with difference:'],
       testGlobal: true,
       testDryRun: true,
       testUnregister: true,
