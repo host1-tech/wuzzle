@@ -1,10 +1,11 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import execa from 'execa';
-import { noop } from 'lodash';
+import fs from 'fs';
+import { noop, pick } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
-import { EK_DRY_RUN } from '../../constants';
+import { EK_DRY_RUN, ENCODING_BINARY } from '../../constants';
 import { getCurrentNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
 import { register, transform } from './transform';
 
@@ -17,11 +18,13 @@ jest.mock('pirates');
 jest.mock('source-map-support');
 jest.mock('../../utils');
 
+jest.spyOn(fs, 'readFileSync').mockReturnValue(code);
 jest.spyOn(execa, 'sync').mockReturnValue({} as never);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 jest.spyOn(process.stderr, 'write').mockImplementation(noop as never);
+jest.spyOn(console, 'log').mockReturnValue();
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -30,13 +33,13 @@ beforeEach(() => {
 
 describe('register', () => {
   it('extends options', () => {
-    const nodeLikeExtraOptions: NodeLikeExtraOptions = { exts: ['.es'] };
+    const nodeLikeExtraOptions: NodeLikeExtraOptions = { verbose: false, exts: ['.es'] };
     mocked(getCurrentNodeLikeExtraOptions).mockReturnValueOnce(nodeLikeExtraOptions);
     register();
     expect(sourceMapSupport.install).toBeCalled();
     expect(mocked(addHook)).toBeCalledWith(
       transform,
-      expect.objectContaining(nodeLikeExtraOptions)
+      expect.objectContaining(pick(nodeLikeExtraOptions, ['exts']))
     );
   });
 
@@ -51,12 +54,23 @@ describe('register', () => {
 });
 
 describe('transform', () => {
-  it('works', () => {
+  it('converts code', () => {
+    mocked(getCurrentNodeLikeExtraOptions).mockReturnValueOnce({ verbose: false, exts: [] });
     mocked(resolveRequire).mockReturnValueOnce(convertPath);
     transform(code, file);
+    expect(fs.readFileSync).toBeCalledWith(file, ENCODING_BINARY);
     expect(resolveRequire).toBeCalled();
-    const [, args, opts] = mocked(execa.sync).mock.calls[0] as unknown[];
-    expect(args).toEqual(expect.arrayContaining([convertPath, file]));
-    expect(opts).toMatchObject({ input: code, stderr: 'inherit' });
+    expect(execa.sync).toBeCalledWith(
+      expect.anything(),
+      expect.arrayContaining([convertPath, file, ENCODING_BINARY]),
+      expect.objectContaining({ input: code, stderr: 'inherit' })
+    );
+  });
+
+  it('prints detail', () => {
+    mocked(getCurrentNodeLikeExtraOptions).mockReturnValueOnce({ verbose: true, exts: [] });
+    mocked(resolveRequire).mockReturnValueOnce(convertPath);
+    transform(code, file);
+    expect(console.log).toBeCalledWith(expect.stringContaining('compiled'));
   });
 });

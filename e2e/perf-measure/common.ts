@@ -21,7 +21,7 @@ export interface TestCase {
 
 export type TestCasesInGroups = Record<string, Record<string, TestCase>>;
 
-export const testTimeout = 180000;
+export const testTimeout = 3 * 60 * 1000;
 export const srcDirName = 'src';
 export const subDirPrefix = 't';
 export const contentFileName = 'index.js';

@@ -1,0 +1,5 @@
+{
+  "ext": ".ts,.tsx,.css,.less,.scss,.sass,.png,.svg",
+  "exec": "yarn wuzzle node -E .ts,.tsx,.css,.less,.scss,.sass,.png,.svg",
+  "watch": ["src/server/**/*"]
+}

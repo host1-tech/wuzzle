@@ -33,6 +33,7 @@ export const CHAR_CTRL_D = '\x04';
 
 // Other plain constants
 export const ENCODING_TEXT = 'utf8';
+export const ENCODING_BINARY = 'latin1';
 
 export const PKG_NAME: string = require('../package.json').name;
 

@@ -1,0 +1,13 @@
+{
+  "presets": [
+    [
+      "babel-preset-react-app",
+      {
+        // Fit new JSX transform in React 17. May use 'classic' for React 16.
+        "runtime": "automatic",
+        // Disable typescript handling to work with ts-loader.
+        "typescript": false
+      }
+    ]
+  ]
+}

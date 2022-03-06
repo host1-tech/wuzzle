@@ -14,6 +14,8 @@ cache
 # Fixtures
 *-global
 e2e/feasibility-check/fixtures/electron-webpack__2.x/src/renderer/index.js
+e2e/perf-measure/fixtures/**/src
+e2e/perf-measure/fixtures/**/index.js
 packages/cli/src/transpile/fixtures/.babelrc
 packages/cli/src/transpile/fixtures/src/changing.js
 packages/cli/src/transpile/fixtures/src/throw.js

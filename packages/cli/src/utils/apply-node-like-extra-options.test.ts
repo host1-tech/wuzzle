@@ -11,7 +11,9 @@ import {
 jest.spyOn(Command.prototype, 'parse');
 
 describe('getDefaultNodeLikeExtraOptions', () => {
-  it('works', () => expect(getDefaultNodeLikeExtraOptions()).toBeTruthy());
+  it('works', () => {
+    expect(getDefaultNodeLikeExtraOptions()).toBeTruthy();
+  });
 });
 
 describe('getCurrentNodeLikeExtraOptions', () => {
@@ -20,7 +22,9 @@ describe('getCurrentNodeLikeExtraOptions', () => {
   });
 
   it('works', () => {
-    const nodeLikeExtraOptions: NodeLikeExtraOptions = { exts: ['.ts'] };
+    const nodeLikeExtraOptions: Partial<NodeLikeExtraOptions> = {
+      exts: ['.ts'],
+    };
     process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(nodeLikeExtraOptions);
     expect(getCurrentNodeLikeExtraOptions()).toEqual({
       ...getDefaultNodeLikeExtraOptions(),
@@ -30,7 +34,9 @@ describe('getCurrentNodeLikeExtraOptions', () => {
 });
 
 describe('getNodeLikeExtraCommandOpts', () => {
-  it('works', () => expect(getNodeLikeExtraCommandOpts()).toBeTruthy());
+  it('works', () => {
+    expect(getNodeLikeExtraCommandOpts()).toBeTruthy();
+  });
 });
 
 describe('applyNodeLikeExtraOptions', () => {
