@@ -21,7 +21,7 @@ export interface TestCase {
 
 export type TestCasesInGroups = Record<string, Record<string, TestCase>>;
 
-export const testTimeout = 60000;
+export const testTimeout = 60 * 1000;
 export const globalDirName = 'test-as-global';
 export const wuzzleMountingText = 'Wuzzle process mounted in CWD:';
 export const silent = true;

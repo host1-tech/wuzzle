@@ -6,11 +6,6 @@ import { mocked } from 'ts-jest/utils';
 import { getCurrentJestExtraOptions } from '../../utils';
 import { register, transform, unregister } from './transform';
 
-const transformerPaths: Record<string, string> = {
-  posix: '/path/to/transformer',
-  win32: 'D:\\path\\to\\transformer',
-};
-
 const goodCodes: Record<string, string> = {
   ['24.0.0']: shelljs.cat(path.join(__dirname, 'fixtures/jest-cli-build-cli-index@24.0.0.txt'))
     .stdout,

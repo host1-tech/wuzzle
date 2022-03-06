@@ -36,6 +36,7 @@ export interface TranspileInternalOptions {
   inputPath?: string;
   inputCode: string;
   inputCodePath: string;
+  inputCodeEncoding: string;
   outputPath?: string;
   outputCodePath: string;
   autoResolveOutputExt: boolean;
@@ -45,6 +46,7 @@ export interface TranspileInternalOptions {
 export const transpileDefaultOptions: TranspileInternalOptions = {
   inputCode: '',
   inputCodePath: 'index.js',
+  inputCodeEncoding: ENCODING_TEXT,
   outputCodePath: 'index.js',
   autoResolveOutputExt: true,
   webpackConfig: {
@@ -80,7 +82,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     inputPath = path.resolve(internalOptions.inputCodePath);
     correctInputMemoryFileSystem(imfs, { inputPath });
     imfs.mkdirpSync(path.dirname(inputPath));
-    imfs.writeFileSync(inputPath, internalOptions.inputCode, ENCODING_TEXT);
+    imfs.writeFileSync(inputPath, internalOptions.inputCode, internalOptions.inputCodeEncoding);
   } else {
     inputPath = internalOptions.inputPath = path.resolve(internalOptions.inputPath!);
     try {
@@ -104,11 +106,11 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   });
 
   webpackConfig.externals = [
-    (context, request, callback) => {
+    (context, request: string, callback) => {
       if (request === inputPath) {
         callback();
       } else {
-        callback(null, `commonjs ${request}`);
+        callback(null, `commonjs ${request.substring(request.lastIndexOf('!') + 1)}`);
       }
     },
   ];
@@ -134,7 +136,9 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   const outputCacheKey = await generateCacheKey(internalOptions);
   try {
     if (omfs) {
-      return (await cacache.get(cachePath, outputCacheKey)).data.toString(ENCODING_TEXT);
+      return (await cacache.get(cachePath, outputCacheKey)).data.toString(
+        internalOptions.inputCodeEncoding
+      );
     } else {
       if (!(await cacache.get.info(cachePath, outputCacheKey))) throw 0;
       await mkdirp(path.dirname(outputPath));

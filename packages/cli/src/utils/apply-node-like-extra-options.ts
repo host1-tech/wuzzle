@@ -4,11 +4,12 @@ import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
 import { areArgsParsableByFlags } from './are-args-parsable-by-flags';
 
 export interface NodeLikeExtraOptions {
+  verbose: boolean;
   exts: string[];
 }
 
 export function getDefaultNodeLikeExtraOptions(): NodeLikeExtraOptions {
-  return { exts: ['.js'] };
+  return { verbose: true, exts: ['.js'] };
 }
 
 export function getCurrentNodeLikeExtraOptions(): NodeLikeExtraOptions {
@@ -31,6 +32,7 @@ export function getNodeLikeExtraCommandOpts() {
       'Specify file extensions for resolving, ' +
         `splitted by comma. (default: "${exts.join(',')}")`,
     ],
+    NoVerbose: ['--no-verbose', 'Prevent printing compilation details.'],
     Help: ['-H,--Help', 'Output usage information.'],
   } as const;
 }
@@ -54,12 +56,14 @@ export function applyNodeLikeExtraOptions({
 
     extraCommandProg
       .option(...extraCommandOpts.Ext)
+      .option(...extraCommandOpts.NoVerbose)
       .helpOption(...extraCommandOpts.Help)
       .allowUnknownOption();
 
     extraCommandProg.parse([nodePath, name, ...args]);
 
     nodeLikeExtraOptions.exts = extraCommandProg.ext.split(',');
+    nodeLikeExtraOptions.verbose = extraCommandProg.verbose;
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 

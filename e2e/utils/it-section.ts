@@ -3,6 +3,7 @@ import { logImmediately } from './log-immediately';
 
 const bgBlueDark = bgRgb(0, 32, 128);
 const bgRedDark = bgRgb(128, 0, 0);
+const bgYellowDark = bgRgb(128, 128, 0);
 const lightGrey = rgb(128, 128, 128);
 
 function logStart(name: string) {
@@ -19,7 +20,20 @@ function logError(name: string) {
   logImmediately();
 }
 
-export function itSection<T>(name: string, fn: () => T): T {
+function logSkipped(name: string) {
+  logImmediately(bgYellowDark(' SKIPPED '), lightGrey(name));
+  logImmediately();
+}
+
+interface ItSectionCall {
+  <T>(name: string, fn: () => T): T;
+}
+
+interface ItSection extends ItSectionCall {
+  skip: ItSectionCall;
+}
+
+const regularCall: ItSectionCall = (name, fn) => {
   logStart(name);
   try {
     const result = fn();
@@ -38,4 +52,11 @@ export function itSection<T>(name: string, fn: () => T): T {
     logError(name);
     throw err;
   }
-}
+};
+
+const skipCall: ItSectionCall = name => {
+  logSkipped(name);
+  return Promise.resolve() as never;
+};
+
+export const itSection: ItSection = Object.assign(regularCall, { skip: skipCall });
