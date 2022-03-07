@@ -1,7 +1,7 @@
 {
   "name": "@wuzzle/helpers",
   "version": "0.3.1",
-  "description": "Collection of helper functions used by Wuzzle.",
+  "description": "Collection of common helpers for wuzzle internal use.",
   "license": "MIT",
   "files": [
     "lib"
