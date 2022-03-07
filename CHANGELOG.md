@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/licg9999/wuzzle/compare/v0.3.1-alpha.2...v0.3.1) (2022-03-07)
+
+
+### Features
+
+* setup jest config altering ([6aa0903](https://github.com/licg9999/wuzzle/commit/6aa0903e3a6dad58197b047d712a1c3259143f1b))
+
+
+### Bug Fixes
+
+* verify realworld use and tweak ([8e4acbe](https://github.com/licg9999/wuzzle/commit/8e4acbec0ba9ed45b0a4b624cba098b7fa7fd5b0))
+
+
+
 ## [0.3.1-alpha.2](https://github.com/licg9999/wuzzle/compare/v0.3.1-alpha.1...v0.3.1-alpha.2) (2021-12-24)
 
 
