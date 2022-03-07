@@ -5,7 +5,7 @@ import path from 'path';
 
 const [, , ...args] = process.argv;
 
-const packagesInSequence = ['packages/helpers', 'packages/cli'];
+const packagesInSequence = ['packages/helpers', 'packages/config-tools', 'packages/cli'];
 
 const tsconfigPaths = packagesInSequence.map(p => path.join(p, 'tsconfig.prod.json'));
 

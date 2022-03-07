@@ -32,8 +32,8 @@
     "@babel/traverse": "^7.11.0",
     "@babel/types": "^7.11.0",
     "@svgr/webpack": "^5.5.0",
-    "@types/find-cache-dir": "^3.2.1",
-    "@wuzzle/helpers": "^0.3.1",
+    "@wuzzle/config-tools": "0.3.1",
+    "@wuzzle/helpers": "0.3.1",
     "babel-loader": "^8.2.2",
     "cacache": "^15.3.0",
     "chalk": "^4.1.0",
@@ -67,6 +67,7 @@
   "devDependencies": {
     "@types/cacache": "^15.0.1",
     "@types/debug": "^4.1.5",
+    "@types/find-cache-dir": "^3.2.1",
     "@types/glob": "^7.1.3",
     "@types/lodash": "^4.14.159",
     "@types/memory-fs": "^0.3.2",

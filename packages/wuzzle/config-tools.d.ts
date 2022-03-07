@@ -1,1 +1,1 @@
-export * from '@wuzzle/cli/lib/config-tools';
+export * from '@wuzzle/cli/config-tools';

@@ -1,1 +1,1 @@
-module.exports = require('@wuzzle/cli/lib/config-tools');
+module.exports = require('@wuzzle/cli/config-tools');
