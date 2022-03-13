@@ -1,3 +1,4 @@
+import * as JestTypes from '@jest/types';
 import { diff, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
@@ -21,8 +22,8 @@ const debug = debugFty(DN_APPLY_CONFIG);
 type WebpackConfig = webpackType.Configuration;
 type Webpack = typeof webpackType;
 
-type JestConfig = Record<string, unknown>;
-type JestCore = {};
+type JestConfig = Partial<JestTypes.Config.ProjectConfig>;
+type JestInfo = {};
 
 export interface WuzzleModifyOptions {
   projectPath: string;
@@ -42,7 +43,7 @@ export interface WuzzleConfigOptions {
   cacheKeyOfFilePaths?: string[];
   jest?: (
     jestConfig: JestConfig,
-    jestCore: JestCore,
+    jestInfo: JestInfo,
     modifyOptions: WuzzleModifyOptions
   ) => JestConfig | void;
 }
@@ -97,7 +98,7 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
   return webpackConfig;
 }
 
-export function applyJest(jestConfig: JestConfig, jestCore: JestCore): JestConfig {
+export function applyJest(jestConfig: JestConfig, jestInfo: JestInfo): JestConfig {
   const stringifyOpts: InspectOptions = {};
   applyDryRunTweaks(stringifyOpts);
 
@@ -112,7 +113,7 @@ export function applyJest(jestConfig: JestConfig, jestCore: JestCore): JestConfi
 
   if (optionsToUse.jest) {
     try {
-      const jestConfigToMerge = optionsToUse.jest(jestConfig, jestCore, wuzzleModifyOptions);
+      const jestConfigToMerge = optionsToUse.jest(jestConfig, jestInfo, wuzzleModifyOptions);
       if (jestConfigToMerge) {
         Object.assign(jestConfig, merge(jestConfig, jestConfigToMerge));
       }
