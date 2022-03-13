@@ -11,6 +11,7 @@ export interface TestCase {
   outputContents?: Record<string, string>;
   outputMessages?: string[];
   debugTexts?: string[];
+  debugTextsNotExpected?: string[];
   skipNormal?: boolean;
   testGlobal?: boolean | 'with-install';
   testDryRun?: boolean;
@@ -40,6 +41,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
         outputContents,
         outputMessages,
         debugTexts,
+        debugTextsNotExpected,
         skipNormal,
         testGlobal,
         testDryRun,
@@ -50,34 +52,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
       const commandName = command.split(' ')[0];
       const globalDir = path.join(fixtureDir, globalDirName);
       const originalEnvPath = process.env.PATH;
-
-      function verifyCompilationResult({
-        stdout,
-        stderr,
-        code: exitCode,
-      }: shelljs.ExecOutputReturnValue) {
-        expect(exitCode).toBe(0);
-        expect(stderr).toEqual(expect.stringContaining(wuzzleMountingText));
-        if (debugTexts) {
-          debugTexts.forEach(debugText => {
-            expect(stderr).toEqual(expect.stringContaining(debugText));
-          });
-        }
-
-        if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
-        if (outputContents) {
-          Object.keys(outputContents).forEach(outputPath => {
-            expect(shelljs.cat(...glob.sync(outputPath)).stdout).toEqual(
-              expect.stringContaining(outputContents[outputPath])
-            );
-          });
-        }
-        if (outputMessages) {
-          outputMessages.forEach(outputMessage => {
-            expect(stdout + stderr).toEqual(expect.stringContaining(outputMessage));
-          });
-        }
-      }
+      const debugTextsOnMounted = [wuzzleMountingText, ...(debugTexts ?? [])];
 
       const describeTest = only ? describe.only : skip ? describe.skip : describe;
 
@@ -91,7 +66,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
 
         (skipNormal ? it.skip : it)(`runs '${command}'`, () => {
           const result = shelljs.exec(genEndToEndExec({ command, envOverrides }), { silent });
-          verifyCompilationResult(result);
+          verifyMountedExecResult(result);
         });
 
         if (testGlobal) {
@@ -119,7 +94,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               expect(result.stdout).toEqual(
                 expect.stringMatching(`Command '${commandName}' is resolved from globals:`)
               );
-              verifyCompilationResult(result);
+              verifyMountedExecResult(result);
             },
             testTimeout
           );
@@ -129,32 +104,11 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           it(
             `runs '${command}' in dry-run mode`,
             () => {
-              const {
-                stdout,
-                stderr,
-                code: exitCode,
-              } = shelljs.exec(genEndToEndExec({ command: `${command} --dry-run`, envOverrides }), {
-                silent,
-              });
-
-              expect(exitCode).toBe(0);
-              expect(stdout).toEqual(expect.stringContaining(wuzzleMountingText));
-              if (debugTexts) {
-                debugTexts.forEach(debugText => {
-                  expect(stdout).toEqual(expect.stringContaining(debugText));
-                });
-              }
-
-              if (outputContents) {
-                Object.keys(outputContents).forEach(outputPath => {
-                  expect(glob.sync(outputPath)).toHaveLength(0);
-                });
-              }
-              if (outputMessages) {
-                outputMessages.forEach(outputMessage => {
-                  expect(stdout + stderr).toEqual(expect.not.stringContaining(outputMessage));
-                });
-              }
+              const result = shelljs.exec(
+                genEndToEndExec({ command: `${command} --dry-run`, envOverrides }),
+                { silent }
+              );
+              verifyDryRunExecResult(result);
             },
             testTimeout
           );
@@ -175,21 +129,79 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
                   { silent }
                 ).code
               ).toBe(0);
-
-              const { stderr, code: exitCode } = shelljs.exec(
+              const result = shelljs.exec(
                 genEndToEndExec({ envOverrides: yarnEnvOverrides, wrapper: 'yarn', command }),
                 { silent }
               );
-              expect(exitCode).toBe(0);
-              expect(stderr).not.toEqual(expect.stringContaining(wuzzleMountingText));
-              if (debugTexts) {
-                debugTexts.forEach(debugText => {
-                  expect(stderr).not.toEqual(expect.stringContaining(debugText));
-                });
-              }
+              verifyUnregisteredExecResult(result);
             },
             testTimeout
           );
+        }
+
+        function verifyMountedExecResult({
+          stdout,
+          stderr,
+          code: exitCode,
+        }: shelljs.ExecOutputReturnValue) {
+          expect(exitCode).toBe(0);
+          debugTextsOnMounted.forEach(text => {
+            expect(stderr).toEqual(expect.stringContaining(text));
+          });
+          if (debugTextsNotExpected) {
+            debugTextsNotExpected.forEach(text => {
+              expect(stdout).toEqual(expect.not.stringContaining(text));
+            });
+          }
+          if (outputDir) expect(shelljs.test('-d', outputDir)).toBe(true);
+          if (outputContents) {
+            Object.keys(outputContents).forEach(outputPath => {
+              expect(shelljs.cat(...glob.sync(outputPath)).stdout).toEqual(
+                expect.stringContaining(outputContents[outputPath])
+              );
+            });
+          }
+          if (outputMessages) {
+            outputMessages.forEach(message => {
+              expect(stdout + stderr).toEqual(expect.stringContaining(message));
+            });
+          }
+        }
+
+        function verifyDryRunExecResult({
+          stdout,
+          stderr,
+          code: exitCode,
+        }: shelljs.ExecOutputReturnValue) {
+          expect(exitCode).toBe(0);
+          debugTextsOnMounted.forEach(text => {
+            expect(stdout).toEqual(expect.stringContaining(text));
+          });
+          if (debugTextsNotExpected) {
+            debugTextsNotExpected.forEach(text => {
+              expect(stdout).toEqual(expect.not.stringContaining(text));
+            });
+          }
+          if (outputContents) {
+            Object.keys(outputContents).forEach(outputPath => {
+              expect(glob.sync(outputPath)).toHaveLength(0);
+            });
+          }
+          if (outputMessages) {
+            outputMessages.forEach(message => {
+              expect(stdout + stderr).toEqual(expect.not.stringContaining(message));
+            });
+          }
+        }
+
+        function verifyUnregisteredExecResult({
+          stderr,
+          code: exitCode,
+        }: shelljs.ExecOutputReturnValue) {
+          expect(exitCode).toBe(0);
+          debugTextsOnMounted.forEach(text => {
+            expect(stderr).toEqual(expect.not.stringContaining(text));
+          });
         }
       });
     });

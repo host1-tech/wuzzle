@@ -64,28 +64,28 @@ export function transform(code: string): string {
 
         if (targetPath) {
           const { webpack } = getCurrentJestExtraOptions();
-          targetPath.insertAfter(
-            parse(
+          const toInsert = [
+            // Register webpack based transformer
+            webpack
+              ? `configs.forEach(config => config.transform.splice(0,config.transform.length,` +
+                `['.','${resolveRequire('./altered-transformer').replace(/\\/g, '\\\\')}',{}]));`
+              : '',
+            // Regsiter jest config modifier
+            `configs.forEach(config => require('${resolveRequire('../../apply-config').replace(
+              /\\/g,
+              '\\\\'
+            )}').applyJest(config,require('../..')));`,
+            // Register dry-run mode handler
+            `if(process.env.${EK_DRY_RUN}){` +
               (webpack
-                ? `configs.forEach(config => config.transform.splice(0,config.transform.length,` +
-                  `['.','${resolveRequire('./altered-transformer').replace(/\\/g, '\\\\')}',{}]));`
+                ? `require('${resolveRequire('../node/transform').replace(
+                    /\\/g,
+                    '\\\\'
+                  )}').printDryRunLog();`
                 : '') +
-                //
-                `configs.forEach(config => require('${resolveRequire('../../apply-config').replace(
-                  /\\/g,
-                  '\\\\'
-                )}').applyJest(config,require('../..')));` +
-                //
-                `if(process.env.${EK_DRY_RUN}){` +
-                (webpack
-                  ? `require('${resolveRequire('../node/transform').replace(
-                      /\\/g,
-                      '\\\\'
-                    )}').printDryRunLog();`
-                  : '') +
-                `process.exit();}`
-            ).program.body
-          );
+              `process.exit();}`,
+          ].join('');
+          targetPath.insertAfter(parse(toInsert).program.body);
         }
       }
     },

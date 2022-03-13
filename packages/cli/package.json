@@ -65,6 +65,7 @@
     "webpack-merge": "^5.4.0"
   },
   "devDependencies": {
+    "@jest/types": "^25.5.0",
     "@types/cacache": "^15.0.1",
     "@types/debug": "^4.1.5",
     "@types/find-cache-dir": "^3.2.1",

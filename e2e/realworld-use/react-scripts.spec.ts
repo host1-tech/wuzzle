@@ -4,10 +4,8 @@ import got from 'got';
 import path from 'path';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import shelljs from 'shelljs';
-import treeKill from 'tree-kill';
-import { promisify } from 'util';
 import waitForExpect from 'wait-for-expect';
-import { itSection, waitForStreamText } from '../utils';
+import { itSection, tKill, waitForStreamText } from '../utils';
 
 const testTimeout = 8 * 60 * 1000;
 
@@ -50,11 +48,7 @@ describe('realworld use of wuzzle on react-scripts', () => {
 
         await verifyComponentsCSR(page);
       } finally {
-        await Promise.all([
-          page.close(),
-          promisify(treeKill)(clientProc.pid),
-          promisify(treeKill)(serverProc.pid),
-        ]);
+        await Promise.all([page.close(), tKill(clientProc.pid), tKill(serverProc.pid)]);
       }
     },
     testTimeout
@@ -101,15 +95,15 @@ describe('realworld use of wuzzle on react-scripts', () => {
         await verifyComponentsCSR(ssrPage);
         await verifyComponentsSSR(ssr$, staticPage);
       } finally {
-        await Promise.all([
-          ssrPage.close(),
-          staticPage.close(),
-          promisify(treeKill)(serverProc.pid),
-        ]);
+        await Promise.all([ssrPage.close(), staticPage.close(), tKill(serverProc.pid)]);
       }
     },
     testTimeout
   );
+
+  it('works with testing', () => {
+    expect(execa.sync('yarn', ['test', '--watchAll=false']).exitCode).toBe(0);
+  });
 });
 
 async function verifyComponentsCSR(page: Page) {

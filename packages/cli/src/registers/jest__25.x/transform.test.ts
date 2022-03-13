@@ -17,7 +17,7 @@ const goodCodes: Record<string, string> = {
     .stdout,
   ['27.0.0']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@27.0.0.txt'))
     .stdout,
-  ['27.3.1']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@27.3.1.txt'))
+  ['27.5.1']: shelljs.cat(path.join(__dirname, 'fixtures/jest-core-build-cli-index@27.5.1.txt'))
     .stdout,
 };
 

@@ -3,3 +3,4 @@ export * from './gen-wuzzle-exec';
 export * from './it-section';
 export * from './log-immediately';
 export * from './wait-for-stream-text';
+export * from './t-kill';
