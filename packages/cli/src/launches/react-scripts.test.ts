@@ -28,7 +28,7 @@ const launchOptions: LaunchOptions = {
 const reactScriptsPreConfigPath = '/path/to/pre-config/react-scripts';
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/react-scripts__3.x');
+jest.mock('../registers/react-scripts__3.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);

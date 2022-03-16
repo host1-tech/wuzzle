@@ -9,12 +9,12 @@ jest.mock('@wuzzle/helpers');
 jest.mock('../jest__24.x');
 jest.mock('../webpack__4.x');
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  delete process.env[EK_COMMAND_ARGS];
-});
-
 describe('register/unregister', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env[EK_COMMAND_ARGS];
+  });
+
   it('uses webpack register on default registering', () => {
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
     register({ commandPath });

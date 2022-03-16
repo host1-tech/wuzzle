@@ -12,12 +12,12 @@ jest.mock('../jest__26.x');
 jest.mock('../webpack__4.x');
 jest.mock('../webpack__5.x');
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  delete process.env[EK_COMMAND_ARGS];
-});
-
 describe('register/unregister', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env[EK_COMMAND_ARGS];
+  });
+
   it('uses webpack 4 register on default registering', () => {
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
     register({ commandPath });

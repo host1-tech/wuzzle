@@ -1,13 +1,9 @@
-import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
-import fs from 'fs';
+import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import { EK_DRY_RUN } from '../../constants';
-import * as transformModule from './transform';
-import { register, transform, unregister } from './transform';
-
-const matchedModulePath = '/path/to/matched/module';
+import { transform } from './transform';
 
 const applyConfigPaths: Record<string, string> = {
   posix: '/path/to/apply-config',
@@ -26,39 +22,11 @@ const flawCodes: Record<string, string> = {
 
 jest.mock('@wuzzle/helpers');
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-describe('register/unregister', () => {
-  beforeAll(() => {
-    jest.spyOn(fs, 'readFileSync').mockReturnValue('');
-    jest.spyOn(fs, 'writeFileSync').mockReturnValue();
-    jest.spyOn(transformModule, 'transform').mockReturnValue('');
-    mocked(resolveRequire).mockReturnValue(matchedModulePath);
-  });
-
-  afterAll(() => {
-    mocked(fs.readFileSync).mockRestore();
-    mocked(fs.writeFileSync).mockRestore();
-    mocked(transform).mockRestore();
-    mocked(resolveRequire).mockRestore();
-  });
-
-  it('transforms the matched on registered', () => {
-    register({ commandPath: '' });
-    expect(backupWithRestore).toBeCalledWith(matchedModulePath);
-    expect(mocked(fs.readFileSync).mock.calls[0][0]).toBe(matchedModulePath);
-    expect(mocked(fs.writeFileSync).mock.calls[0][0]).toBe(matchedModulePath);
-  });
-
-  it('recovers the matched on unregistered', () => {
-    unregister({ commandPath: '' });
-    expect(tryRestoreWithRemove).toBeCalledWith(matchedModulePath);
-  });
-});
-
 describe('transform', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe.each(Object.keys(goodCodes))('%s', (codeFlag: string) => {
     it.each(Object.keys(applyConfigPaths))('works in %s', (platform: string) => {
       const code = goodCodes[codeFlag];

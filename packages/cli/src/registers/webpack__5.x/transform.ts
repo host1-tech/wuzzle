@@ -2,29 +2,15 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
-import fs from 'fs';
-import path from 'path';
-import { EK_DRY_RUN, ENCODING_TEXT } from '../../constants';
-import { RegisterFunction } from '../../utils';
+import { resolveRequire } from '@wuzzle/helpers';
+import { EK_DRY_RUN } from '../../constants';
+import { createRegisterUnregister } from '../../utils';
 
-const moduleToMatch = 'webpack/lib/webpack';
-
-export const register: RegisterFunction = ({ commandPath }) => {
-  const moduleFilepath = resolveRequire(moduleToMatch, {
-    basedir: path.dirname(commandPath),
-  });
-  backupWithRestore(moduleFilepath);
-  const code = fs.readFileSync(moduleFilepath, ENCODING_TEXT);
-  fs.writeFileSync(moduleFilepath, transform(code));
-};
-
-export const unregister: RegisterFunction = ({ commandPath }) => {
-  const moduleFilepath = resolveRequire(moduleToMatch, {
-    basedir: path.dirname(commandPath),
-  });
-  tryRestoreWithRemove(moduleFilepath);
-};
+export const [register, unregister] = createRegisterUnregister({
+  moduleName: 'webpack',
+  moduleToMatch: 'webpack/lib/webpack',
+  transform,
+});
 
 export function transform(code: string): string {
   const ast = parse(code);

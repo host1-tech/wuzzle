@@ -2,43 +2,15 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
-import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
-import fs from 'fs';
-import path from 'path';
-import { EK_DRY_RUN, ENCODING_TEXT } from '../../constants';
-import { getCurrentJestExtraOptions, RegisterFunction } from '../../utils';
+import { resolveRequire } from '@wuzzle/helpers';
+import { EK_DRY_RUN } from '../../constants';
+import { createRegisterUnregister, getCurrentJestExtraOptions } from '../../utils';
 
-const modulesToMatch = ['jest-cli/build/cli', '@jest/core/build/cli'];
-
-export const register: RegisterFunction = ({ commandPath }) => {
-  let hasTransformed: boolean = false;
-  for (const moduleToMatch of modulesToMatch) {
-    let moduleFilepath: string | undefined;
-    try {
-      moduleFilepath = resolveRequire(moduleToMatch, {
-        basedir: path.dirname(commandPath),
-      });
-    } catch {}
-    if (!moduleFilepath) continue;
-    backupWithRestore(moduleFilepath);
-    const code = fs.readFileSync(moduleFilepath, ENCODING_TEXT);
-    fs.writeFileSync(moduleFilepath, transform(code));
-    hasTransformed = true;
-  }
-  if (!hasTransformed) throw new Error(`Cannot resolve jest from command path '${commandPath}'`);
-};
-
-export const unregister: RegisterFunction = ({ commandPath }) => {
-  for (const moduleToMatch of modulesToMatch) {
-    let moduleFilepath: string | undefined;
-    try {
-      moduleFilepath = resolveRequire(moduleToMatch, {
-        basedir: path.dirname(commandPath),
-      });
-      tryRestoreWithRemove(moduleFilepath);
-    } catch {}
-  }
-};
+export const [register, unregister] = createRegisterUnregister({
+  moduleName: 'jest',
+  moduleToMatch: ['jest-cli/build/cli', '@jest/core/build/cli'],
+  transform,
+});
 
 export function transform(code: string): string {
   const ast = parse(code);
