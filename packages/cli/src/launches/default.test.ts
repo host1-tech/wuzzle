@@ -17,7 +17,7 @@ const launchOptions: LaunchOptions = {
 };
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/webpack__5.x');
+jest.mock('../registers/webpack__5.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);

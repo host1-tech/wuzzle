@@ -6,6 +6,6 @@ export * from './create-debug-log';
 export * from './exec-node';
 export * from './launch-function';
 export * from './locate-project-anchor';
-export * from './register-function';
+export * from './register-unregister';
 export * from './tmpl-logs';
 export * from './wait-for-stream';

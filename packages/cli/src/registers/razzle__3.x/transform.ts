@@ -1,5 +1,5 @@
 import { EK_COMMAND_ARGS } from '../../constants';
-import { RegisterFunction } from '../../utils';
+import { RegisterFunction, UnregisterFunction } from '../../utils';
 import { register as registerJest24, unregister as unregisterJest24 } from '../jest__24.x';
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 
@@ -12,7 +12,7 @@ export const register: RegisterFunction = options => {
   }
 };
 
-export const unregister: RegisterFunction = options => {
+export const unregister: UnregisterFunction = options => {
   unregisterWebpack4(options);
   unregisterJest24(options);
 };

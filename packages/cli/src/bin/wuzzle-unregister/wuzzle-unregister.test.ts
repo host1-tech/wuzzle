@@ -21,11 +21,11 @@ const projectPath = fixturePath;
 jest.mock('../../utils');
 mocked(locateProjectAnchor).mockReturnValue(projectPath);
 
-jest.mock('../../registers/jest__24.x');
-jest.mock('../../registers/jest__25.x');
-jest.mock('../../registers/jest__26.x');
-jest.mock('../../registers/webpack__4.x');
-jest.mock('../../registers/webpack__5.x');
+jest.mock('../../registers/jest__24.x', () => ({ unregister: jest.fn() }));
+jest.mock('../../registers/jest__25.x', () => ({ unregister: jest.fn() }));
+jest.mock('../../registers/jest__26.x', () => ({ unregister: jest.fn() }));
+jest.mock('../../registers/webpack__4.x', () => ({ unregister: jest.fn() }));
+jest.mock('../../registers/webpack__5.x', () => ({ unregister: jest.fn() }));
 
 jest.mock('@wuzzle/helpers', () => ({
   ...jest.requireActual('@wuzzle/helpers'),

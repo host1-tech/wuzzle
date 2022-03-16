@@ -23,7 +23,7 @@ const launchOptions: LaunchOptions = {
 const razzlePreConfigPath = '/path/to/pre-config/razzle';
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/razzle__3.x');
+jest.mock('../registers/razzle__3.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(console, 'log').mockImplementation(noop);
 jest.spyOn(console, 'error').mockImplementation(noop);
