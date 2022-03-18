@@ -23,6 +23,7 @@
     "@types/semver": "^7.3.6",
     "diff": "^4.0.2",
     "find-up": "^5.0.0",
+    "lodash": "^4.17.20",
     "read-cmd-shim": "^2.0.0",
     "resolve": "^1.20.0",
     "semver": "^7.3.5",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/diff": "^4.0.2",
+    "@types/lodash": "^4.14.159",
     "@types/which": "^2.0.1"
   }
 }

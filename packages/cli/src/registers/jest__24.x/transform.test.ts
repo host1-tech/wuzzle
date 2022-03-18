@@ -1,9 +1,8 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import { noop } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import { getCurrentJestExtraOptions, createRegisterUnregister } from '../../utils';
+import { getCurrentJestExtraOptions } from '../../utils';
 import { transform } from './transform';
 
 const goodCodes: Record<string, string> = {
