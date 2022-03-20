@@ -1,3 +1,4 @@
+import path from 'path';
 import type webpackType from 'webpack';
 import { RULE_SET_USE_KEYS } from './constants';
 import {
@@ -52,7 +53,7 @@ describe('normalizeRuleOpQuery', () => {
         normalizeRuleOpQuery({
           file: { dir: '/path/to', base: 'file' },
         }).files
-      ).toEqual(['/path/to/file']);
+      ).toEqual(['/path/to/file'].map(path.normalize));
     });
 
     it('format multiple object inputs to string array', () => {
@@ -63,7 +64,7 @@ describe('normalizeRuleOpQuery', () => {
             { dir: '/path/to', base: 'file2' },
           ],
         }).files
-      ).toEqual(['/path/to/file1', '/path/to/file2']);
+      ).toEqual(['/path/to/file1', '/path/to/file2'].map(path.normalize));
     });
 
     it('formats single string input to string array', () => {
@@ -71,7 +72,7 @@ describe('normalizeRuleOpQuery', () => {
         normalizeRuleOpQuery({
           file: '/path/to/file',
         }).files
-      ).toEqual(['/path/to/file']);
+      ).toEqual(['/path/to/file'].map(path.normalize));
     });
 
     it('formats multiple string inputs to string array', () => {
@@ -79,7 +80,7 @@ describe('normalizeRuleOpQuery', () => {
         normalizeRuleOpQuery({
           file: ['/path/to/file1', '/path/to/file2'],
         }).files
-      ).toEqual(['/path/to/file1', '/path/to/file2']);
+      ).toEqual(['/path/to/file1', '/path/to/file2'].map(path.normalize));
     });
   });
 

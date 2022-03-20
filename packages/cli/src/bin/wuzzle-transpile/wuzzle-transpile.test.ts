@@ -15,7 +15,7 @@ import {
   EXIT_CODE_USER_TERMINATION,
 } from '../../constants';
 import { transpile } from '../../transpile';
-import { locateProjectAnchor, dryRunModeCommandOptionName } from '../../utils';
+import { dryRunModeCommandOptionName, locateProjectAnchor } from '../../utils';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const fixedArgs = [process.argv[0], resolveRequire('./wuzzle-transpile')];
@@ -25,18 +25,18 @@ const projectPath = fixturePath;
 const inputDir = 'src';
 const outputDir = 'lib';
 const printJs = {
-  inputPath: `${inputDir}/print.js`,
-  outputPath: `${outputDir}/print.js`,
+  inputPath: path.normalize(`${inputDir}/print.js`),
+  outputPath: path.normalize(`${outputDir}/print.js`),
 };
 const constantsJs = {
-  inputPath: `${inputDir}/constants.js`,
-  outputPath: `${outputDir}/constants.js`,
+  inputPath: path.normalize(`${inputDir}/constants.js`),
+  outputPath: path.normalize(`${outputDir}/constants.js`),
 };
 const utilsParseJs = {
-  inputPath: `${inputDir}/utils/parse.js`,
-  outputPath: `${outputDir}/utils/parse.js`,
+  inputPath: path.normalize(`${inputDir}/utils/parse.js`),
+  outputPath: path.normalize(`${outputDir}/utils/parse.js`),
 };
-const outdatedOutputFile = `${outputDir}/oudated`;
+const outdatedOutputFile = path.normalize(`${outputDir}/oudated`);
 
 jest.mock('../../transpile');
 

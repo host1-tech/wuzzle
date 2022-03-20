@@ -1,15 +1,16 @@
 import fs from 'fs';
+import path from 'path';
 import readCmdShim from 'read-cmd-shim';
 import { mocked } from 'ts-jest/utils';
 import which from 'which';
 import { resolveCommandPath } from './resolve-command-path';
-import path from 'path';
 
 const commandName = 'commandName';
 const symbolicLinkValue = 'symbolicLinkValue';
 const cmdShimValue = 'cmdShimValue';
-const processCwdResult = '/path/to/process/cwd';
-const whichQueryResult = '/path/to/which/query';
+const processCwdResult = path.normalize('/path/to/process/cwd');
+const specifiedCwd = path.normalize('/path/to/specified/cwd');
+const whichQueryResult = path.normalize('/path/to/which/query');
 const whichQueryResultOnWin = whichQueryResult + '.CMD';
 
 jest.spyOn(fs, 'readlinkSync');
@@ -25,10 +26,12 @@ describe('resolveCommandPath', () => {
   it('works with symbolic link', () => {
     mocked(fs.readlinkSync).mockReturnValueOnce(symbolicLinkValue);
     const commandPath = resolveCommandPath({ commandName });
-    expect(fs.readlinkSync).toBeCalledWith(
-      expect.stringMatching(new RegExp(`^${processCwdResult}.*${commandName}$`))
+    [processCwdResult, commandName].forEach(p =>
+      expect(fs.readlinkSync).toBeCalledWith(expect.stringContaining(p))
     );
-    expect(commandPath).toMatch(new RegExp(`^${processCwdResult}.*${symbolicLinkValue}$`));
+    [processCwdResult, symbolicLinkValue].forEach(p =>
+      expect(commandPath).toEqual(expect.stringContaining(p))
+    );
   });
 
   it('works with cmd shim', () => {
@@ -37,20 +40,23 @@ describe('resolveCommandPath', () => {
     });
     mocked(readCmdShim.sync).mockReturnValueOnce(cmdShimValue);
     const commandPath = resolveCommandPath({ commandName });
-    expect(readCmdShim.sync).toBeCalledWith(
-      expect.stringMatching(new RegExp(`^${processCwdResult}.*${commandName}$`))
+    [processCwdResult, commandName].forEach(p =>
+      expect(readCmdShim.sync).toBeCalledWith(expect.stringContaining(p))
     );
-    expect(commandPath).toMatch(new RegExp(`^${processCwdResult}.*${cmdShimValue}$`));
+    [processCwdResult, cmdShimValue].forEach(p =>
+      expect(commandPath).toEqual(expect.stringContaining(p))
+    );
   });
 
   it('works with specified cwd', () => {
-    const specifiedCwd = '/path/to/specified/cwd';
     mocked(fs.readlinkSync).mockReturnValueOnce(symbolicLinkValue);
     const commandPath = resolveCommandPath({ cwd: specifiedCwd, commandName });
-    expect(fs.readlinkSync).toBeCalledWith(
-      expect.stringMatching(new RegExp(`^${specifiedCwd}.*${commandName}$`))
+    [specifiedCwd, commandName].forEach(p =>
+      expect(fs.readlinkSync).toBeCalledWith(expect.stringContaining(p))
     );
-    expect(commandPath).toMatch(new RegExp(`^${specifiedCwd}.*${symbolicLinkValue}$`));
+    [specifiedCwd, symbolicLinkValue].forEach(p =>
+      expect(commandPath).toEqual(expect.stringContaining(p))
+    );
   });
 
   it('works with global symbolic link', () => {
@@ -58,8 +64,8 @@ describe('resolveCommandPath', () => {
     mocked(which.sync).mockReturnValueOnce(whichQueryResult);
     const commandPath = resolveCommandPath({ commandName, fromGlobals: true });
     expect(fs.readlinkSync).toBeCalledWith(whichQueryResult);
-    expect(commandPath).toMatch(
-      new RegExp(`^${path.dirname(whichQueryResult)}.*${symbolicLinkValue}$`)
+    [path.dirname(whichQueryResult), symbolicLinkValue].forEach(p =>
+      expect(commandPath).toEqual(expect.stringContaining(p))
     );
   });
 
@@ -71,6 +77,8 @@ describe('resolveCommandPath', () => {
     mocked(which.sync).mockReturnValueOnce(whichQueryResultOnWin);
     const commandPath = resolveCommandPath({ commandName, fromGlobals: true });
     expect(readCmdShim.sync).toBeCalledWith(whichQueryResult);
-    expect(commandPath).toMatch(new RegExp(`^${path.dirname(whichQueryResult)}.*${cmdShimValue}$`));
+    [path.dirname(whichQueryResult), cmdShimValue].forEach(p =>
+      expect(commandPath).toEqual(expect.stringContaining(p))
+    );
   });
 });
