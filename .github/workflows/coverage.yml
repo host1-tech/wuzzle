@@ -9,7 +9,12 @@ on:
 jobs:
   coverage:
     name: Coverage
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019]
+    env:
+      OS: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -29,4 +34,5 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./coverage
           flags: root
+          env_vars: OS
           fail_ci_if_error: true

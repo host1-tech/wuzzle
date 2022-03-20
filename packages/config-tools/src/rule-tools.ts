@@ -40,7 +40,9 @@ export function normalizeRuleOpQuery(query: RuleOpQuery): NormalizedRuleOpQuery 
   return {
     files:
       query.file !== undefined
-        ? flatten([query.file]).map(file => (typeof file === 'object' ? path.format(file) : file))
+        ? flatten([query.file])
+            .map(file => (typeof file === 'object' ? path.format(file) : file))
+            .map(path.normalize)
         : query.file,
     loaders: query.loader !== undefined ? flatten([query.loader]) : query.loader,
   };
