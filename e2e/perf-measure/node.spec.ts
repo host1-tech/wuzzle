@@ -6,7 +6,7 @@ executeTests({
   ['node']: {
     ['current']: {
       fixtureDir: path.join(__dirname, 'fixtures/node'),
-      bareExec: `${process.argv[0]} -r @babel/register index.js`,
+      bareExec: 'node -r @babel/register index.js',
       wuzzleExec: genEndToEndExec({ command: 'node index.js' }),
       tmplContent:
         `<% _.times(lineCount, i => { %>` +
