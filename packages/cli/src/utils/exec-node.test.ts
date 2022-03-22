@@ -1,11 +1,13 @@
+import { logError } from '@wuzzle/helpers';
 import execa from 'execa';
-import { noop, random } from 'lodash';
+import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
 import { execNode } from './exec-node';
 
+jest.mock('@wuzzle/helpers');
+
 jest.spyOn(execa, 'sync').mockImplementation(noop as never);
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -41,30 +43,15 @@ describe('execNode', () => {
     expect(execa.sync).toBeCalledWith(process.argv[0], [], execOpts);
   });
 
-  describe('interruption on error', () => {
-    it('logs error stack trace if available', () => {
-      const errorMessage = 'Sint vero et ut iusto fugiat maxime aliquid.';
-      const error = new Error(errorMessage);
-      mocked(execa.sync).mockImplementationOnce(() => {
-        throw error;
-      });
-      try {
-        execNode({});
-      } catch {}
-      expect(mocked(console.error).mock.calls[0][0]).toMatch(new RegExp(errorMessage));
-      expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+  it('logs error on interrupted by error', () => {
+    const error = new Error('message');
+    mocked(execa.sync).mockImplementationOnce(() => {
+      throw error;
     });
-
-    it('logs error itself if stack trace not available', () => {
-      const error = random(1024);
-      mocked(execa.sync).mockImplementationOnce(() => {
-        throw error;
-      });
-      try {
-        execNode({});
-      } catch {}
-      expect(mocked(console.error).mock.calls[0][0]).toBe(error);
-      expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    });
+    try {
+      execNode({});
+    } catch {}
+    expect(logError).toBeCalledWith(error);
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
   });
 });

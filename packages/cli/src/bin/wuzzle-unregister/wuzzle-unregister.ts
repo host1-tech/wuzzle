@@ -1,4 +1,4 @@
-import { resolveCommandPath } from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath } from '@wuzzle/helpers';
 import { green } from 'chalk';
 import glob from 'glob';
 import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
@@ -8,7 +8,7 @@ const projectPath = locateProjectAnchor();
 const [, , commandName] = process.argv;
 
 if (!commandName) {
-  console.error('error: command name not specified.');
+  logError('error: command name not specified.');
   process.exit(EXIT_CODE_ERROR);
 }
 
@@ -38,4 +38,4 @@ for (const { unregister } of glob
   }
 }
 
-console.log(green(`Reverted registering on '${commandName}'.`));
+logPlain(green(`Reverted registering on '${commandName}'.`));

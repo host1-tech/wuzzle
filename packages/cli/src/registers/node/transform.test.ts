@@ -1,4 +1,4 @@
-import { resolveRequire } from '@wuzzle/helpers';
+import { logPlain, resolveRequire } from '@wuzzle/helpers';
 import execa from 'execa';
 import fs from 'fs';
 import { noop, pick } from 'lodash';
@@ -24,7 +24,6 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 jest.spyOn(process.stderr, 'write').mockImplementation(noop as never);
-jest.spyOn(console, 'log').mockReturnValue();
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -71,6 +70,6 @@ describe('transform', () => {
     mocked(getCurrentNodeLikeExtraOptions).mockReturnValueOnce({ verbose: true, exts: [] });
     mocked(resolveRequire).mockReturnValueOnce(convertPath);
     transform(code, file);
-    expect(console.log).toBeCalledWith(expect.stringContaining('compiled'));
+    expect(logPlain).toBeCalledWith(expect.stringContaining('compiled'));
   });
 });

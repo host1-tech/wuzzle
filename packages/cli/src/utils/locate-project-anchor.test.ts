@@ -1,5 +1,5 @@
+import { logError } from '@wuzzle/helpers';
 import findUp from 'find-up';
-import { noop } from 'lodash';
 import path from 'path';
 import { mocked } from 'ts-jest/utils';
 import { EK_PROJECT_PATH, EK_RPOJECT_ANCHOR, EXIT_CODE_ERROR } from '../constants';
@@ -8,13 +8,14 @@ import { locateProjectAnchor } from './locate-project-anchor';
 const anchorPath = '/path/to/anchor';
 const projectPath = path.dirname(anchorPath);
 
+jest.mock('@wuzzle/helpers');
+
 jest.mock('find-up', () => ({
   __esModule: true,
   default: Object.assign(jest.fn(), { sync: jest.fn() }),
 }));
 mocked(findUp.sync).mockReturnValue(anchorPath);
 
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -37,7 +38,7 @@ describe('locateProjectAnchor', () => {
       locateProjectAnchor();
     } catch {}
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(console.error).toBeCalledWith(expect.stringContaining('error:'));
+    expect(logError).toBeCalledWith(expect.stringContaining('error:'));
   });
 
   it('finds up specific anchor if anchor env specified', () => {

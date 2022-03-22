@@ -1,5 +1,4 @@
-import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
-import { noop } from 'lodash';
+import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
 import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
@@ -17,8 +16,6 @@ const nodeRegisterPath = '/path/to/register/node';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
-jest.spyOn(console, 'log').mockImplementation(noop);
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -47,7 +44,7 @@ describe('launchMocha', () => {
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
     launchMocha(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
-    expect(console.log).toBeCalledWith(logForGlobalResolving);
+    expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([nodeRegisterPath]),
@@ -66,7 +63,7 @@ describe('launchMocha', () => {
     try {
       launchMocha(launchOptions);
     } catch {}
-    expect(console.error).toBeCalledWith(expect.stringContaining(commandName));
+    expect(logError).toBeCalledWith(expect.stringContaining(commandName));
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
     expect(execNode).not.toBeCalled();
   });

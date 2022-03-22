@@ -1,4 +1,4 @@
-import { resolveRequire } from '@wuzzle/helpers';
+import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
 import chokidar from 'chokidar';
 import glob from 'glob';
 import { noop } from 'lodash';
@@ -38,6 +38,12 @@ const utilsParseJs = {
 };
 const outdatedOutputFile = path.normalize(`${outputDir}/oudated`);
 
+jest.mock('@wuzzle/helpers', () => ({
+  ...jest.requireActual('@wuzzle/helpers'),
+  logError: jest.fn(),
+  logPlain: jest.fn(),
+}));
+
 jest.mock('../../transpile');
 
 jest.mock('../../utils', () => ({
@@ -46,8 +52,6 @@ jest.mock('../../utils', () => ({
 }));
 mocked(locateProjectAnchor).mockReturnValue(projectPath);
 
-jest.spyOn(console, 'log').mockImplementation(noop);
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -101,7 +105,7 @@ describe('wuzzle-transpile', () => {
           outputPath: path.resolve(outputPath),
           webpackConfig: { mode: 'development', devtool: undefined },
         });
-        expect(includesLog(console.log, `File '${inputPath}' compiled.`)).toBe(true);
+        expect(logPlain).toBeCalledWith(expect.stringContaining(`File '${inputPath}' compiled.`));
       });
     }
   );
@@ -146,7 +150,7 @@ describe('wuzzle-transpile', () => {
     process.argv = [...fixedArgs, printJs.inputPath, '-d', outputDir, '-V'];
     jest.isolateModules(() => require('./wuzzle-transpile'));
     await waitForExpect(() => expect(transpile).toBeCalled());
-    expect(includesLog(console.log, `Directory '${outputDir}' cleaned.`)).toBe(true);
+    expect(logPlain).toBeCalledWith(expect.stringContaining(`Directory '${outputDir}' cleaned.`));
   });
 
   it(`with '-w', compiles all first, watches files changes`, async () => {
@@ -160,7 +164,9 @@ describe('wuzzle-transpile', () => {
       mocked(transpile).mockClear();
       chokidarEventHandlers[event](printJs.inputPath);
       await waitForExpect(() => expect(transpile).toBeCalled());
-      expect(includesLog(console.log, `File '${printJs.inputPath}' recompiled.`)).toBe(true);
+      expect(logPlain).toBeCalledWith(
+        expect.stringContaining(`File '${printJs.inputPath}' recompiled.`)
+      );
     }
 
     shelljs.mkdir('-p', outputDir);
@@ -217,7 +223,7 @@ describe('wuzzle-transpile', () => {
     const inexistentPath = 'src/inexistent.js';
     process.argv = [...fixedArgs, inexistentPath, '-d', outputDir];
     jest.isolateModules(() => require('./wuzzle-transpile'));
-    expect(includesLog(console.log, 'No input file found.')).toBe(true);
+    expect(logPlain).toBeCalledWith(expect.stringContaining('No input file found.'));
     expect(transpile).not.toBeCalled();
   });
 
@@ -231,13 +237,15 @@ describe('wuzzle-transpile', () => {
     } catch {}
     await waitForExpect(() => expect(transpile).toBeCalled());
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(includesLog(console.log, `File '${printJs.inputPath}' compilation failed.`)).toBe(true);
+    expect(logPlain).toBeCalledWith(
+      expect.stringContaining(`File '${printJs.inputPath}' compilation failed.`)
+    );
   });
 
   it('reports error stack info if available on failure', async () => {
-    const errorMessage = '31a09224f4637755df5b7188342e16df1a90091b';
+    const error = new Error('message');
     mocked(process.exit).mockImplementation(() => {
-      throw new Error(errorMessage);
+      throw error;
     });
     mocked(transpile).mockImplementationOnce(() => {
       throw 0;
@@ -246,7 +254,7 @@ describe('wuzzle-transpile', () => {
     try {
       jest.isolateModules(() => require('./wuzzle-transpile'));
     } catch {}
-    await waitForExpect(() => expect(includesLog(console.error, errorMessage)).toBe(true));
+    await waitForExpect(() => expect(logError).toBeCalledWith(error));
   });
 
   it('validates input globs and reports error if not given', async () => {
@@ -256,7 +264,7 @@ describe('wuzzle-transpile', () => {
     } catch {}
     await waitForExpect(() => expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR));
     expect(transpile).not.toBeCalled();
-    expect(includesLog(console.error, 'error: input globs not specified.')).toBe(true);
+    expect(logError).toBeCalledWith('error: input globs not specified.');
   });
 
   it('validates --target and reports error if not matched', async () => {
@@ -267,9 +275,7 @@ describe('wuzzle-transpile', () => {
     } catch {}
     await waitForExpect(() => expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR));
     expect(transpile).not.toBeCalled();
-    expect(
-      includesLog(console.error, `error: option '-t, --target ${target}' not supported.`)
-    ).toBe(true);
+    expect(logError).toBeCalledWith(`error: option '-t, --target ${target}' not supported.`);
   });
 
   it('validates --source-map and reports error if not matched', async () => {
@@ -280,9 +286,7 @@ describe('wuzzle-transpile', () => {
     } catch {}
     await waitForExpect(() => expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR));
 
-    expect(
-      includesLog(console.error, `error: option '-s, --source-map ${sourceMap}' not supported.`)
-    ).toBe(true);
+    expect(logError).toBeCalledWith(`error: option '-s, --source-map ${sourceMap}' not supported.`);
     expect(transpile).not.toBeCalled();
   });
 
@@ -311,7 +315,3 @@ describe('wuzzle-transpile', () => {
     expect(process.exit).toBeCalledWith(EXIT_CODE_USER_TERMINATION);
   });
 });
-
-function includesLog(LogFunc: typeof console.log | typeof console.error, logStr: string): boolean {
-  return mocked(LogFunc).mock.calls.some(params => params.some(p => String(p).includes(logStr)));
-}
