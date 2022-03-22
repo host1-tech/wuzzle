@@ -1,4 +1,5 @@
-import { diff, stringify } from '@wuzzle/helpers';
+import * as JestTypes from '@jest/types';
+import { diff, logError, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { uniqueId } from 'lodash';
@@ -46,7 +47,11 @@ jest.mock(
 );
 const mockedInternalPreConfig = require(internalPreConfigPath).default as jest.Mock;
 
-jest.mock('@wuzzle/helpers', () => ({ ...jest.requireActual('@wuzzle/helpers'), diff: jest.fn() }));
+jest.mock('@wuzzle/helpers', () => ({
+  ...jest.requireActual('@wuzzle/helpers'),
+  diff: jest.fn(),
+  logError: jest.fn(),
+}));
 
 jest.mock('debug', () => {
   const mockedFn = jest.fn();
@@ -93,6 +98,18 @@ describe('applyConfig', () => {
     expect(applyConfig(webpackConfig, webpack)).toEqual({ output: {} });
     expect(webpackConfig).toEqual({ output: {} });
     expect(wuzzleConfig.modify).toBeCalledWith(webpackConfig, webpack, defaultModifyOptions);
+  });
+
+  it(`reports error thrown from 'modify'`, () => {
+    const error = new Error('message');
+    const wuzzleConfig: WuzzleConfig = {
+      modify() {
+        throw error;
+      },
+    };
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    applyConfig({}, webpack);
+    expect(logError).toBeCalledWith(error);
   });
 
   it('uses side effect of internal pre config', () => {
@@ -157,7 +174,7 @@ describe('applyConfig', () => {
   });
 });
 
-const jestCore = {};
+const jestInfo = {};
 
 describe('applyJest', () => {
   beforeEach(() => {
@@ -166,7 +183,7 @@ describe('applyJest', () => {
 
   it('does nothing if no config found', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    expect(applyJest({}, {})).toEqual({});
+    expect(applyJest({} as JestTypes.Config.ProjectConfig, {})).toEqual({});
   });
 
   it(`uses side effect of 'jest' field`, () => {
@@ -177,9 +194,11 @@ describe('applyJest', () => {
     };
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
     const jestConfig = {};
-    expect(applyJest(jestConfig, jestCore)).toEqual({ transform: [] });
+    expect(applyJest(jestConfig as JestTypes.Config.ProjectConfig, jestInfo)).toEqual({
+      transform: [],
+    });
     expect(jestConfig).toEqual({ transform: [] });
-    expect(wuzzleConfig.jest).toBeCalledWith(jestConfig, jestCore, defaultModifyOptions);
+    expect(wuzzleConfig.jest).toBeCalledWith(jestConfig, jestInfo, defaultModifyOptions);
   });
 
   it(`uses returned value of 'jest' field`, () => {
@@ -190,9 +209,23 @@ describe('applyJest', () => {
     };
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
     const jestConfig = {};
-    expect(applyJest(jestConfig, jestCore)).toEqual({ transform: [] });
+    expect(applyJest(jestConfig as JestTypes.Config.ProjectConfig, jestInfo)).toEqual({
+      transform: [],
+    });
     expect(jestConfig).toEqual({ transform: [] });
-    expect(wuzzleConfig.jest).toBeCalledWith(jestConfig, jestCore, defaultModifyOptions);
+    expect(wuzzleConfig.jest).toBeCalledWith(jestConfig, jestInfo, defaultModifyOptions);
+  });
+
+  it(`reports error thrown from 'jest'`, () => {
+    const error = new Error('message');
+    const wuzzleConfig: WuzzleConfig = {
+      jest() {
+        throw error;
+      },
+    };
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
+    applyJest({} as JestTypes.Config.ProjectConfig, jestInfo);
+    expect(logError).toBeCalledWith(error);
   });
 
   it('collects and prints debug info', () => {
@@ -203,7 +236,7 @@ describe('applyJest', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({
       config: { jest: () => newJestConfig },
     });
-    applyJest({ ...oldJestConfig }, {});
+    applyJest({ ...oldJestConfig } as JestTypes.Config.ProjectConfig, {});
     expect(diff).toBeCalledWith(
       stringify(oldJestConfig, stringifyOpts),
       stringify(newJestConfig, stringifyOpts)

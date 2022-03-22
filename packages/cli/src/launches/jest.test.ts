@@ -1,5 +1,4 @@
-import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
-import { noop } from 'lodash';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/jest__26.x';
@@ -28,8 +27,6 @@ jest.mock('../utils', () => ({
   execNode: jest.fn(),
   tmplLogForGlobalResolving: jest.fn(),
 }));
-jest.spyOn(console, 'log').mockImplementation(noop);
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -61,7 +58,7 @@ describe('launchTest', () => {
     });
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
-    expect(console.log).toBeCalledWith(logForGlobalResolving);
+    expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
     expect(register).toBeCalledWith({ commandPath });
     expect(execNode).toBeCalledWith(
@@ -82,7 +79,7 @@ describe('launchTest', () => {
     try {
       launchJest(launchOptions);
     } catch {}
-    expect(console.error).toBeCalledWith(expect.stringContaining(commandName));
+    expect(logError).toBeCalledWith(expect.stringContaining(commandName));
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
     expect(execNode).not.toBeCalled();
   });

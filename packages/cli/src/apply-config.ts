@@ -1,5 +1,5 @@
 import * as JestTypes from '@jest/types';
-import { diff, stringify } from '@wuzzle/helpers';
+import { diff, logError, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { InspectOptions } from 'util';
@@ -22,7 +22,7 @@ const debug = debugFty(DN_APPLY_CONFIG);
 type WebpackConfig = webpackType.Configuration;
 type Webpack = typeof webpackType;
 
-type JestConfig = Partial<JestTypes.Config.ProjectConfig>;
+type JestConfig = JestTypes.Config.ProjectConfig;
 type JestInfo = {};
 
 export interface WuzzleModifyOptions {
@@ -80,7 +80,9 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
       if (webpackConfigToMerge) {
         Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
       }
-    } catch {}
+    } catch (e) {
+      logError(e);
+    }
   }
   if (optionsToUse.cacheKeyOfEnvKeys) {
     process.env[EK_CACHE_KEY_OF_ENV_KEYS] = JSON.stringify(optionsToUse.cacheKeyOfEnvKeys);
@@ -117,7 +119,9 @@ export function applyJest(jestConfig: JestConfig, jestInfo: JestInfo): JestConfi
       if (jestConfigToMerge) {
         Object.assign(jestConfig, merge(jestConfig, jestConfigToMerge));
       }
-    } catch {}
+    } catch (e) {
+      logError(e);
+    }
   }
   const jestConfigNewSnapshot = stringify(jestConfig, stringifyOpts);
 

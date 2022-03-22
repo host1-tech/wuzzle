@@ -1,3 +1,4 @@
+import { logError } from '@wuzzle/helpers';
 import execa from 'execa';
 import { EXIT_CODE_ERROR } from '../constants';
 
@@ -17,7 +18,7 @@ export function execNode({
   try {
     execa.sync(nodePath, execArgs, { stdio: 'inherit', ...execOpts });
   } catch (e) {
-    console.error((e as Error).stack ?? e);
+    logError(e);
     process.exit(EXIT_CODE_ERROR);
   }
 }

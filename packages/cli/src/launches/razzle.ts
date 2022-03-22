@@ -1,4 +1,10 @@
-import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
+import {
+  logError,
+  logPlain,
+  resolveCommandPath,
+  resolveCommandSemVer,
+  resolveRequire,
+} from '@wuzzle/helpers';
 import { EK_COMMAND_ARGS, EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
@@ -20,11 +26,11 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
       razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
     } catch {
       razzleCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
-      console.log(tmplLogForGlobalResolving({ commandName, commandPath: razzleCommandPath }));
+      logPlain(tmplLogForGlobalResolving({ commandName, commandPath: razzleCommandPath }));
     }
     razzleMajorVersion = resolveCommandSemVer(razzleCommandPath).major;
   } catch {
-    console.error(`error: failed to resolve command '${commandName}'.`);
+    logError(`error: failed to resolve command '${commandName}'.`);
     process.exit(EXIT_CODE_ERROR);
   }
 

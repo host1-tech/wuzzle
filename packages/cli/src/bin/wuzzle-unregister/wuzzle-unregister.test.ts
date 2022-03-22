@@ -1,5 +1,4 @@
-import { resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
-import { noop } from 'lodash';
+import { logError, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
@@ -23,17 +22,16 @@ mocked(locateProjectAnchor).mockReturnValue(projectPath);
 
 jest.mock('../../registers/jest__24.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/jest__25.x', () => ({ unregister: jest.fn() }));
-jest.mock('../../registers/jest__26.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/webpack__4.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/webpack__5.x', () => ({ unregister: jest.fn() }));
 
 jest.mock('@wuzzle/helpers', () => ({
   ...jest.requireActual('@wuzzle/helpers'),
+  logError: jest.fn(),
+  logPlain: jest.fn(),
   resolveCommandPath: jest.fn(),
 }));
 
-jest.spyOn(console, 'log').mockImplementation(noop);
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -81,6 +79,6 @@ describe('wuzzle-unregister', () => {
       jest.isolateModules(() => require('./wuzzle-unregister'));
     } catch {}
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(console.error).toBeCalledWith(expect.stringContaining('error:'));
+    expect(logError).toBeCalledWith(expect.stringContaining('error:'));
   });
 });

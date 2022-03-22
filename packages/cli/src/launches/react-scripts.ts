@@ -1,4 +1,10 @@
-import { resolveCommandPath, resolveCommandSemVer, resolveRequire } from '@wuzzle/helpers';
+import {
+  logError,
+  logPlain,
+  resolveCommandPath,
+  resolveCommandSemVer,
+  resolveRequire,
+} from '@wuzzle/helpers';
 import {
   EK_COMMAND_ARGS,
   EK_INTERNAL_PRE_CONFIG,
@@ -34,11 +40,11 @@ export const launchReactScripts: LaunchFunction = ({
         commandName,
         fromGlobals: true,
       });
-      console.log(tmplLogForGlobalResolving({ commandName, commandPath: reactScriptsCommandPath }));
+      logPlain(tmplLogForGlobalResolving({ commandName, commandPath: reactScriptsCommandPath }));
     }
     reactScriptsMajorVersion = resolveCommandSemVer(reactScriptsCommandPath).major;
   } catch {
-    console.error(`error: failed to resolve command '${commandName}'.`);
+    logError(`error: failed to resolve command '${commandName}'.`);
     process.exit(EXIT_CODE_ERROR);
   }
 

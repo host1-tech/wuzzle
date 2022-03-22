@@ -1,4 +1,4 @@
-import { resolveRequire } from '@wuzzle/helpers';
+import { logError, resolveRequire } from '@wuzzle/helpers';
 import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
 import {
   launchDefault,
@@ -14,7 +14,7 @@ const projectPath = locateProjectAnchor();
 const [nodePath, , commandName, ...args] = process.argv;
 
 if (!commandName) {
-  console.error('error: command name not specified.');
+  logError('error: command name not specified.');
   process.exit(EXIT_CODE_ERROR);
 }
 

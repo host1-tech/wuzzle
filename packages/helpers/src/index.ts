@@ -6,3 +6,4 @@ export * from './resolve-require';
 export * from './resolve-sem-ver';
 export * from './stringify';
 export * from './types';
+export * from './logger';

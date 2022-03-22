@@ -1,5 +1,4 @@
-import { resolveRequire } from '@wuzzle/helpers';
-import { noop } from 'lodash';
+import { logError, resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
@@ -14,6 +13,11 @@ const originalProcessArgv = process.argv;
 const extraArgs = ['extraArg'];
 const projectPath = fixturePath;
 
+jest.mock('@wuzzle/helpers', () => ({
+  ...jest.requireActual('@wuzzle/helpers'),
+  logError: jest.fn(),
+}));
+
 jest.mock('../../launches');
 
 jest.mock('../../utils');
@@ -25,7 +29,6 @@ jest.mock('../wuzzle-transpile', () => mockedWuzzleTranspileExec());
 const mockedWuzzleUnregisterExec = jest.fn();
 jest.mock('../wuzzle-unregister', () => mockedWuzzleUnregisterExec());
 
-jest.spyOn(console, 'error').mockImplementation(noop);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -102,6 +105,6 @@ describe('wuzzle', () => {
       jest.isolateModules(() => require('./wuzzle'));
     } catch {}
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(console.error).toBeCalledWith(expect.stringContaining('error:'));
+    expect(logError).toBeCalledWith(expect.stringContaining('error:'));
   });
 });

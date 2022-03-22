@@ -1,4 +1,4 @@
-import { resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
 import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import {
@@ -18,11 +18,11 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
       jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName });
     } catch {
       jestCommandPath = resolveCommandPath({ cwd: projectPath, commandName, fromGlobals: true });
-      console.log(tmplLogForGlobalResolving({ commandName, commandPath: jestCommandPath }));
+      logPlain(tmplLogForGlobalResolving({ commandName, commandPath: jestCommandPath }));
     }
     jestMajorVersion = resolveCommandSemVer(jestCommandPath).major;
   } catch {
-    console.error(`error: failed to resolve command '${commandName}'.`);
+    logError(`error: failed to resolve command '${commandName}'.`);
     process.exit(EXIT_CODE_ERROR);
   }
 

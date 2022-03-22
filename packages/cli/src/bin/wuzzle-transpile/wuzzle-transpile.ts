@@ -1,4 +1,4 @@
-import { longestCommonPrefix } from '@wuzzle/helpers';
+import { logError, logPlain, longestCommonPrefix } from '@wuzzle/helpers';
 import { blue, green, grey, yellow } from 'chalk';
 import chokidar from 'chokidar';
 import { Command } from 'commander';
@@ -70,11 +70,11 @@ program
 program.parse(process.argv);
 
 ensureArgs();
-launchExec().catch(e => console.error(e.stack ?? e));
+launchExec().catch(e => logError(e));
 
 function ensureArgs() {
   if (!program.args.length) {
-    console.error('error: input globs not specified.');
+    logError('error: input globs not specified.');
     process.exit(EXIT_CODE_ERROR);
   }
 
@@ -94,12 +94,12 @@ function ensureArgs() {
       'webworker',
     ].includes(program.target)
   ) {
-    console.error(`error: option '-t, --target ${program.target}' not supported.`);
+    logError(`error: option '-t, --target ${program.target}' not supported.`);
     process.exit(EXIT_CODE_ERROR);
   }
 
   if (![undefined, true, 'none', 'file', 'inline'].includes(program.sourceMap)) {
-    console.error(`error: option '-s, --source-map ${program.sourceMap}' not supported.`);
+    logError(`error: option '-s, --source-map ${program.sourceMap}' not supported.`);
     process.exit(EXIT_CODE_ERROR);
   } else if (program.sourceMap === undefined) {
     program.sourceMap = 'none';
@@ -111,9 +111,8 @@ async function launchExec() {
   // Calculate input options
   const { verbose, clean, watch, ignore, follow, args: inputGlobs } = program;
 
-  const verboseLog = verbose ? console.log : noop;
-  const forceLog = console.log;
-  const errorLog = console.error;
+  const verboseLog = verbose ? logPlain : noop;
+  const forceLog = logPlain;
 
   const inputPaths = uniq(
     inputGlobs
@@ -184,7 +183,7 @@ async function launchExec() {
       }
     } catch (e) {
       forceLog(yellow(`File '${path.relative(process.cwd(), inputPath)}' compilation failed.`));
-      errorLog(e);
+      logError(e);
       watch || process.exit(EXIT_CODE_ERROR);
     }
   }

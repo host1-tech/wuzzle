@@ -1,4 +1,4 @@
-import { resolveRequire } from '@wuzzle/helpers';
+import { logPlain, resolveRequire } from '@wuzzle/helpers';
 import { grey } from 'chalk';
 import execa from 'execa';
 import fs from 'fs';
@@ -49,7 +49,7 @@ export function transform(_: string, file: string): string {
     stderr: 'inherit',
   });
   if (getCurrentNodeLikeExtraOptions().verbose) {
-    console.log(grey(`File '${path.relative(process.cwd(), file)}' compiled.`));
+    logPlain(grey(`File '${path.relative(process.cwd(), file)}' compiled.`));
   }
   return stdout;
 }
