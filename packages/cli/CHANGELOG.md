@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2](https://github.com/host1-tech/wuzzle/compare/v0.3.1...v0.3.2) (2022-03-23)
+
+
+### Bug Fixes
+
+* improve logging ([c56aa1f](https://github.com/host1-tech/wuzzle/commit/c56aa1f27dcd29684d515ac08144340031b636dc))
+* reduce overlong in dry-run ([8334324](https://github.com/host1-tech/wuzzle/commit/8334324f356cf215f284fe5218e4aa948aa4a5ff))
+
+
+
 ## [0.3.1](https://github.com/host1-tech/wuzzle/compare/v0.3.1-alpha.2...v0.3.1) (2022-03-07)
 
 
