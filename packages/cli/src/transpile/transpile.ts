@@ -1,3 +1,4 @@
+import { serialize } from '@wuzzle/helpers';
 import cacache from 'cacache';
 import { createHash } from 'crypto';
 import fs from 'fs';
@@ -9,7 +10,6 @@ import mkdirp from 'mkdirp';
 import pMap from 'p-map';
 import path from 'path';
 import pify from 'pify';
-import serializeJavascript from 'serialize-javascript';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
 import { promisify } from 'util';
 import webpack from 'webpack';
@@ -107,10 +107,10 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
   webpackConfig.externals = [
     (context, request: string, callback) => {
-      if (request === inputPath) {
+      if (request === inputPath || request.startsWith('-') || request.startsWith('!')) {
         callback();
       } else {
-        callback(null, `commonjs ${request.substring(request.lastIndexOf('!') + 1)}`);
+        callback(null, `commonjs ${request}`);
       }
     },
   ];
@@ -345,15 +345,15 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
     .update('\0', ENCODING_TEXT)
     .update(inputFileContent)
     .update('\0', ENCODING_TEXT)
-    .update(serializeJavascript(options))
+    .update(serialize(options))
     .update('\0', ENCODING_TEXT)
-    .update(serializeJavascript(envKeys))
+    .update(serialize(envKeys))
     .update('\0', ENCODING_TEXT)
-    .update(serializeJavascript(envVals))
+    .update(serialize(envVals))
     .update('\0', ENCODING_TEXT)
-    .update(serializeJavascript(filePaths))
+    .update(serialize(filePaths))
     .update('\0', ENCODING_TEXT)
-    .update(serializeJavascript(fileContents))
+    .update(serialize(fileContents))
     .digest('hex');
 }
 

@@ -5,13 +5,13 @@ import { WuzzleModifyOptions } from '../../apply-config';
 export default (
   arg0: unknown,
   arg2: unknown,
-  { commandName, commandArgs }: WuzzleModifyOptions
+  { projectPath, commandName, commandArgs }: WuzzleModifyOptions
 ) => {
   if (commandName !== 'react-scripts') return;
 
   const reactScriptsSubCommand = commandArgs[0];
   const reactScriptsDir = path.dirname(
-    resolveRequire('react-scripts/package.json', { basedir: process.cwd() })
+    resolveRequire('react-scripts/package.json', { basedir: projectPath })
   );
 
   if (reactScriptsSubCommand === 'test') {

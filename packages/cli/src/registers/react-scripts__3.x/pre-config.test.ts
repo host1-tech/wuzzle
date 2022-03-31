@@ -1,30 +1,29 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
 import { mocked } from 'ts-jest/utils';
+import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
 import preConfig from './pre-config';
 
-const projectPath = '/path/to/project';
+const wuzzleModifyOptions: WuzzleModifyOptions = {
+  ...getWuzzleModifyOptions(),
+  commandName: 'react-scripts',
+  commandArgs: ['test'],
+};
 
 jest.mock('@wuzzle/helpers');
 mocked(resolveRequire).mockReturnValue('');
 
 describe('preConfig.ts', () => {
   it('returns empty on unknown command name given', () => {
-    const commandName = 'unknown';
-    const commandArgs = ['test'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toBe(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandName: 'unknown' })).toBeUndefined();
   });
 
   it('returns empty on unknown command args given', () => {
-    const commandName = 'react-scripts';
-    const commandArgs = ['unknown'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toBe(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandArgs: ['unknown'] })).toBeUndefined();
   });
 
   it('returns testing config on testing subcommand given', () => {
-    const commandName = 'react-scripts';
-    const commandArgs = ['test'];
-    const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+    const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
     expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
   });
 });

@@ -6,13 +6,13 @@ import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
 export default (
   arg0: unknown,
   arg1: unknown,
-  { commandName, commandArgs }: WuzzleModifyOptions
+  { projectPath, commandName, commandArgs }: WuzzleModifyOptions
 ) => {
   if (commandName !== 'react-scripts') return;
 
   const reactScriptsSubCommand = commandArgs[0];
   const reactScriptsDir = path.dirname(
-    resolveRequire('react-scripts/package.json', { basedir: process.cwd() })
+    resolveRequire('react-scripts/package.json', { basedir: projectPath })
   );
 
   if (reactScriptsSubCommand === 'test') {
@@ -30,7 +30,7 @@ export default (
                     [
                       resolveRequire('babel-preset-react-app', { basedir: reactScriptsDir }),
                       {
-                        runtime: hasNewJsxRuntime() ? 'automatic' : 'classic',
+                        runtime: hasNewJsxRuntime(projectPath) ? 'automatic' : 'classic',
                       },
                     ],
                   ],
@@ -82,13 +82,13 @@ export default (
   }
 };
 
-function hasNewJsxRuntime() {
+function hasNewJsxRuntime(projectPath: string) {
   if (process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] === 'true') {
     return false;
   }
 
   try {
-    resolveRequire('react/jsx-runtime', { basedir: process.cwd() });
+    resolveRequire('react/jsx-runtime', { basedir: projectPath });
     return true;
   } catch {
     return false;

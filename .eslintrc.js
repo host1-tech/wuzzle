@@ -1,4 +1,5 @@
 const jsRules = {
+  'no-constant-condition': 'off',
   'no-empty': 'off',
   'no-undef': 'error',
   'no-unused-vars': 'warn',

@@ -16,7 +16,7 @@ if (!commandName) {
 process.env[EK_COMMAND_NAME] = 'unregister';
 process.env[EK_COMMAND_ARGS] = JSON.stringify(process.argv.slice(2));
 
-const specialModules = ['jest', 'razzle', 'razzle', 'react-scripts'];
+const specialModules = ['jest', 'razzle', 'razzle', 'react-scripts', 'vue-cli-service'];
 const targetPrefix = specialModules.includes(commandName) ? commandName : 'webpack';
 
 for (const { unregister } of glob

@@ -7,6 +7,7 @@ import {
   launchNode,
   launchRazzle,
   launchReactScripts,
+  launchVueCliService,
 } from '../../launches';
 import { checkToUseDryRunMode, LaunchFunction, locateProjectAnchor } from '../../utils';
 
@@ -38,5 +39,6 @@ const entries: Record<string, LaunchFunction> = {
   ['node']: launchNode,
   ['razzle']: launchRazzle,
   ['react-scripts']: launchReactScripts,
+  ['vue-cli-service']: launchVueCliService,
 };
 (entries[commandName] || launchDefault)({ nodePath, args, projectPath, commandName });

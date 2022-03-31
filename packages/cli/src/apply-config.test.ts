@@ -20,6 +20,7 @@ import {
   EK_CACHE_KEY_OF_FILE_PATHS,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_COMMAND_TYPE,
   EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
@@ -34,6 +35,7 @@ const defaultModifyOptions: WuzzleModifyOptions = {
   projectPath: process.cwd(),
   commandName: 'unknown',
   commandArgs: [],
+  commandType: 'default',
 };
 
 const internalPreConfigPath = '@internal-pre-config';
@@ -286,16 +288,24 @@ describe('getWuzzleModifyOptions', () => {
     delete process.env[EK_PROJECT_PATH];
     delete process.env[EK_COMMAND_NAME];
     delete process.env[EK_COMMAND_ARGS];
+    delete process.env[EK_COMMAND_TYPE];
   });
 
   it('parses values from envs', () => {
     const projectPath = 'projectPath';
     const commandName = 'commandName';
     const commandArgs = [uniqueId()];
+    const commandType = 'commandType';
     process.env[EK_PROJECT_PATH] = projectPath;
     process.env[EK_COMMAND_NAME] = commandName;
     process.env[EK_COMMAND_ARGS] = JSON.stringify(commandArgs);
-    expect(getWuzzleModifyOptions()).toEqual({ projectPath, commandName, commandArgs });
+    process.env[EK_COMMAND_TYPE] = commandType;
+    expect(getWuzzleModifyOptions()).toEqual({
+      projectPath,
+      commandName,
+      commandArgs,
+      commandType,
+    });
   });
 
   it('returns default values if no envs given', () => {

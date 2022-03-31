@@ -1,4 +1,4 @@
-import { cloneDeep, times } from 'lodash';
+import { cloneDeep, repeat, times } from 'lodash';
 import { inspect } from 'util';
 import { stringify, stringifyDefaultOptions, StringifyOptions } from './stringify';
 
@@ -20,7 +20,7 @@ describe('stringify', () => {
 
   it('reduces overlong w/o side effects', () => {
     const { overlongThreshold } = stringifyDefaultOptions;
-    const regularlong = [
+    const normlong = [
       'lorem ipsum',
       0,
       true,
@@ -30,17 +30,17 @@ describe('stringify', () => {
       () => {},
       {},
       [],
-      times(overlongThreshold),
+      times(overlongThreshold).map(() => '*'),
     ];
     const input = [
-      ...regularlong,
-      [times(overlongThreshold).join('')],
-      [{ [times(overlongThreshold).join('')]: '' }],
-      { overlong: { [times(overlongThreshold).join('')]: '' } },
+      ...normlong,
+      repeat('*', overlongThreshold),
+      { [repeat('*', overlongThreshold)]: '' },
     ];
+    eval(`input.push(function ${repeat('_', overlongThreshold)}(){})`);
     const inputSnapshot = cloneDeep(input);
     expect(stringify(input)).toBe(
-      inspect([...regularlong, '...', ['...'], { overlong: '...' }], stringifyDefaultOptions)
+      inspect([...normlong, '...', '...', '...'], stringifyDefaultOptions)
     );
     expect(input).toEqual(inputSnapshot);
   });

@@ -20,19 +20,27 @@ export function stringify(o: any, options: StringifyOptions = {}): string {
   return inspect(prepareStringifiable(o, internalOptions), internalOptions);
 }
 
-export function prepareStringifiable(o: any, options: StringifyInternalOptions): any {
+function prepareStringifiable(o: any, options: StringifyInternalOptions): any {
   return reduceOverlong(cloneDeep(o), options);
 }
 
-export function reduceOverlong(o: any, options: StringifyInternalOptions): any {
-  if (inspect(o, { ...options, depth: 0 }).length > options.overlongThreshold) {
-    return '...';
-  }
-
+function reduceOverlong(o: any, options: StringifyInternalOptions): any {
   if (isObjectLike(o)) {
     forEach(o, (v, k) => {
       o[k] = reduceOverlong(v, options);
     });
+  }
+
+  switch (typeof o) {
+    case 'object':
+      if (inspect(o, { ...options, depth: 0 }).length >= options.overlongThreshold) {
+        return '...';
+      }
+      break;
+    default:
+      if (inspect(o, options).length >= options.overlongThreshold) {
+        return '...';
+      }
   }
 
   return o;

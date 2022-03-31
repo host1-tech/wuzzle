@@ -30,7 +30,7 @@ const launchOptions: LaunchOptions = {
   projectPath: '/path/to/project',
   commandName,
 };
-const reactScriptsPreConfigPath = '/path/to/pre-config/react-scripts';
+const reactScriptsPreConfigPath = '/path/to/react-scripts/pre-config';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/react-scripts__3.x', () => ({ register: jest.fn() }));
@@ -50,7 +50,7 @@ describe('launchReactScripts', () => {
     delete process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK];
   });
 
-  it('executes with register attached and pre config set if command resolved', () => {
+  it('executes with register attached and envs set if command resolved', () => {
     mocked(resolveRequire).mockReturnValueOnce(reactScriptsPreConfigPath);
     launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalled();

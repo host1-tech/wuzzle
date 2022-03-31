@@ -1,10 +1,15 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
 import { mocked } from 'ts-jest/utils';
+import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
 import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
 import preConfig from './pre-config';
 
-const projectPath = '/path/to/project';
+const wuzzleModifyOptions: WuzzleModifyOptions = {
+  ...getWuzzleModifyOptions(),
+  commandName: 'react-scripts',
+  commandArgs: ['test'],
+};
 
 jest.mock('@wuzzle/helpers');
 
@@ -14,24 +19,18 @@ describe('preConfig.ts', () => {
   });
 
   it('returns empty on unknown command name given', () => {
-    const commandName = 'unknown';
-    const commandArgs = ['test'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandName: 'unknown' })).toBeUndefined();
   });
 
   it('returns empty on unknown command args given', () => {
-    const commandName = 'react-scripts';
-    const commandArgs = ['unknown'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandArgs: ['unknown'] })).toBeUndefined();
   });
 
   it(
     'returns testing config with jsx runtime enabled ' +
       'on testing subcommand given and found new jsx runtime',
     () => {
-      const commandName = 'react-scripts';
-      const commandArgs = ['test'];
-      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'automatic'
@@ -43,15 +42,13 @@ describe('preConfig.ts', () => {
     'returns testing config with jsx runtime disabled ' +
       'on testing subcommand given and jsx runtime not found',
     () => {
-      const commandName = 'react-scripts';
-      const commandArgs = ['test'];
       mocked(resolveRequire).mockImplementation(p => {
         if (p.endsWith('react/jsx-runtime')) {
           throw 0;
         }
         return '';
       });
-      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'classic'
@@ -63,10 +60,8 @@ describe('preConfig.ts', () => {
     'returns testing config with jsx runtime disabled ' +
       'on testing subcommand given and jsx runtime disabled',
     () => {
-      const commandName = 'react-scripts';
-      const commandArgs = ['test'];
       process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
-      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(
         'classic'

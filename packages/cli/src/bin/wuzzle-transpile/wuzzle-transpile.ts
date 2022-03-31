@@ -21,7 +21,7 @@ import {
 import { transpile } from '../../transpile';
 import { checkToUseDryRunMode, locateProjectAnchor } from '../../utils';
 
-locateProjectAnchor();
+const projectPath = locateProjectAnchor();
 checkToUseDryRunMode(process.argv);
 
 // Set command same env variables as 'wuzzle transpile'
@@ -164,7 +164,7 @@ async function launchExec() {
   // Check to clean output dir
   if (clean) {
     rimraf.sync(outDir);
-    verboseLog(grey(`Directory '${path.relative(process.cwd(), outDir)}' cleaned.`));
+    verboseLog(grey(`Directory '${path.relative(projectPath, outDir)}' cleaned.`));
   }
 
   // Organize transpile tasks
@@ -176,13 +176,13 @@ async function launchExec() {
     try {
       await transpile({ inputPath, outputPath, webpackConfig });
       if (inputPathsCompiled[inputPath]) {
-        forceLog(grey(`File '${path.relative(process.cwd(), inputPath)}' recompiled.`));
+        forceLog(grey(`File '${path.relative(projectPath, inputPath)}' recompiled.`));
       } else {
-        forceLog(grey(`File '${path.relative(process.cwd(), inputPath)}' compiled.`));
+        forceLog(grey(`File '${path.relative(projectPath, inputPath)}' compiled.`));
         inputPathsCompiled[inputPath] = true;
       }
     } catch (e) {
-      forceLog(yellow(`File '${path.relative(process.cwd(), inputPath)}' compilation failed.`));
+      forceLog(yellow(`File '${path.relative(projectPath, inputPath)}' compilation failed.`));
       logError(e);
       watch || process.exit(EXIT_CODE_ERROR);
     }
@@ -193,7 +193,7 @@ async function launchExec() {
     const outputPath = path.join(outDir, path.relative(basePath, inputPath));
     rimraf.sync(outputPath);
     inputPathsCompiled[inputPath] = false;
-    verboseLog(grey(`File '${path.relative(process.cwd(), inputPath)}' removed.`));
+    verboseLog(grey(`File '${path.relative(projectPath, inputPath)}' removed.`));
   }
 
   forceLog(blue(`Start compiling '${inputGlobs.join(`' '`)}'.`));

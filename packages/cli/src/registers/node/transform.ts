@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
-import { EK_DRY_RUN, ENCODING_BINARY, ENCODING_TEXT } from '../../constants';
+import { EK_DRY_RUN, EK_PROJECT_PATH, ENCODING_BINARY, ENCODING_TEXT } from '../../constants';
 import { transpileDefaultOptions } from '../../transpile';
 import { getCurrentNodeLikeExtraOptions } from '../../utils';
 
@@ -49,7 +49,7 @@ export function transform(_: string, file: string): string {
     stderr: 'inherit',
   });
   if (getCurrentNodeLikeExtraOptions().verbose) {
-    logPlain(grey(`File '${path.relative(process.cwd(), file)}' compiled.`));
+    logPlain(grey(`File '${path.relative(process.env[EK_PROJECT_PATH]!, file)}' compiled.`));
   }
   return stdout;
 }
