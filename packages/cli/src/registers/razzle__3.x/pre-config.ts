@@ -1,6 +1,6 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import path from 'path';
 import { cosmiconfigSync } from 'cosmiconfig';
+import path from 'path';
 import { WuzzleModifyOptions } from '../../apply-config';
 
 const babelConfigExplorer = cosmiconfigSync('babel');
@@ -8,12 +8,12 @@ const babelConfigExplorer = cosmiconfigSync('babel');
 export default (
   arg0: unknown,
   arg1: unknown,
-  { commandName, commandArgs }: WuzzleModifyOptions
+  { projectPath, commandName, commandArgs }: WuzzleModifyOptions
 ) => {
   if (commandName !== 'razzle') return;
 
   const razzleSubCommand = commandArgs[0];
-  const razzleDir = path.dirname(resolveRequire('razzle/package.json', { basedir: process.cwd() }));
+  const razzleDir = path.dirname(resolveRequire('razzle/package.json', { basedir: projectPath }));
 
   if (razzleSubCommand === 'test') {
     return {

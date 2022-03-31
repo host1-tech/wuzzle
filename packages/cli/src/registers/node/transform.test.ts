@@ -5,13 +5,15 @@ import { noop, pick } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
-import { EK_DRY_RUN, ENCODING_BINARY } from '../../constants';
+import { EK_DRY_RUN, EK_PROJECT_PATH, ENCODING_BINARY } from '../../constants';
 import { getCurrentNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
 import { register, transform } from './transform';
 
 const code = `console.log('Hello, world.')`;
 const file = '/path/to/code';
 const convertPath = '/path/to/convert';
+
+process.env[EK_PROJECT_PATH] = process.cwd();
 
 jest.mock('@wuzzle/helpers');
 jest.mock('pirates');

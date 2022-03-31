@@ -11,6 +11,7 @@ import {
   EK_CACHE_KEY_OF_FILE_PATHS,
   EK_COMMAND_ARGS,
   EK_COMMAND_NAME,
+  EK_COMMAND_TYPE,
   EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
@@ -29,6 +30,7 @@ export interface WuzzleModifyOptions {
   projectPath: string;
   commandName: string;
   commandArgs: string[];
+  commandType: string;
 }
 
 export type WuzzleConfigModify = (
@@ -54,9 +56,8 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
   const stringifyOpts: InspectOptions = {};
   applyDryRunTweaks(stringifyOpts);
 
-  debug('Wuzzle process mounted in CWD:', process.cwd());
-
   const wuzzleModifyOptions = getWuzzleModifyOptions();
+  debug('Wuzzle process mounted in CWD:', wuzzleModifyOptions.projectPath);
 
   const internalPreConfigPath = process.env[EK_INTERNAL_PRE_CONFIG];
   if (internalPreConfigPath) {
@@ -104,9 +105,8 @@ export function applyJest(jestConfig: JestConfig, jestInfo: JestInfo): JestConfi
   const stringifyOpts: InspectOptions = {};
   applyDryRunTweaks(stringifyOpts);
 
-  debug('Wuzzle process mounted in CWD:', process.cwd());
-
   const wuzzleModifyOptions = getWuzzleModifyOptions();
+  debug('Wuzzle process mounted in CWD:', wuzzleModifyOptions.projectPath);
 
   const jestConfigOldSnapshot = stringify(jestConfig, stringifyOpts);
 
@@ -145,6 +145,7 @@ export function getWuzzleModifyOptions(): WuzzleModifyOptions {
     projectPath: process.env[EK_PROJECT_PATH] ?? process.cwd(),
     commandName: process.env[EK_COMMAND_NAME] ?? 'unknown',
     commandArgs: JSON.parse(process.env[EK_COMMAND_ARGS] ?? '[]'),
+    commandType: process.env[EK_COMMAND_TYPE] ?? 'default',
   };
 }
 

@@ -32,7 +32,7 @@ export const tmplTopLevelContentCompiled = template(
 <% }); %>`
 );
 export const silent = true;
-export const shouldSimplify = Boolean(process.env.CI);
+export const shouldSimplify = !!process.env.CI;
 
 interface ReportItem {
   testName?: string;

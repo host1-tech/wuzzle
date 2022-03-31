@@ -1,9 +1,14 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
 import { mocked } from 'ts-jest/utils';
+import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
 import preConfig from './pre-config';
 
-const projectPath = '/path/to/project';
+const wuzzleModifyOptions: WuzzleModifyOptions = {
+  ...getWuzzleModifyOptions(),
+  commandName: 'razzle',
+  commandArgs: ['test'],
+};
 
 let cosmiconfigSync$mockedSearch: jest.Mock;
 jest.mock('cosmiconfig', () => {
@@ -19,15 +24,11 @@ mocked(resolveRequire).mockReturnValue('');
 
 describe('preConfig', () => {
   it('returns empty on unknown command name given', () => {
-    const commandName = 'unknown';
-    const commandArgs = ['test'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandName: 'unknown' })).toBeUndefined();
   });
 
   it('returns empty on unknown command args given', () => {
-    const commandName = 'razzle';
-    const commandArgs = ['unknown'];
-    expect(preConfig(0, 0, { projectPath, commandName, commandArgs })).toEqual(undefined);
+    expect(preConfig(0, 0, { ...wuzzleModifyOptions, commandArgs: ['unknown'] })).toBeUndefined();
   });
 
   it(
@@ -35,9 +36,7 @@ describe('preConfig', () => {
       'on testing subcommand given and babel config found',
     () => {
       cosmiconfigSync$mockedSearch.mockReturnValueOnce({});
-      const commandName = 'razzle';
-      const commandArgs = ['test'];
-      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(0);
     }
@@ -48,9 +47,7 @@ describe('preConfig', () => {
       'on testing subcommand given and babel config not found',
     () => {
       cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-      const commandName = 'razzle';
-      const commandArgs = ['test'];
-      const webpackConfig = preConfig(0, 0, { projectPath, commandName, commandArgs });
+      const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(3);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets')).toHaveLength(1);
     }
