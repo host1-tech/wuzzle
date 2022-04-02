@@ -194,7 +194,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     throw new Error(`Compilation failed with messages:\n${webpackStats.toString('errors-only')}`);
   }
 
-  // Normalize source map when available
+  // Try to normalize source map but stop on any error thrown
   try {
     if (!doesProduceSourceMap(webpackConfig.devtool)) {
       throw 0;
@@ -208,7 +208,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
     const inputSource: string = omfs
       ? outputCode
-      : await pify(fs).readFile(outputPath, ENCODING_TEXT);
+      : await promisify(fs.readFile)(outputPath, ENCODING_TEXT);
 
     // Read raw source map
     let rawSourceMap: RawSourceMap;
@@ -221,7 +221,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
       );
     } else {
       rawSourceMap = JSON.parse(
-        await pify(fs).readFile(addSourceMapPathExt(outputPath), ENCODING_TEXT)
+        await promisify(fs.readFile)(addSourceMapPathExt(outputPath), ENCODING_TEXT)
       );
     }
 
@@ -256,27 +256,23 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
       if (omfs) {
         outputCode = outputSource;
       } else {
-        await pify(fs).writeFile(outputPath, outputSource);
+        await promisify(fs.writeFile)(outputPath, outputSource);
       }
     } else {
-      await pify(fs).writeFile(addSourceMapPathExt(outputPath), newSourceMap);
+      await Promise.all([
+        promisify(fs.writeFile)(addSourceMapPathExt(outputPath), newSourceMap),
+        cacache.put(cachePath, addSourceMapPathExt(outputCacheKey), newSourceMap),
+      ]);
     }
   } catch {}
 
-  // Put output into cache
+  // Put output code into cache
   if (omfs) {
     await cacache.put(cachePath, outputCacheKey, outputCode);
   } else {
     await waitForStream(
       fs.createReadStream(outputPath).pipe(cacache.put.stream(cachePath, outputCacheKey))
     );
-    if (doesProduceFileSourceMap(webpackConfig.devtool)) {
-      await waitForStream(
-        fs
-          .createReadStream(addSourceMapPathExt(outputPath))
-          .pipe(cacache.put.stream(cachePath, addSourceMapPathExt(outputCacheKey)))
-      );
-    }
   }
 
   return outputCode;

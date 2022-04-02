@@ -4,7 +4,6 @@ import { mocked } from 'ts-jest/utils';
 import webpackType from 'webpack';
 import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
 import preConfig from './pre-config';
-import path from 'path';
 
 const wuzzleModifyOptions: WuzzleModifyOptions = {
   ...getWuzzleModifyOptions(),
