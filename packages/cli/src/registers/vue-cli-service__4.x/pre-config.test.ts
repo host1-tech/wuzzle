@@ -1,5 +1,5 @@
 import { resolveRequire } from '@wuzzle/helpers';
-import { cloneDeep, forEach, noop, times } from 'lodash';
+import { cloneDeep, times } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import webpackType from 'webpack';
 import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
@@ -16,25 +16,12 @@ jest.mock('@wuzzle/helpers');
 mocked(resolveRequire).mockImplementation(id => id);
 
 let vueCliServiceWebpackConfig: webpackType.Configuration = {};
-['@vue/cli-service/webpack.config.js', '@vue\\cli-service\\webpack.config.js'].forEach(p => {
-  jest.mock(p, () => vueCliServiceWebpackConfig, { virtual: true });
-});
+jest.mock('./webpack.config.js', () => vueCliServiceWebpackConfig, { virtual: true });
 
-class CaseSensitivePathsWebpackPlugin implements webpackType.Plugin {
+class VueLoaderPlugin implements webpackType.Plugin {
   apply() {}
 }
-class FriendlyErrorsWebpackPlugin implements webpackType.Plugin {
-  apply() {}
-}
-forEach(
-  {
-    '@soda/friendly-errors-webpack-plugin': FriendlyErrorsWebpackPlugin,
-    'html-webpack-plugin': class {},
-    '@vue/preload-webpack-plugin': class {},
-    'copy-webpack-plugin': class {},
-  },
-  (v, k) => jest.mock(k, () => v, { virtual: true })
-);
+jest.mock('vue-loader', () => ({ VueLoaderPlugin }), { virtual: true });
 
 describe('preConfig.ts', () => {
   it('modifies none on unknown command info', () => {
@@ -57,6 +44,7 @@ describe('preConfig.ts', () => {
   });
 
   it('modifies fields on test:unit/jest given regardless of calling counts', () => {
+    const vueLoaderPlugin = new VueLoaderPlugin();
     vueCliServiceWebpackConfig = {
       context: 'context',
       module: {
@@ -72,7 +60,7 @@ describe('preConfig.ts', () => {
           },
         ],
       },
-      plugins: [new CaseSensitivePathsWebpackPlugin(), new FriendlyErrorsWebpackPlugin()],
+      plugins: [vueLoaderPlugin, { apply() {} }],
       resolve: {},
       resolveLoader: {},
     };
@@ -92,15 +80,17 @@ describe('preConfig.ts', () => {
           },
         ],
       },
-      plugins: [expect.any(CaseSensitivePathsWebpackPlugin)],
+      plugins: [vueLoaderPlugin],
       externals: [expect.any(Function)],
       resolve: {},
       resolveLoader: {},
     };
     times(2, () => {
-      const webpackConfig: webpackType.Configuration = { externals: [noop] };
+      const builtinExternal = () => {};
+      const webpackConfig: webpackType.Configuration = { externals: [builtinExternal] };
       preConfig(webpackConfig, 0, wuzzleModifyOptions);
       expect(webpackConfig).toEqual(expectedWebpackConfig);
+      expect(webpackConfig.externals).not.toContain(builtinExternal);
     });
   });
 
