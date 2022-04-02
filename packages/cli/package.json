@@ -8,6 +8,8 @@
     "bin",
     "lib"
   ],
+  "typings": "lib/exports.d.ts",
+  "main": "lib/exports.js",
   "bin": {
     "wuzzle": "bin/wuzzle.js",
     "wuzzle-transpile": "bin/wuzzle-transpile.js",

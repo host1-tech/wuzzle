@@ -5,8 +5,12 @@
   "keywords": [],
   "license": "MIT",
   "files": [
-    "bin"
+    "bin",
+    "exports.d.ts",
+    "exports.js"
   ],
+  "typings": "exports.d.ts",
+  "main": "exports.js",
   "bin": {
     "wuzzle": "bin/wuzzle.js",
     "wuzzle-transpile": "bin/wuzzle-transpile.js",
