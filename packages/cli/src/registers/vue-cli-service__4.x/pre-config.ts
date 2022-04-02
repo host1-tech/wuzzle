@@ -28,7 +28,9 @@ export default (
       plugins,
       resolve,
       resolveLoader,
-    }: webpackType.Configuration = require(path.join(vueCliServiceDir, 'webpack.config.js'));
+    }: webpackType.Configuration = require(resolveRequire('./webpack.config.js', {
+      basedir: vueCliServiceDir,
+    }));
 
     while (deleteUseItem(module, { loader: 'cache-loader' }));
 
@@ -50,19 +52,14 @@ export default (
     }
 
     if (plugins) {
-      [
-        '@soda/friendly-errors-webpack-plugin',
-        'html-webpack-plugin',
-        '@vue/preload-webpack-plugin',
-        'copy-webpack-plugin',
-      ].forEach(pluginName => {
-        const Plugin = require(resolveRequire(pluginName, { basedir: vueCliServiceDir }));
-        while (true) {
-          const toDelete = plugins.findIndex(p => p instanceof Plugin);
-          if (toDelete < 0) break;
-          plugins.splice(toDelete, 1);
-        }
-      });
+      const { VueLoaderPlugin } = require(resolveRequire('vue-loader', {
+        basedir: vueCliServiceDir,
+      }));
+      while (true) {
+        const toDelete = plugins.findIndex(p => !(p instanceof VueLoaderPlugin));
+        if (toDelete < 0) break;
+        plugins.splice(toDelete, 1);
+      }
     }
 
     const builtinExternals = webpackConfig.externals;
