@@ -165,7 +165,7 @@ describe('transpile', () => {
       inputPath: printJs.inputPath,
       webpackConfig: { devtool: 'source-map' },
     });
-    expect(outputContent.substr(outputContent.lastIndexOf('\n'))).toEqual(
+    expect(outputContent.substring(outputContent.lastIndexOf('\n'))).toEqual(
       expect.not.stringContaining('sourceMappingURL')
     );
   });
