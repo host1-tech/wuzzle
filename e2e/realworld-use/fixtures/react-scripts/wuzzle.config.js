@@ -1,6 +1,6 @@
+const path = require('path');
 const { cloneDeep, toPairs } = require('lodash');
 const { jsWithBabel: tsjPreset } = require('ts-jest/presets');
-const getCSSModuleLocalIdent = require('react-dev-utils/getCSSModuleLocalIdent');
 const appPaths = require('react-scripts/config/paths');
 const webpackConfigFactory = require('react-scripts/config/webpack.config');
 const {
@@ -13,14 +13,16 @@ const {
   insertBeforeRule,
   replaceUseItem,
   findRules,
-} = require('../../../../packages/wuzzle/config-tools');
+  resolveRequire,
+} = require('../../../../packages/wuzzle');
 
 module.exports = {
   modify(webpackConfig, webpack, { commandName }) {
-    const reactScriptsWebpackConfig =
+    const reactScriptsDir = path.dirname(resolveRequire('react-scripts/package.json'));
+    const { module, resolve, resolveLoader } =
       commandName === 'react-scripts' ? webpackConfig : webpackConfigFactory(process.env.NODE_ENV);
 
-    const scriptRule = firstRule(reactScriptsWebpackConfig, {
+    const scriptRule = firstRule(module, {
       file: { dir: appPaths.appSrc, base: 'index.ts' },
     });
     // Tweak babel-loader to use external babel config
@@ -36,7 +38,7 @@ module.exports = {
     );
 
     // Tweak postcss-loader to use external postcss config
-    findUseItems(reactScriptsWebpackConfig, { loader: 'postcss-loader' }).forEach((useItem) => {
+    findUseItems(module, { loader: 'postcss-loader' }).forEach((useItem) => {
       delete useItem.options.plugins;
     });
 
@@ -45,7 +47,7 @@ module.exports = {
 
     const scssRuleQuery = { file: { dir: appPaths.appSrc, base: 'index.scss' } };
     const lessRule = {
-      ...cloneDeep(firstRule(reactScriptsWebpackConfig, scssRuleQuery)),
+      ...cloneDeep(firstRule(module, scssRuleQuery)),
       test: /\.(less)$/,
       exclude: /\.module\.less$/,
     };
@@ -56,11 +58,11 @@ module.exports = {
       { loader: 'less-loader', options: { sourceMap: true, lessOptions } }
     );
     firstUseItem(lessRule, { loader: 'css-loader' }).options.importLoaders = 2;
-    insertAfterRule(reactScriptsWebpackConfig, scssRuleQuery, lessRule);
+    insertAfterRule(module, scssRuleQuery, lessRule);
 
     const scssModuleRuleQuery = { file: { dir: appPaths.appSrc, base: 'index.module.scss' } };
     const lessModuleRule = {
-      ...cloneDeep(firstRule(reactScriptsWebpackConfig, scssModuleRuleQuery)),
+      ...cloneDeep(firstRule(module, scssModuleRuleQuery)),
       test: /\.module\.less$/,
     };
     deleteUseItem(lessModuleRule, { loader: 'resolve-url-loader' });
@@ -70,23 +72,27 @@ module.exports = {
       { loader: 'less-loader', options: { sourceMap: true, lessOptions } }
     );
     firstUseItem(lessModuleRule, { loader: 'css-loader' }).options.importLoaders = 2;
-    insertAfterRule(reactScriptsWebpackConfig, scssModuleRuleQuery, lessModuleRule);
+    insertAfterRule(module, scssModuleRuleQuery, lessModuleRule);
 
     // Normalize svg loading in react component and url formats
-    const fileRule = firstRule(reactScriptsWebpackConfig, { loader: 'file-loader' });
+    const fileRule = firstRule(module, { loader: 'file-loader' });
     insertBeforeRule(
-      reactScriptsWebpackConfig,
+      module,
       { loader: 'file-loader' },
       {
         test: /\.svg$/,
-        use: [{ loader: '@svgr/webpack' }, { loader: 'file-loader', options: fileRule.options }],
+        use: [
+          { loader: '@svgr/webpack' },
+          {
+            loader: resolveRequire('file-loader', { basedir: reactScriptsDir }),
+            options: fileRule.options,
+          },
+        ],
       }
     );
 
     if (commandName === 'transpile' || commandName === 'node') {
       // Setup client-compatible server-side compilation config
-
-      const { module, resolve, resolveLoader } = reactScriptsWebpackConfig;
 
       while (deleteUseItem(module, { loader: 'mini-css-extract-plugin' }));
       while (deleteUseItem(module, { loader: 'style-loader' }));
