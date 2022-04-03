@@ -25,7 +25,7 @@ const launchOptions: LaunchOptions = {
   projectPath: '/path/to/project',
   commandName,
 };
-const razzlePreConfigPath = '/path/to/pre-config/razzle';
+const razzlePreConfigPath = '/path/to/razzle/pre-config';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/razzle__3.x', () => ({ register: jest.fn() }));
