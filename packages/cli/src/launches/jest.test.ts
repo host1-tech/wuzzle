@@ -1,6 +1,12 @@
-import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+import {
+  logError,
+  logPlain,
+  resolveCommandPath,
+  resolveCommandSemVer,
+  resolveRequire,
+} from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
+import { EK_INTERNAL_PRE_CONFIG, EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import { register } from '../registers/jest__26.x';
 import {
   execNode,
@@ -19,6 +25,7 @@ const launchOptions: LaunchOptions = {
   projectPath: '/path/to/project',
   commandName,
 };
+const jestPreConfigPath = '/path/to/jest/pre-config';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../registers/jest__26.x');
@@ -40,7 +47,8 @@ describe('launchTest', () => {
     delete process.env[EK_JEST_EXTRA_OPTIONS];
   });
 
-  it('executes with jest register attached if command resolved', () => {
+  it('executes with jest register attached and pre config set if command resolved', () => {
+    mocked(resolveRequire).mockReturnValueOnce(jestPreConfigPath);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
@@ -50,12 +58,14 @@ describe('launchTest', () => {
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
+    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(jestPreConfigPath);
   });
 
   it('resolves jest global if command not resolved from locals', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
+    mocked(resolveRequire).mockReturnValueOnce(jestPreConfigPath);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
@@ -66,6 +76,7 @@ describe('launchTest', () => {
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
+    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(jestPreConfigPath);
   });
 
   it('exits with error code and error message if command not resolved', () => {
