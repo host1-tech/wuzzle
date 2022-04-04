@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.1-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.4.0...v0.4.1-alpha.0) (2022-04-04)
+
+**Note:** Version bump only for package @wuzzle/cli
+
+
+
+
+
 ## [0.4.0](https://github.com/host1-tech/wuzzle/compare/v0.3.2...v0.4.0) (2022-04-04)
 
 
