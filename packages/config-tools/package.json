@@ -1,6 +1,6 @@
 {
   "name": "@wuzzle/config-tools",
-  "version": "0.4.1-alpha.1",
+  "version": "0.4.1",
   "description": "Collection of tools for modifying wuzzle exposed configs.",
   "license": "MIT",
   "files": [
