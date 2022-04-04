@@ -6,6 +6,7 @@
     "version": {
       "message": "chore: publish %s",
       "allowBranch": "master",
+      "exact": true,
       "conventionalCommits": true,
       "changelogPreset": "@wuzzle-utils/conventional-changelog-conventionalcommits"
     }
