@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@types/webpack": "^4.0.0",
-    "@wuzzle/helpers": "^0.4.0",
+    "@wuzzle/helpers": "0.4.0",
     "lodash": "^4.17.20",
     "webpack": "^4.0.0"
   }
