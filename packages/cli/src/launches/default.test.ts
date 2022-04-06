@@ -1,29 +1,39 @@
 import { logError, logPlain, resolveCommandPath, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
-import { register } from '../registers/webpack__5.x';
-import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
+import {
+  doFileRegistering,
+  execNode,
+  FileRegisteringOptions,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
 import { launchDefault } from './default';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
-const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
+const logForGlobalResolving = 'log for global resolving';
+const majorVersion = 5;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'webpack',
+  majorVersion,
+  commandPath,
+};
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/webpack__5.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
-mocked(resolveWebpackSemVer).mockReturnValue({ major: 5 } as never);
+mocked(resolveWebpackSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchDefault', () => {
   beforeEach(() => {
@@ -34,7 +44,7 @@ describe('launchDefault', () => {
     launchDefault(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveWebpackSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
@@ -50,7 +60,7 @@ describe('launchDefault', () => {
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveWebpackSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),

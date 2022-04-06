@@ -1,13 +1,8 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
-import { EK_COMMAND_ARGS, EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+import { EK_COMMAND_ARGS, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -34,14 +29,11 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
     process.exit(EXIT_CODE_ERROR);
   }
 
-  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
-    `../registers/razzle__${razzleMajorVersion}.x/pre-config`
-  );
-
-  require(`../registers/razzle__${razzleMajorVersion}.x`).register({
+  doFileRegistering({
+    registerName: 'razzle',
+    majorVersion: razzleMajorVersion,
     commandPath: razzleCommandPath,
   });
-
   execNode({
     nodePath,
     args,

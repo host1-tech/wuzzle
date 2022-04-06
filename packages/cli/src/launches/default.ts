@@ -1,6 +1,6 @@
 import { logError, logPlain, resolveCommandPath, resolveWebpackSemVer } from '@wuzzle/helpers';
 import { EXIT_CODE_ERROR } from '../constants';
-import { execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
+import { doFileRegistering, execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
 
 export const launchDefault: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
   let defaultCommandPath: string;
@@ -18,7 +18,9 @@ export const launchDefault: LaunchFunction = ({ nodePath, args, projectPath, com
     process.exit(EXIT_CODE_ERROR);
   }
 
-  require(`../registers/webpack__${webpackMajorVersion}.x`).register({
+  doFileRegistering({
+    registerName: 'webpack',
+    majorVersion: webpackMajorVersion,
     commandPath: defaultCommandPath,
   });
   execNode({ nodePath, args, execArgs: [defaultCommandPath, ...args] });

@@ -4,6 +4,7 @@ export * from './are-args-parsable-by-flags';
 export * from './check-to-use-dry-run-mode';
 export * from './create-debug-log';
 export * from './exec-node';
+export * from './file-registering';
 export * from './launch-function';
 export * from './locate-project-anchor';
 export * from './register-unregister';

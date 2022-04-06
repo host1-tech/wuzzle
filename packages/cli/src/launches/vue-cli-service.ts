@@ -13,6 +13,7 @@ import {
 } from '../constants';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -64,14 +65,11 @@ export const launchVueCliService: LaunchFunction = ({
     }
   }
 
-  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
-    `../registers/vue-cli-service__${vueCliServiceMajorVersion}.x/pre-config`
-  );
-
-  require(`../registers/vue-cli-service__${vueCliServiceMajorVersion}.x`).register({
+  doFileRegistering({
+    registerName: 'vue-cli-service',
+    majorVersion: vueCliServiceMajorVersion,
     commandPath: vueCliServiceCommandPath,
   });
-
   execNode({
     nodePath,
     args,
