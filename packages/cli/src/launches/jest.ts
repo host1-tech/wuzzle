@@ -1,14 +1,9 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import { EK_INTERNAL_PRE_CONFIG, EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
+import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,
+  doFileRegistering,
   execNode,
   getDefaultJestExtraOptions,
   getJestExtraCommandOpts,
@@ -90,14 +85,12 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
   }
 
   process.env[EK_JEST_EXTRA_OPTIONS] = JSON.stringify(jestExtraOptions);
-  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
-    `../registers/jest__${jestMajorVersion}.x/pre-config`
-  );
 
-  require(`../registers/jest__${jestMajorVersion}.x`).register({
+  doFileRegistering({
+    registerName: 'jest',
+    majorVersion: jestMajorVersion,
     commandPath: jestCommandPath,
   });
-
   execNode({
     nodePath,
     args,

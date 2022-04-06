@@ -11,10 +11,11 @@ import {
   EK_INTERNAL_PRE_CONFIG,
   EXIT_CODE_ERROR,
 } from '../constants';
-import { register } from '../registers/vue-cli-service__4.x';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
+  FileRegisteringOptions,
   LaunchOptions,
   tmplLogForGlobalResolving,
 } from '../utils';
@@ -22,20 +23,24 @@ import { launchVueCliService } from './vue-cli-service';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
-const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
+const logForGlobalResolving = 'log for global resolving';
+const majorVersion = 4;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'vue-cli-service',
+  majorVersion,
+  commandPath,
+};
 
 const vueCliPluginUnitJestPath = '/path/to/vue-cli-plugin-unit-jest';
 const vueCliPluginUnitMochaPath = '/path/to/vue-cli-plugin-unit-mocha';
-const vueCliServicePreConfigPath = '/path/to/vue-cli-service/pre-config';
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/vue-cli-service__4.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
@@ -47,22 +52,17 @@ const resolveVueCliPluginUnitJest = jest
 const resolveVueCliPluginUnitMocha = jest
   .fn(resolveRequire)
   .mockReturnValue(vueCliPluginUnitMochaPath);
-const resolveVueCliServicePreConfig = jest
-  .fn(resolveRequire)
-  .mockReturnValue(vueCliServicePreConfigPath);
 mocked(resolveRequire).mockImplementation(id => {
   if (id === '@vue/cli-plugin-unit-jest') {
     return resolveVueCliPluginUnitJest(id);
   } else if (id === '@vue/cli-plugin-unit-mocha') {
     return resolveVueCliPluginUnitMocha(id);
-  } else if (id.includes('pre-config')) {
-    return resolveVueCliServicePreConfig(id);
   }
   return id;
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
-mocked(resolveCommandSemVer).mockReturnValue({ major: 4 } as never);
+mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchVueCliService', () => {
   beforeEach(() => {
@@ -71,17 +71,16 @@ describe('launchVueCliService', () => {
     delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
-  it('executes with register attached and pre config set if command resolved', () => {
+  it('executes with vue-cli-register register attached if command resolved', () => {
     launchVueCliService(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(vueCliServicePreConfigPath);
   });
 
   it('resolves vue-cli-service global if command not resolved from locals', () => {
@@ -91,13 +90,12 @@ describe('launchVueCliService', () => {
     launchVueCliService(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(vueCliServicePreConfigPath);
   });
 
   it('prepares jest env and its extra options on test:unit/jest', () => {

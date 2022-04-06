@@ -1,10 +1,4 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import {
   EK_COMMAND_ARGS,
@@ -12,10 +6,11 @@ import {
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
-import { register } from '../registers/react-scripts__3.x';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
+  FileRegisteringOptions,
   LaunchOptions,
   tmplLogForGlobalResolving,
 } from '../utils';
@@ -23,24 +18,28 @@ import { launchReactScripts } from './react-scripts';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
-const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const reactScriptsPreConfigPath = '/path/to/react-scripts/pre-config';
+const logForGlobalResolving = 'log for global resolving';
+const majorVersion = 3;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'react-scripts',
+  majorVersion,
+  commandPath,
+};
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/react-scripts__3.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
-mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
+mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchReactScripts', () => {
   beforeEach(() => {
@@ -51,17 +50,15 @@ describe('launchReactScripts', () => {
   });
 
   it('executes with register attached and envs set if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(reactScriptsPreConfigPath);
     launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(reactScriptsPreConfigPath);
     expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
   });
 
@@ -69,18 +66,16 @@ describe('launchReactScripts', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    mocked(resolveRequire).mockReturnValueOnce(reactScriptsPreConfigPath);
     launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(reactScriptsPreConfigPath);
     expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
   });
 

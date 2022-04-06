@@ -1,16 +1,11 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import { EK_COMMAND_ARGS, EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
-import { register } from '../registers/razzle__3.x';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
+  FileRegisteringOptions,
   LaunchOptions,
   tmplLogForGlobalResolving,
 } from '../utils';
@@ -18,24 +13,28 @@ import { launchRazzle } from './razzle';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
-const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const razzlePreConfigPath = '/path/to/razzle/pre-config';
+const logForGlobalResolving = 'log for global resolving';
+const majorVersion = 3;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'razzle',
+  majorVersion,
+  commandPath,
+};
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/razzle__3.x', () => ({ register: jest.fn() }));
 jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
-mocked(resolveCommandSemVer).mockReturnValue({ major: 3 } as never);
+mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchRazzle', () => {
   beforeEach(() => {
@@ -44,36 +43,32 @@ describe('launchRazzle', () => {
     delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
-  it('executes with register attached and pre config set if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(razzlePreConfigPath);
+  it('executes with razzle register attached if command resolved', () => {
     launchRazzle(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(razzlePreConfigPath);
   });
 
   it('resolves razzle global if command not resolved from locals', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    mocked(resolveRequire).mockReturnValueOnce(razzlePreConfigPath);
     launchRazzle(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(razzlePreConfigPath);
   });
 
   it('prepares jest extra options on testing command', () => {

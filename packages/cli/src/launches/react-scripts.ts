@@ -1,18 +1,12 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import {
   EK_COMMAND_ARGS,
-  EK_INTERNAL_PRE_CONFIG,
   EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
   EXIT_CODE_ERROR,
 } from '../constants';
 import {
   applyJestExtraOptions,
+  doFileRegistering,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -49,14 +43,12 @@ export const launchReactScripts: LaunchFunction = ({
   }
 
   process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
-  process.env[EK_INTERNAL_PRE_CONFIG] = resolveRequire(
-    `../registers/react-scripts__${reactScriptsMajorVersion}.x/pre-config`
-  );
 
-  require(`../registers/react-scripts__${reactScriptsMajorVersion}.x`).register({
+  doFileRegistering({
+    registerName: 'react-scripts',
+    majorVersion: reactScriptsMajorVersion,
     commandPath: reactScriptsCommandPath,
   });
-
   execNode({
     nodePath,
     args,

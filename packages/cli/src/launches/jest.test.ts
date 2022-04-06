@@ -1,15 +1,10 @@
-import {
-  logError,
-  logPlain,
-  resolveCommandPath,
-  resolveCommandSemVer,
-  resolveRequire,
-} from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { EK_INTERNAL_PRE_CONFIG, EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
-import { register } from '../registers/jest__26.x';
+import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
 import {
+  doFileRegistering,
   execNode,
+  FileRegisteringOptions,
   getDefaultJestExtraOptions,
   LaunchOptions,
   tmplLogForGlobalResolving,
@@ -18,28 +13,35 @@ import { launchJest } from './jest';
 
 const commandName = 'commandName';
 const commandPath = '/path/to/command';
-const logForGlobalResolving = 'log for global resolving';
 const launchOptions: LaunchOptions = {
   nodePath: '/path/to/node',
   args: [],
   projectPath: '/path/to/project',
   commandName,
 };
-const jestPreConfigPath = '/path/to/jest/pre-config';
+const logForGlobalResolving = 'log for global resolving';
+const majorVersion = 26;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'jest',
+  majorVersion,
+  commandPath,
+};
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../registers/jest__26.x');
+
 jest.mock('../utils', () => ({
   ...jest.requireActual('../utils'),
+  doFileRegistering: jest.fn(),
   execNode: jest.fn(),
   tmplLogForGlobalResolving: jest.fn(),
 }));
+mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
+mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
+
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
-mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
-mocked(resolveCommandPath).mockReturnValue(commandPath);
-mocked(resolveCommandSemVer).mockReturnValue({ major: 26 } as never);
 
 describe('launchTest', () => {
   beforeEach(() => {
@@ -47,36 +49,32 @@ describe('launchTest', () => {
     delete process.env[EK_JEST_EXTRA_OPTIONS];
   });
 
-  it('executes with jest register attached and pre config set if command resolved', () => {
-    mocked(resolveRequire).mockReturnValueOnce(jestPreConfigPath);
+  it('executes with jest register attached if command resolved', () => {
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(jestPreConfigPath);
   });
 
   it('resolves jest global if command not resolved from locals', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    mocked(resolveRequire).mockReturnValueOnce(jestPreConfigPath);
     launchJest(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
-    expect(register).toBeCalledWith({ commandPath });
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBe(jestPreConfigPath);
   });
 
   it('exits with error code and error message if command not resolved', () => {
