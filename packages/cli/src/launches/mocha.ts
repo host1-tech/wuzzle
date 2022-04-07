@@ -27,7 +27,6 @@ export const launchMocha: LaunchFunction = ({ nodePath, args, projectPath, comma
 
   execNode({
     nodePath,
-    args,
     execArgs: [mochaCommandPath, '-r', nodeRegisterPath, ...args],
   });
 };

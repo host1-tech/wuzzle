@@ -93,7 +93,6 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
   });
   execNode({
     nodePath,
-    args,
     execArgs: [...inspectNodeArgs, jestCommandPath, ...inspectJestArgs, ...args],
   });
 };

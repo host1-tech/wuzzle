@@ -19,39 +19,51 @@ describe('execNode', () => {
 
   it('works with default options', () => {
     execNode({});
-    expect(execa.sync).toBeCalledWith(process.argv[0], [], { stdio: 'inherit' });
+    expect(execa.sync).toBeCalledWith(process.argv[0], [], {
+      stdout: 'inherit',
+      stderr: 'inherit',
+    });
   });
 
-  it('uses args as execution args by default', () => {
+  it('works with specified input', () => {
     const nodePath = '/path/to/node';
-    const args = ['--verbose'];
-    execNode({ nodePath, args });
-    expect(execa.sync).toBeCalledWith(nodePath, args, { stdio: 'inherit' });
+    const execArgs = ['--verbose'];
+    const execOpts = { shell: true } as const;
+    execNode({ nodePath, execArgs, execOpts });
+    expect(execa.sync).toBeCalledWith(nodePath, execArgs, expect.objectContaining(execOpts));
   });
 
-  it('overrides execution args with execArgs', () => {
-    const nodePath = '/path/to/node';
-    const args = ['--verbose'];
-    const execArgs = ['--help'];
-    execNode({ nodePath, args, execArgs });
-    expect(execa.sync).toBeCalledWith(nodePath, execArgs, { stdio: 'inherit' });
-  });
-
-  it('overrides default execution extra options', () => {
-    const execOpts = { stdio: 'pipe' as const };
+  it('resolves io param conflict', () => {
+    const execOpts = { stdio: 'pipe' } as const;
     execNode({ execOpts });
-    expect(execa.sync).toBeCalledWith(process.argv[0], [], execOpts);
+    ['stdin', 'stdout', 'stderr'].forEach(k => {
+      expect(execa.sync).toBeCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.not.objectContaining({ [k]: expect.anything() })
+      );
+    });
   });
 
-  it('logs error on interrupted by error', () => {
-    const error = new Error('message');
+  it('terminates process w/o error reported if interrupted w/ stderr inherited', () => {
     mocked(execa.sync).mockImplementationOnce(() => {
-      throw error;
+      throw 0;
     });
     try {
       execNode({});
     } catch {}
-    expect(logError).toBeCalledWith(error);
+    expect(logError).not.toBeCalled();
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+  });
+
+  it('terminates process w/ error reported if interrupted w/o stderr inherited', () => {
+    mocked(execa.sync).mockImplementationOnce(() => {
+      throw 0;
+    });
+    try {
+      execNode({ execOpts: { stdio: 'pipe' } });
+    } catch {}
+    expect(logError).toBeCalled();
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
   });
 });

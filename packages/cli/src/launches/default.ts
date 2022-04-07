@@ -23,5 +23,5 @@ export const launchDefault: LaunchFunction = ({ nodePath, args, projectPath, com
     majorVersion: webpackMajorVersion,
     commandPath: defaultCommandPath,
   });
-  execNode({ nodePath, args, execArgs: [defaultCommandPath, ...args] });
+  execNode({ nodePath, execArgs: [defaultCommandPath, ...args] });
 };

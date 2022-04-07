@@ -51,7 +51,6 @@ export const launchReactScripts: LaunchFunction = ({
   });
   execNode({
     nodePath,
-    args,
     execArgs: [reactScriptsCommandPath, ...args],
   });
 };

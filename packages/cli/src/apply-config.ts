@@ -1,5 +1,6 @@
 import * as JestTypes from '@jest/types';
-import { diff, logError, stringify } from '@wuzzle/helpers';
+import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
+import { yellow } from 'chalk';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { InspectOptions } from 'util';
@@ -15,6 +16,7 @@ import {
   EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
+  EXIT_CODE_ERROR,
 } from './constants';
 import { stderrDebugLog, stdoutDebugLog } from './utils';
 
@@ -67,7 +69,9 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
       if (webpackConfigToMerge) {
         Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
       }
-    } catch {}
+    } catch {
+      logPlain(yellow(`Internal pre config '${internalPreConfigPath}' failed.`));
+    }
   }
 
   const webpackConfigOldSnapshot = stringify(webpackConfig, stringifyOpts);
@@ -83,6 +87,7 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
       }
     } catch (e) {
       logError(e);
+      process.exit(EXIT_CODE_ERROR);
     }
   }
   if (optionsToUse.cacheKeyOfEnvKeys) {

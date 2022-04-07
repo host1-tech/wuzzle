@@ -1,5 +1,5 @@
 import * as JestTypes from '@jest/types';
-import { diff, logError, stringify } from '@wuzzle/helpers';
+import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { uniqueId } from 'lodash';
@@ -24,6 +24,7 @@ import {
   EK_DRY_RUN,
   EK_INTERNAL_PRE_CONFIG,
   EK_PROJECT_PATH,
+  EXIT_CODE_ERROR,
 } from './constants';
 import { stderrDebugLog, stdoutDebugLog } from './utils';
 
@@ -53,6 +54,7 @@ jest.mock('@wuzzle/helpers', () => ({
   ...jest.requireActual('@wuzzle/helpers'),
   diff: jest.fn(),
   logError: jest.fn(),
+  logPlain: jest.fn(),
 }));
 
 jest.mock('debug', () => {
@@ -60,6 +62,10 @@ jest.mock('debug', () => {
   return { __esModule: true, default: () => mockedFn };
 });
 const mockedDebug = mocked(debugFty(DN_APPLY_CONFIG));
+
+jest.spyOn(process, 'exit').mockImplementation(() => {
+  throw 0;
+});
 
 describe('applyConfig', () => {
   beforeEach(() => {
@@ -102,7 +108,7 @@ describe('applyConfig', () => {
     expect(wuzzleConfig.modify).toBeCalledWith(webpackConfig, webpack, defaultModifyOptions);
   });
 
-  it(`reports error thrown from 'modify'`, () => {
+  it(`reports error and terminates process thrown from 'modify'`, () => {
     const error = new Error('message');
     const wuzzleConfig: WuzzleConfig = {
       modify() {
@@ -110,8 +116,11 @@ describe('applyConfig', () => {
       },
     };
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
-    applyConfig({}, webpack);
+    try {
+      applyConfig({}, webpack);
+    } catch {}
     expect(logError).toBeCalledWith(error);
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
   });
 
   it('uses side effect of internal pre config', () => {
@@ -136,6 +145,16 @@ describe('applyConfig', () => {
     expect(applyConfig(webpackConfig, webpack)).toEqual({ resolve: {} });
     expect(webpackConfig).toEqual({ resolve: {} });
     expect(mockedInternalPreConfig).toBeCalledWith(webpackConfig, webpack, defaultModifyOptions);
+  });
+
+  it('reports error if internal pre config fails', () => {
+    cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
+    process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
+    mockedInternalPreConfig.mockImplementationOnce(() => {
+      throw 0;
+    });
+    applyConfig({}, webpack);
+    expect(logPlain).toBeCalledWith(expect.stringContaining('failed'));
   });
 
   it('passes on cache key fields as wuzzle envs', () => {

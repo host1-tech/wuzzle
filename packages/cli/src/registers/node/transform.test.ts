@@ -1,12 +1,11 @@
 import { logPlain, resolveRequire } from '@wuzzle/helpers';
-import execa from 'execa';
 import fs from 'fs';
 import { noop, pick } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
 import { EK_DRY_RUN, EK_PROJECT_PATH, ENCODING_BINARY } from '../../constants';
-import { getCurrentNodeLikeExtraOptions, NodeLikeExtraOptions } from '../../utils';
+import { getCurrentNodeLikeExtraOptions, NodeLikeExtraOptions, execNode } from '../../utils';
 import { register, transform } from './transform';
 
 const code = `console.log('Hello, world.')`;
@@ -21,7 +20,7 @@ jest.mock('source-map-support');
 jest.mock('../../utils');
 
 jest.spyOn(fs, 'readFileSync').mockReturnValue(code);
-jest.spyOn(execa, 'sync').mockReturnValue({} as never);
+mocked(execNode).mockReturnValue({} as never);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -49,7 +48,7 @@ describe('register', () => {
     try {
       register();
     } catch {}
-    expect(execa.sync).toBeCalled();
+    expect(execNode).toBeCalled();
     expect(process.exit).toBeCalled();
   });
 });
@@ -61,11 +60,10 @@ describe('transform', () => {
     transform(code, file);
     expect(fs.readFileSync).toBeCalledWith(file, ENCODING_BINARY);
     expect(resolveRequire).toBeCalled();
-    expect(execa.sync).toBeCalledWith(
-      expect.anything(),
-      expect.arrayContaining([convertPath, file, ENCODING_BINARY]),
-      expect.objectContaining({ input: code, stderr: 'inherit' })
-    );
+    expect(execNode).toBeCalledWith({
+      execArgs: [convertPath, file, ENCODING_BINARY],
+      execOpts: { input: code, stdout: 'pipe' },
+    });
   });
 
   it('prints detail', () => {
