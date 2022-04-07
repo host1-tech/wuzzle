@@ -101,9 +101,13 @@ describe('realworld use of wuzzle on react-scripts', () => {
     testTimeout
   );
 
-  it('works with testing', () => {
-    expect(execa.sync('yarn', ['test', '--watchAll=false']).exitCode).toBe(0);
-  });
+  it(
+    'works with testing',
+    () => {
+      expect(execa.sync('yarn', ['test', '--watchAll=false']).exitCode).toBe(0);
+    },
+    testTimeout
+  );
 });
 
 async function verifyComponentsCSR(page: Page) {

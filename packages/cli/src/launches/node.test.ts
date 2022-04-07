@@ -24,8 +24,10 @@ describe('launchMocha', () => {
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
     launchNode(launchOptions);
     expect(resolveRequire).toBeCalled();
-    expect(mocked(execNode).mock.calls[0][0].execArgs).toEqual(
-      expect.arrayContaining([nodeRegisterPath])
+    expect(execNode).toBeCalledWith(
+      expect.objectContaining({
+        execArgs: expect.arrayContaining([nodeRegisterPath]),
+      })
     );
   });
 });

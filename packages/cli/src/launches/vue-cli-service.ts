@@ -5,12 +5,7 @@ import {
   resolveCommandSemVer,
   resolveRequire,
 } from '@wuzzle/helpers';
-import {
-  EK_COMMAND_ARGS,
-  EK_COMMAND_TYPE,
-  EK_INTERNAL_PRE_CONFIG,
-  EXIT_CODE_ERROR,
-} from '../constants';
+import { EK_COMMAND_ARGS, EK_COMMAND_TYPE, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
@@ -72,7 +67,6 @@ export const launchVueCliService: LaunchFunction = ({
   });
   execNode({
     nodePath,
-    args,
     execArgs: [vueCliServiceCommandPath, ...args],
   });
 };

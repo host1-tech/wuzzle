@@ -36,7 +36,6 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
   });
   execNode({
     nodePath,
-    args,
     execArgs: [razzleCommandPath, ...args],
   });
 };

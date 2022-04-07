@@ -8,7 +8,6 @@ export const launchNode: LaunchFunction = ({ nodePath, args }) => {
 
   execNode({
     nodePath,
-    args,
     execArgs: ['-r', nodeRegisterPath, ...args],
   });
 };
