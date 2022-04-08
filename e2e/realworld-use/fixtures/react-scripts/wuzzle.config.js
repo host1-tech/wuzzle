@@ -19,7 +19,7 @@ const {
 module.exports = {
   modify(webpackConfig, webpack, { commandName }) {
     const reactScriptsDir = path.dirname(resolveRequire('react-scripts/package.json'));
-    const { module, resolve, resolveLoader } =
+    const { module, plugins, resolve, resolveLoader } =
       commandName === 'react-scripts' ? webpackConfig : webpackConfigFactory(process.env.NODE_ENV);
 
     const scriptRule = firstRule(module, {
@@ -90,6 +90,15 @@ module.exports = {
         ],
       }
     );
+
+    const EslintWebpackPlugin = require(resolveRequire('eslint-webpack-plugin', {
+      basedir: reactScriptsDir,
+    }));
+    const eslintWebpackPlugin = plugins.find((p) => p instanceof EslintWebpackPlugin);
+    Object.assign(eslintWebpackPlugin.options, {
+      eslintPath: resolveRequire('eslint'),
+      resolvePluginsRelativeTo: resolveRequire('eslint-config-react-app'),
+    });
 
     if (commandName === 'transpile' || commandName === 'node') {
       // Setup client-compatible server-side compilation config
