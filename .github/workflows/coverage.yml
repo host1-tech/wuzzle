@@ -7,8 +7,18 @@ on:
     branches: [master]
 
 jobs:
-  coverage:
-    name: Coverage
+  cancel-prev:
+    name: Cancel Prev
+    runs-on: ubuntu-20.04
+    timeout-minutes: 3
+    steps:
+      - name: Cancel Prev
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+  main:
+    name: Main
+    needs: cancel-prev
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,8 +28,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:

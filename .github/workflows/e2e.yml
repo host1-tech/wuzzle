@@ -1,25 +1,32 @@
 name: E2E
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+  workflow_call:
+    inputs:
+      test_dirs:
+        required: true
+        type: string
 
 jobs:
-  e2e:
-    name: E2E
+  cancel-prev:
+    name: Cancel Prev
+    runs-on: ubuntu-20.04
+    timeout-minutes: 3
+    steps:
+      - name: Cancel Prev
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+  test:
+    name: Test
+    needs: cancel-prev
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019]
-    env:
-      TEST_DIRS: e2e/feasibility-check e2e/perf-measure e2e/realworld-use
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
@@ -27,6 +34,6 @@ jobs:
       - name: Install, build and prepare fixtures
         run: |
           yarn
-          yarn fixtures install ${{ env.TEST_DIRS }}
+          yarn fixtures install ${{ inputs.test_dirs }}
       - name: Test end to end cases
-        run: yarn e2e ${{ env.TEST_DIRS }}
+        run: yarn e2e ${{ inputs.test_dirs }}
