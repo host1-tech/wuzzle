@@ -32,7 +32,7 @@ describe('locateProjectAnchor', () => {
     expect(process.env[EK_PROJECT_PATH]).toBe(projectPath);
   });
 
-  it('reports error and terminates process if anchor not lacated', () => {
+  it('reports error and terminates process if anchor not located', () => {
     mocked(findUp.sync).mockReturnValueOnce(undefined);
     try {
       locateProjectAnchor();

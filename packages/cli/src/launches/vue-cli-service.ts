@@ -40,9 +40,8 @@ export const launchVueCliService: LaunchFunction = ({
   }
 
   const vueCliServiceSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  let vueCliServiceCommandType: NodeJS.ProcessEnv[string] = 'unknown';
   if (vueCliServiceSubCommand === 'test:unit') {
-    let vueCliServiceCommandType: NodeJS.ProcessEnv[string];
-
     try {
       resolveRequire('@vue/cli-plugin-unit-jest', { basedir: projectPath });
       vueCliServiceCommandType = 'jest';
@@ -53,12 +52,17 @@ export const launchVueCliService: LaunchFunction = ({
       vueCliServiceCommandType = 'mocha';
     } catch {}
 
-    process.env[EK_COMMAND_TYPE] = vueCliServiceCommandType;
-
     if (vueCliServiceCommandType === 'jest') {
       applyJestExtraOptions({ nodePath, name: 'wuzzle-vue-cli-service-test-jest', args });
     }
   }
+  if (vueCliServiceSubCommand === 'test:e2e') {
+    try {
+      resolveRequire('@vue/cli-plugin-e2e-cypress', { basedir: projectPath });
+      vueCliServiceCommandType = 'cypress';
+    } catch {}
+  }
+  process.env[EK_COMMAND_TYPE] = vueCliServiceCommandType;
 
   doFileRegistering({
     registerName: 'vue-cli-service',

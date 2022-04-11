@@ -17,7 +17,6 @@
     "clean:coverage": "rimraf coverage",
     "clean:cache": "rimraf \"**/node_modules/.cache\"",
     "clean:installed": "run-s clean:installed:*",
-    "clean:installed:fixtures": "yarn fixtures clean",
     "clean:installed:packages": "lerna clean --yes",
     "clean:installed:toplevel": "rimraf node_modules",
     "test": "jest --testPathIgnorePatterns e2e --cache",

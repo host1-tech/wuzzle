@@ -76,3 +76,11 @@ build
 .temp
 storybook-static
 *.tgz
+
+# Cypress generated
+**/e2e/screenshots
+**/e2e/videos
+**/e2e/downloads
+**/cypress/screenshots
+**/cypress/videos
+**/cypress/downloads
