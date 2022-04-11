@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@cypress/webpack-preprocessor": "^5.11.1",
+    "@vue/cli-plugin-e2e-cypress": "~4.5.17",
+    "@vue/cli-service": "~4.5.17",
+    "vue-template-compiler": "^2.6.11"
+  }
+}

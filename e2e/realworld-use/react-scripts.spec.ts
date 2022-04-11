@@ -102,9 +102,32 @@ describe('realworld use of wuzzle on react-scripts', () => {
   );
 
   it(
-    'works with testing',
+    'works with regular testing',
     () => {
       expect(execa.sync('yarn', ['test', '--watchAll=false']).exitCode).toBe(0);
+    },
+    testTimeout
+  );
+
+  it(
+    'works with end-to-end testing',
+    async () => {
+      itSection('builds app', () => {
+        expect(execa.sync('yarn', ['build']).exitCode).toBe(0);
+      });
+
+      const serverProc = execa('yarn', ['start']);
+      try {
+        await itSection('starts in prod mode', async () => {
+          await waitForStreamText(serverProc.stdout!, `Started on port`, 0.1 * testTimeout);
+        });
+
+        itSection('runs e2e specs', () => {
+          expect(execa.sync('yarn', ['e2e']).exitCode).toBe(0);
+        });
+      } finally {
+        await tKill(serverProc.pid);
+      }
     },
     testTimeout
   );

@@ -39,6 +39,7 @@ const fileRegisteringOptions: FileRegisteringOptions = {
 
 const vueCliPluginUnitJestPath = '/path/to/vue-cli-plugin-unit-jest';
 const vueCliPluginUnitMochaPath = '/path/to/vue-cli-plugin-unit-mocha';
+const vueCliPluginE2eCypressPath = '/path/to/vue-cli-plugin-e2e-cypress';
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
@@ -52,11 +53,16 @@ const resolveVueCliPluginUnitJest = jest
 const resolveVueCliPluginUnitMocha = jest
   .fn(resolveRequire)
   .mockReturnValue(vueCliPluginUnitMochaPath);
+const resolveVueCliPluginE2eCypressPath = jest
+  .fn(resolveRequire)
+  .mockReturnValue(vueCliPluginE2eCypressPath);
 mocked(resolveRequire).mockImplementation(id => {
   if (id === '@vue/cli-plugin-unit-jest') {
     return resolveVueCliPluginUnitJest(id);
   } else if (id === '@vue/cli-plugin-unit-mocha') {
     return resolveVueCliPluginUnitMocha(id);
+  } else if (id === '@vue/cli-plugin-e2e-cypress') {
+    return resolveVueCliPluginE2eCypressPath(id);
   }
   return id;
 });
@@ -108,13 +114,19 @@ describe('launchVueCliService', () => {
     expect(applyJestExtraOptions).toBeCalled();
   });
 
-  it('prepares jest env and its extra options on test:unit/jest', () => {
+  it('prepares mocha env on test:unit/mocha', () => {
     process.env[EK_COMMAND_ARGS] = JSON.stringify(['test:unit']);
     resolveVueCliPluginUnitJest.mockImplementationOnce(() => {
       throw 0;
     });
     launchVueCliService(launchOptions);
     expect(process.env[EK_COMMAND_TYPE]).toBe('mocha');
+  });
+
+  it('prepares cypress env on test:e2e/cypress', () => {
+    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test:e2e']);
+    launchVueCliService(launchOptions);
+    expect(process.env[EK_COMMAND_TYPE]).toBe('cypress');
   });
 
   it('exits with error code and error message if command not resolved', () => {

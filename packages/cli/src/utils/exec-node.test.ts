@@ -20,6 +20,7 @@ describe('execNode', () => {
   it('works with default options', () => {
     execNode({});
     expect(execa.sync).toBeCalledWith(process.argv[0], [], {
+      stdin: 'inherit',
       stdout: 'inherit',
       stderr: 'inherit',
     });
@@ -57,13 +58,21 @@ describe('execNode', () => {
   });
 
   it('terminates process w/ error reported if interrupted w/o stderr inherited', () => {
-    mocked(execa.sync).mockImplementationOnce(() => {
-      throw 0;
+    const execOptsListToVerify = [
+      { stderr: 'pipe' },
+      { stdio: 'pipe' },
+      { stdio: ['pipe', 'pipe', 'pipe'] },
+    ] as const;
+    execOptsListToVerify.forEach((execOpts, i) => {
+      mocked(execa.sync).mockImplementationOnce(() => {
+        throw i;
+      });
+      try {
+        execNode({ execOpts });
+      } catch {}
+      const nth = i + 1;
+      expect(logError).toHaveBeenNthCalledWith(nth, i);
+      expect(process.exit).toHaveBeenNthCalledWith(nth, EXIT_CODE_ERROR);
     });
-    try {
-      execNode({ execOpts: { stdio: 'pipe' } });
-    } catch {}
-    expect(logError).toBeCalled();
-    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
   });
 });

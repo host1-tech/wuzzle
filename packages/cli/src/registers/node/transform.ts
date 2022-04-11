@@ -29,7 +29,7 @@ export function printDryRunLog(): void {
   const convertPath = resolveRequire('./convert');
   execNode({
     execArgs: [convertPath, transpileDefaultOptions.inputCodePath, ENCODING_TEXT],
-    execOpts: { input: '' },
+    execOpts: { input: '', stdin: 'pipe' },
   });
 }
 
@@ -43,7 +43,7 @@ export function transform(_: string, file: string): string {
   // It's slow but it's effective.
   const { stdout } = execNode({
     execArgs: [convertPath, file, encoding],
-    execOpts: { input: code, stdout: 'pipe' },
+    execOpts: { input: code, stdin: 'pipe', stdout: 'pipe' },
   });
 
   if (getCurrentNodeLikeExtraOptions().verbose) {

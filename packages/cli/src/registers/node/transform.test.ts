@@ -62,7 +62,7 @@ describe('transform', () => {
     expect(resolveRequire).toBeCalled();
     expect(execNode).toBeCalledWith({
       execArgs: [convertPath, file, ENCODING_BINARY],
-      execOpts: { input: code, stdout: 'pipe' },
+      execOpts: { input: code, stdin: 'pipe', stdout: 'pipe' },
     });
   });
 

@@ -1,5 +1,5 @@
 const path = require('path');
-const { cloneDeep, toPairs } = require('lodash');
+const { cloneDeep, toPairs, set } = require('lodash');
 const { jsWithBabel: tsjPreset } = require('ts-jest/presets');
 const appPaths = require('react-scripts/config/paths');
 const webpackConfigFactory = require('react-scripts/config/webpack.config');
@@ -19,7 +19,7 @@ const {
 module.exports = {
   modify(webpackConfig, webpack, { commandName }) {
     const reactScriptsDir = path.dirname(resolveRequire('react-scripts/package.json'));
-    const { module, plugins, resolve, resolveLoader } =
+    const { output, module, plugins, resolve, resolveLoader } =
       commandName === 'react-scripts' ? webpackConfig : webpackConfigFactory(process.env.NODE_ENV);
 
     const scriptRule = firstRule(module, {
@@ -100,9 +100,8 @@ module.exports = {
       resolvePluginsRelativeTo: resolveRequire('eslint-config-react-app'),
     });
 
-    if (commandName === 'transpile' || commandName === 'node') {
-      // Setup client-compatible server-side compilation config
-
+    // Setup client-compatible compilation config for server-side and e2e testing
+    if (commandName === 'transpile' || commandName === 'node' || commandName === 'cypress') {
       while (deleteUseItem(module, { loader: 'mini-css-extract-plugin' }));
       while (deleteUseItem(module, { loader: 'style-loader' }));
 
@@ -118,7 +117,7 @@ module.exports = {
         if (modules) modules.exportOnlyLocals = true;
       });
 
-      webpackConfig.output.publicPath = appPaths.publicUrlOrPath;
+      set(webpackConfig, 'output.publicPath', output.publicPath);
       Object.assign(webpackConfig, { module, resolve, resolveLoader });
     }
   },
@@ -132,6 +131,9 @@ module.exports = {
       scriptTransformIndex,
       1,
       ...toPairs(tsjPreset.transform).map((p) => [...p, {}])
+    );
+    jestConfig.testPathIgnorePatterns.push(
+      path.resolve(jestConfig.rootDir, 'src/e2e').replace(/\\/g, '\\\\')
     );
   },
 };

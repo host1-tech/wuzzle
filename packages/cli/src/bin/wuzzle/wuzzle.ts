@@ -1,6 +1,7 @@
 import { logError, resolveRequire } from '@wuzzle/helpers';
 import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
 import {
+  launchCypress,
   launchDefault,
   launchJest,
   launchMocha,
@@ -34,6 +35,7 @@ const entries: Record<string, LaunchFunction> = {
     process.argv.splice(1, 2, resolveRequire('../wuzzle-unregister'));
     require('../wuzzle-unregister');
   },
+  ['cypress']: launchCypress,
   ['jest']: launchJest,
   ['mocha']: launchMocha,
   ['node']: launchNode,

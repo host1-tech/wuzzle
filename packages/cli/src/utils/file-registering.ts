@@ -4,36 +4,42 @@ import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
 import { RegisterOptions } from './register-unregister';
 
 /**
- * The number of times to try a file registering. The first try is done with the specified major
- * version. If a try fails, the next try is done with a smaller neighbor major version. If a try
- * succeeds, the function exits. If all tries fail, the process gets terminated with an error log.
- *
- * Taking an example of value 2, the first try is done with the specified major version. And if
- * the first try fails, the second try will get triggered with a smaller neighbor major version.
- * There is no third try, though. If all tries fail or one try succeeds, it will comes to the end.
+ * The default maximum umber of attempts for doing file registering.
  */
-export const FILE_REGISTERING_TRIES = 2;
+export const FILE_REGISTERING_DEFAULT_ATTEMPTS = 2;
 
 export interface FileRegisteringOptions extends RegisterOptions {
   registerName: string;
   majorVersion: number;
+  attempts?: 1 | 2 | 3;
 }
 
+/**
+ * Target a register function under 'src/registers' in terms of 'registerName' and 'majorVersion',
+ * then invoke the register. If an attempt fails and it doesn't reach the maximum number of
+ * 'attemps', another attempt will get issued on a smaller neighbor major version. If an attempt
+ * succeeds, the function exits normally. If all attempts fail, the current process gets terminated
+ * with errors logged.
+ */
 export function doFileRegistering({
   registerName,
   majorVersion,
+  attempts = FILE_REGISTERING_DEFAULT_ATTEMPTS,
   ...registerOptions
 }: FileRegisteringOptions): void {
-  for (let i = 0; i < FILE_REGISTERING_TRIES; i++) {
+  let error: unknown;
+  for (let i = 0; i < attempts; i++) {
     try {
-      const tryingMajorVersion = majorVersion - i;
+      const attemptingMajorVersion = majorVersion - i;
 
-      const registerPath = resolveRequire(`../registers/${registerName}__${tryingMajorVersion}.x`);
+      const registerPath = resolveRequire(
+        `../registers/${registerName}__${attemptingMajorVersion}.x`
+      );
       require(registerPath).register(registerOptions);
 
       try {
         const preConfigPath = resolveRequire(
-          `../registers/${registerName}__${tryingMajorVersion}.x/pre-config`
+          `../registers/${registerName}__${attemptingMajorVersion}.x/pre-config`
         );
         process.env[EK_INTERNAL_PRE_CONFIG] = preConfigPath;
       } catch {}
@@ -41,14 +47,17 @@ export function doFileRegistering({
       if (i > 0) {
         logPlain(
           yellow(
-            `Did registering on ${registerName} ${majorVersion} ` +
-              `with register for ${registerName} ${tryingMajorVersion}.`
+            `Did registering on ${registerName}@${majorVersion}.x ` +
+              `with register for ${registerName}@${attemptingMajorVersion}.x.`
           )
         );
       }
       return;
-    } catch {}
+    } catch (e) {
+      error = e;
+    }
   }
-  logError(`error: failed to do registering on ${registerName} ${majorVersion}`);
+  logError(`error: failed to do registering on ${registerName}@${majorVersion}.x`);
+  logError(error);
   process.exit(EXIT_CODE_ERROR);
 }

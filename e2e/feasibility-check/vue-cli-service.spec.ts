@@ -50,4 +50,15 @@ executeTests({
       testUnregister: true,
     },
   },
+
+  ['vue-cli-service test:e2e/cypress']: {
+    ['4.x']: {
+      fixtureDir: path.join(__dirname, 'fixtures/vue-cli-service-cypress__4.x'),
+      command: 'vue-cli-service test:e2e --headless',
+      outputMessages: ['Hi, Vue CLI 4.x.'],
+      testGlobal: true,
+      testDryRun: true,
+      testUnregister: true,
+    },
+  },
 });

@@ -1,3 +1,4 @@
+export * from './cypress';
 export * from './default';
 export * from './jest';
 export * from './mocha';

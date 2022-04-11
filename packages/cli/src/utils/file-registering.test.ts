@@ -29,14 +29,14 @@ describe('doFileRegistering', () => {
     delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
-  it('functions silently if the first try succeeds', () => {
+  it('functions silently if the first attempt succeeds', () => {
     doFileRegistering(options);
     expect(mockedRegisterWebpack5).toBeCalledWith({ commandPath });
     expect(process.env[EK_INTERNAL_PRE_CONFIG]).toContain('pre-config');
     expect(logPlain).not.toBeCalled();
   });
 
-  it('functions with warning if the second try succeeds', () => {
+  it('functions with warning if the second attempt succeeds', () => {
     mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
       throw 0;
     });
@@ -57,7 +57,7 @@ describe('doFileRegistering', () => {
     expect(logPlain).not.toBeCalled();
   });
 
-  it('reports error and terminates process all tries fail', () => {
+  it('reports error and terminates process if all tries fail', () => {
     mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
       throw 0;
     });
@@ -67,6 +67,18 @@ describe('doFileRegistering', () => {
     try {
       doFileRegistering(options);
     } catch {}
+    expect(logError).toBeCalled();
+    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+  });
+
+  it('specifies the maximum number of attemps', () => {
+    mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
+      throw 0;
+    });
+    try {
+      doFileRegistering({ ...options, attempts: 1 });
+    } catch {}
+    expect(mockedRegisterWebpack4).not.toBeCalled();
     expect(logError).toBeCalled();
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
   });
