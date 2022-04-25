@@ -13,19 +13,9 @@ import pify from 'pify';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
 import { promisify } from 'util';
 import webpack from 'webpack';
-import { merge } from 'webpack-merge';
 import applyConfig from '../apply-config';
-import {
-  CACHE_BASE_PATH,
-  CACHE_KEY_DEFAULT_OF_ENV_KEYS,
-  CACHE_KEY_DEFAULT_OF_FILE_PATHS,
-  EK_CACHE_KEY_OF_ENV_KEYS,
-  EK_CACHE_KEY_OF_FILE_PATHS,
-  EK_DRY_RUN,
-  EK_PROJECT_PATH,
-  ENCODING_TEXT,
-} from '../constants';
-import { waitForStream } from '../utils';
+import { CACHE_BASE_PATH, EK, ENCODING_TEXT } from '../constants';
+import { envGet, waitForStream, wMerge } from '../utils';
 
 const thisFileContent = fs.readFileSync(__filename);
 const packageJsonContent = fs.readFileSync(path.join(__dirname, '../../package.json'));
@@ -68,7 +58,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   const internalOptions: TranspileInternalOptions = {
     ...transpileDefaultOptions,
     ...options,
-    webpackConfig: merge({}, transpileDefaultOptions.webpackConfig, options.webpackConfig || {}),
+    webpackConfig: wMerge(transpileDefaultOptions.webpackConfig, options.webpackConfig ?? {}),
   };
 
   const imfs = !internalOptions.inputPath && new MemoryFileSystem();
@@ -128,7 +118,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
     }
   }
 
-  if (process.env[EK_DRY_RUN]) {
+  if (envGet(EK.DRY_RUN)) {
     return '';
   }
 
@@ -302,26 +292,20 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
     inputFileContent = await promisify(fs.readFile)(options.inputPath, ENCODING_TEXT);
   }
 
-  let cacheKeyOfEnvKeys = CACHE_KEY_DEFAULT_OF_ENV_KEYS;
-  try {
-    cacheKeyOfEnvKeys = JSON.parse(process.env[EK_CACHE_KEY_OF_ENV_KEYS]!);
-  } catch {}
+  const cacheKeyOfEnvKeys = envGet(EK.CACHE_KEY_OF_ENV_KEYS);
   const envKeys = Object.keys(process.env).filter(k =>
     cacheKeyOfEnvKeys.some(g => minimatch(k, g))
   );
   const envVals = envKeys.map(k => process.env[k]);
 
-  let cacheKeyOfFilePaths = CACHE_KEY_DEFAULT_OF_FILE_PATHS;
-  try {
-    cacheKeyOfFilePaths = JSON.parse(process.env[EK_CACHE_KEY_OF_FILE_PATHS]!);
-  } catch {}
+  const cacheKeyOfFilePaths = envGet(EK.CACHE_KEY_OF_FILE_PATHS);
   const filePaths = uniq(
     flatten(
       await pMap(
         cacheKeyOfFilePaths,
         g =>
           promisify(glob)(g, {
-            cwd: process.env[EK_PROJECT_PATH],
+            cwd: envGet(EK.PROJECT_PATH),
             dot: true,
             nodir: true,
             absolute: true,

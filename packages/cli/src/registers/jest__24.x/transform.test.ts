@@ -2,7 +2,7 @@ import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import { getCurrentJestExtraOptions } from '../../utils';
+import { envGet } from '../../utils';
 import { transform } from './transform';
 
 const goodCodes: Record<string, string> = {
@@ -38,15 +38,13 @@ const resolvedPaths: Record<string, Record<string, string>> = {
 };
 
 jest.mock('@wuzzle/helpers');
-jest.mock('../../utils', () => {
-  return { ...jest.requireActual('../../utils'), getCurrentJestExtraOptions: jest.fn() };
-});
+jest.mock('../../utils', () => ({ ...jest.requireActual('../../utils'), envGet: jest.fn() }));
 
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 
-mocked(getCurrentJestExtraOptions).mockReturnValue({ webpack: true });
+mocked(envGet).mockReturnValue({ webpack: true });
 
 describe('transform', () => {
   beforeEach(() => {
@@ -68,7 +66,7 @@ describe('transform', () => {
   });
 
   it('skips webpack specific handling if specified', () => {
-    mocked(getCurrentJestExtraOptions).mockReturnValueOnce({ webpack: false });
+    mocked(envGet).mockReturnValueOnce({ webpack: false });
     const codeFlag = '24.0.0';
     const platform = 'posix';
     mocked(resolveRequire).mockImplementation(id => resolvedPaths[id][platform]);

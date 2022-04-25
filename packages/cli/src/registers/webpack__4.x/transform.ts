@@ -3,7 +3,7 @@ import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import { resolveRequire } from '@wuzzle/helpers';
-import { EK_DRY_RUN } from '../../constants';
+import { EK } from '../../constants';
 import { createRegisterUnregister } from '../../utils';
 
 export const [register, unregister] = createRegisterUnregister({
@@ -55,7 +55,7 @@ export function transform(code: string): string {
         path.parent.right.callee.object.callee.name === targetId.name
       ) {
         path.parentPath.insertAfter(
-          parse(`if(process.env.${EK_DRY_RUN})process.exit();`).program.body[0]
+          parse(`if(process.env.${EK.DRY_RUN})process.exit();`).program.body[0]
         );
       }
     },

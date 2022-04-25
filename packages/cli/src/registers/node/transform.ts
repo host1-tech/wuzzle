@@ -4,19 +4,19 @@ import fs from 'fs';
 import path from 'path';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
-import { EK_DRY_RUN, EK_PROJECT_PATH, ENCODING_BINARY, ENCODING_TEXT } from '../../constants';
+import { EK, ENCODING_BINARY, ENCODING_TEXT } from '../../constants';
 import { transpileDefaultOptions } from '../../transpile';
-import { execNode, getCurrentNodeLikeExtraOptions } from '../../utils';
+import { envGet, execNode } from '../../utils';
 
 export function register() {
-  if (process.env[EK_DRY_RUN]) {
+  if (envGet(EK.DRY_RUN)) {
     printDryRunLog();
     process.exit();
   }
 
   sourceMapSupport.install({ hookRequire: true });
 
-  const { exts } = getCurrentNodeLikeExtraOptions();
+  const { exts } = envGet(EK.NODE_LIKE_EXTRA_OPTIONS);
   const piratesOptions = {
     exts,
     ignoreNodeModules: true,
@@ -46,8 +46,8 @@ export function transform(_: string, file: string): string {
     execOpts: { input: code, stdin: 'pipe', stdout: 'pipe' },
   });
 
-  if (getCurrentNodeLikeExtraOptions().verbose) {
-    logPlain(grey(`File '${path.relative(process.env[EK_PROJECT_PATH]!, file)}' compiled.`));
+  if (envGet(EK.NODE_LIKE_EXTRA_OPTIONS).verbose) {
+    logPlain(grey(`File '${path.relative(envGet(EK.PROJECT_PATH), file)}' compiled.`));
   }
   return stdout;
 }

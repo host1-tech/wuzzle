@@ -1,12 +1,10 @@
 import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
-import {
-  EK_COMMAND_ARGS,
-  EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
-  EXIT_CODE_ERROR,
-} from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
+  envGet,
+  envSet,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -18,7 +16,7 @@ export const launchReactScripts: LaunchFunction = ({
   projectPath,
   commandName,
 }) => {
-  const reactScriptSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  const reactScriptSubCommand = envGet(EK.COMMAND_ARGS)[0];
   if (reactScriptSubCommand === 'test') {
     applyJestExtraOptions({ nodePath, name: 'wuzzle-react-scripts-test', args });
   }
@@ -42,8 +40,7 @@ export const launchReactScripts: LaunchFunction = ({
     process.exit(EXIT_CODE_ERROR);
   }
 
-  process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK] = 'true';
-
+  envSet(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
   doFileRegistering({
     registerName: 'react-scripts',
     majorVersion: reactScriptsMajorVersion,

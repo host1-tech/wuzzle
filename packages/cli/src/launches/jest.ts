@@ -1,11 +1,12 @@
 import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,
   doFileRegistering,
+  envGetDefault,
+  envSet,
   execNode,
-  getDefaultJestExtraOptions,
   getJestExtraCommandOpts,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -27,7 +28,7 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const jestExtraOptions = getDefaultJestExtraOptions();
+  const jestExtraOptions = envGetDefault(EK.JEST_EXTRA_OPTIONS);
 
   const inspectNodeArgs: string[] = [];
   const inspectJestArgs: string[] = [];
@@ -84,8 +85,7 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 
-  process.env[EK_JEST_EXTRA_OPTIONS] = JSON.stringify(jestExtraOptions);
-
+  envSet(EK.JEST_EXTRA_OPTIONS, jestExtraOptions);
   doFileRegistering({
     registerName: 'jest',
     majorVersion: jestMajorVersion,

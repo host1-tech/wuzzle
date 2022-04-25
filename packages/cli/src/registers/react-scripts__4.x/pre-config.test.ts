@@ -2,7 +2,7 @@ import { resolveRequire } from '@wuzzle/helpers';
 import { get } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
-import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
+import { envGet } from '../../utils';
 import preConfig from './pre-config';
 
 const wuzzleModifyOptions: WuzzleModifyOptions = {
@@ -12,6 +12,7 @@ const wuzzleModifyOptions: WuzzleModifyOptions = {
 };
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../../utils');
 
 describe('preConfig.ts', () => {
   beforeEach(() => {
@@ -60,7 +61,7 @@ describe('preConfig.ts', () => {
     'returns testing config with jsx runtime disabled ' +
       'on testing subcommand given and jsx runtime disabled',
     () => {
-      process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] = 'true';
+      mocked(envGet).mockReturnValueOnce('true');
       const webpackConfig = preConfig(0, 0, wuzzleModifyOptions);
       expect(get(webpackConfig, 'module.rules')).toHaveLength(4);
       expect(get(webpackConfig, 'module.rules.0.use.0.options.presets.0.1.runtime')).toBe(

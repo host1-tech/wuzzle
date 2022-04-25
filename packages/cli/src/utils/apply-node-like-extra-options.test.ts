@@ -1,37 +1,17 @@
 import { Command } from 'commander';
-import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
+import { EK } from '../constants';
 import {
   applyNodeLikeExtraOptions,
-  getCurrentNodeLikeExtraOptions,
-  getDefaultNodeLikeExtraOptions,
   getNodeLikeExtraCommandOpts,
-  NodeLikeExtraOptions,
 } from './apply-node-like-extra-options';
+import { envGetDefault, envSet } from './env-get-set';
+
+jest.mock('./env-get-set', () => ({
+  ...jest.requireActual('./env-get-set'),
+  envSet: jest.fn(),
+}));
 
 jest.spyOn(Command.prototype, 'parse');
-
-describe('getDefaultNodeLikeExtraOptions', () => {
-  it('works', () => {
-    expect(getDefaultNodeLikeExtraOptions()).toBeTruthy();
-  });
-});
-
-describe('getCurrentNodeLikeExtraOptions', () => {
-  beforeEach(() => {
-    delete process.env[EK_NODE_LIKE_EXTRA_OPTIONS];
-  });
-
-  it('works', () => {
-    const nodeLikeExtraOptions: Partial<NodeLikeExtraOptions> = {
-      exts: ['.ts'],
-    };
-    process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(nodeLikeExtraOptions);
-    expect(getCurrentNodeLikeExtraOptions()).toEqual({
-      ...getDefaultNodeLikeExtraOptions(),
-      exts: ['.js', '.ts'],
-    });
-  });
-});
 
 describe('getNodeLikeExtraCommandOpts', () => {
   it('works', () => {
@@ -42,7 +22,6 @@ describe('getNodeLikeExtraCommandOpts', () => {
 describe('applyNodeLikeExtraOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env[EK_NODE_LIKE_EXTRA_OPTIONS];
   });
 
   it('keeps args and sets default options if no extra arg matched', () => {
@@ -52,9 +31,10 @@ describe('applyNodeLikeExtraOptions', () => {
     const newArgs = [...oldArgs];
     applyNodeLikeExtraOptions({ nodePath, name, args: newArgs });
     expect(newArgs).toEqual(oldArgs);
-    expect(Command.prototype.parse).toBeCalledTimes(0);
-    expect(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]).toEqual(
-      JSON.stringify(getDefaultNodeLikeExtraOptions())
+    expect(Command.prototype.parse).not.toBeCalled();
+    expect(envSet).toBeCalledWith(
+      EK.NODE_LIKE_EXTRA_OPTIONS,
+      envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS)
     );
   });
 
@@ -66,9 +46,10 @@ describe('applyNodeLikeExtraOptions', () => {
     applyNodeLikeExtraOptions({ nodePath, name, args: newArgs });
     expect(newArgs).toEqual(['main.ts']);
     expect(Command.prototype.parse).toBeCalledWith([nodePath, name, ...oldArgs]);
-    expect(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]).toEqual(
-      JSON.stringify({ ...getDefaultNodeLikeExtraOptions(), exts: ['.ts'] })
-    );
+    expect(envSet).toBeCalledWith(EK.NODE_LIKE_EXTRA_OPTIONS, {
+      ...envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS),
+      exts: ['.ts'],
+    });
   });
 
   it('works with nodePath omitted', () => {
@@ -78,8 +59,9 @@ describe('applyNodeLikeExtraOptions', () => {
     applyNodeLikeExtraOptions({ name, args: newArgs });
     expect(newArgs).toEqual(['main.ts']);
     expect(Command.prototype.parse).toBeCalledWith([process.argv[0], name, ...oldArgs]);
-    expect(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]).toEqual(
-      JSON.stringify({ ...getDefaultNodeLikeExtraOptions(), exts: ['.ts'] })
-    );
+    expect(envSet).toBeCalledWith(EK.NODE_LIKE_EXTRA_OPTIONS, {
+      ...envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS),
+      exts: ['.ts'],
+    });
   });
 });
