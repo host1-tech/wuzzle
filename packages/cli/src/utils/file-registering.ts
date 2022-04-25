@@ -1,6 +1,7 @@
 import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
 import { yellow } from 'chalk';
-import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
+import { envSet } from './env-get-set';
 import { RegisterOptions } from './register-unregister';
 
 /**
@@ -41,7 +42,7 @@ export function doFileRegistering({
         const preConfigPath = resolveRequire(
           `../registers/${registerName}__${attemptingMajorVersion}.x/pre-config`
         );
-        process.env[EK_INTERNAL_PRE_CONFIG] = preConfigPath;
+        envSet(EK.INTERNAL_PRE_CONFIG, preConfigPath);
       } catch {}
 
       if (i > 0) {

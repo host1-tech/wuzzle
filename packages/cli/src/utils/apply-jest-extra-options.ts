@@ -1,21 +1,10 @@
 import { Command } from 'commander';
 import { areArgsParsableByFlags } from '.';
-import { EK_JEST_EXTRA_OPTIONS } from '../constants';
+import { EK } from '../constants';
+import { envGetDefault, envSet } from './env-get-set';
 
 export interface JestExtraOptions {
   webpack: boolean;
-}
-
-export function getDefaultJestExtraOptions(): JestExtraOptions {
-  return { webpack: true };
-}
-
-export function getCurrentJestExtraOptions(): JestExtraOptions {
-  const options = getDefaultJestExtraOptions();
-  try {
-    Object.assign(options, JSON.parse(process.env[EK_JEST_EXTRA_OPTIONS]!));
-  } catch {}
-  return options;
 }
 
 export function getJestExtraCommandOpts() {
@@ -39,7 +28,7 @@ export function applyJestExtraOptions({
   name,
   args,
 }: ApplyJestExtraOptionsParams): void {
-  const jestExtraOptions = getDefaultJestExtraOptions();
+  const jestExtraOptions = envGetDefault(EK.JEST_EXTRA_OPTIONS);
   const extraCommandOpts = getJestExtraCommandOpts();
 
   if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {
@@ -56,5 +45,5 @@ export function applyJestExtraOptions({
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 
-  process.env[EK_JEST_EXTRA_OPTIONS] = JSON.stringify(jestExtraOptions);
+  envSet(EK.JEST_EXTRA_OPTIONS, jestExtraOptions);
 }

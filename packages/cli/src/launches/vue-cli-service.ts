@@ -5,10 +5,12 @@ import {
   resolveCommandSemVer,
   resolveRequire,
 } from '@wuzzle/helpers';
-import { EK_COMMAND_ARGS, EK_COMMAND_TYPE, EXIT_CODE_ERROR } from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
+  envGet,
+  envSet,
   execNode,
   LaunchFunction,
   tmplLogForGlobalResolving,
@@ -39,7 +41,7 @@ export const launchVueCliService: LaunchFunction = ({
     process.exit(EXIT_CODE_ERROR);
   }
 
-  const vueCliServiceSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  const vueCliServiceSubCommand = envGet(EK.COMMAND_ARGS)[0];
   let vueCliServiceCommandType: NodeJS.ProcessEnv[string] = 'unknown';
   if (vueCliServiceSubCommand === 'test:unit') {
     try {
@@ -62,8 +64,8 @@ export const launchVueCliService: LaunchFunction = ({
       vueCliServiceCommandType = 'cypress';
     } catch {}
   }
-  process.env[EK_COMMAND_TYPE] = vueCliServiceCommandType;
 
+  envSet(EK.COMMAND_TYPE, vueCliServiceCommandType);
   doFileRegistering({
     registerName: 'vue-cli-service',
     majorVersion: vueCliServiceMajorVersion,

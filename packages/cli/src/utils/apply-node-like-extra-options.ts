@@ -1,31 +1,15 @@
 import { Command } from 'commander';
-import { mergeWith, uniq } from 'lodash';
-import { EK_NODE_LIKE_EXTRA_OPTIONS } from '../constants';
+import { EK } from '../constants';
 import { areArgsParsableByFlags } from './are-args-parsable-by-flags';
+import { envGetDefault, envSet } from './env-get-set';
 
 export interface NodeLikeExtraOptions {
   verbose: boolean;
   exts: string[];
 }
 
-export function getDefaultNodeLikeExtraOptions(): NodeLikeExtraOptions {
-  return { verbose: true, exts: ['.js'] };
-}
-
-export function getCurrentNodeLikeExtraOptions(): NodeLikeExtraOptions {
-  const options = getDefaultNodeLikeExtraOptions();
-  try {
-    mergeWith(options, JSON.parse(process.env[EK_NODE_LIKE_EXTRA_OPTIONS]!), (lVal, rVal) => {
-      if (Array.isArray(lVal) && Array.isArray(rVal)) {
-        return uniq([...lVal, ...rVal]);
-      }
-    });
-  } catch {}
-  return options;
-}
-
 export function getNodeLikeExtraCommandOpts() {
-  const { exts } = getDefaultNodeLikeExtraOptions();
+  const { exts } = envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS);
   return {
     Ext: [
       '-E,--ext <string>',
@@ -48,7 +32,7 @@ export function applyNodeLikeExtraOptions({
   name,
   args,
 }: ApplyNodeLikeExtraOptionsParams): void {
-  const nodeLikeExtraOptions = getDefaultNodeLikeExtraOptions();
+  const nodeLikeExtraOptions = envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS);
   const extraCommandOpts = getNodeLikeExtraCommandOpts();
 
   if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {
@@ -67,5 +51,5 @@ export function applyNodeLikeExtraOptions({
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 
-  process.env[EK_NODE_LIKE_EXTRA_OPTIONS] = JSON.stringify(nodeLikeExtraOptions);
+  envSet(EK.NODE_LIKE_EXTRA_OPTIONS, nodeLikeExtraOptions);
 }

@@ -5,20 +5,8 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { InspectOptions } from 'util';
 import type webpackType from 'webpack';
-import { merge } from 'webpack-merge';
-import {
-  DN_APPLY_CONFIG,
-  EK_CACHE_KEY_OF_ENV_KEYS,
-  EK_CACHE_KEY_OF_FILE_PATHS,
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_COMMAND_TYPE,
-  EK_DRY_RUN,
-  EK_INTERNAL_PRE_CONFIG,
-  EK_PROJECT_PATH,
-  EXIT_CODE_ERROR,
-} from './constants';
-import { stderrDebugLog, stdoutDebugLog } from './utils';
+import { DN_APPLY_CONFIG, EK, EXIT_CODE_ERROR } from './constants';
+import { envGet, envSet, stderrDebugLog, stdoutDebugLog, wMerge } from './utils';
 
 const debug = debugFty(DN_APPLY_CONFIG);
 
@@ -61,13 +49,13 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
   const wuzzleModifyOptions = getWuzzleModifyOptions();
   debug('Wuzzle process mounted in CWD:', wuzzleModifyOptions.projectPath);
 
-  const internalPreConfigPath = process.env[EK_INTERNAL_PRE_CONFIG];
+  const internalPreConfigPath = envGet(EK.INTERNAL_PRE_CONFIG);
   if (internalPreConfigPath) {
     try {
       const internalPreConfig: WuzzleConfigModify = require(internalPreConfigPath).default;
       const webpackConfigToMerge = internalPreConfig(webpackConfig, webpack, wuzzleModifyOptions);
       if (webpackConfigToMerge) {
-        Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
+        Object.assign(webpackConfig, wMerge(webpackConfig, webpackConfigToMerge));
       }
     } catch {
       logPlain(yellow(`Internal pre config '${internalPreConfigPath}' failed.`));
@@ -83,7 +71,7 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
     try {
       const webpackConfigToMerge = optionsToUse.modify(webpackConfig, webpack, wuzzleModifyOptions);
       if (webpackConfigToMerge) {
-        Object.assign(webpackConfig, merge(webpackConfig, webpackConfigToMerge));
+        Object.assign(webpackConfig, wMerge(webpackConfig, webpackConfigToMerge));
       }
     } catch (e) {
       logError(e);
@@ -91,10 +79,10 @@ export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): Web
     }
   }
   if (optionsToUse.cacheKeyOfEnvKeys) {
-    process.env[EK_CACHE_KEY_OF_ENV_KEYS] = JSON.stringify(optionsToUse.cacheKeyOfEnvKeys);
+    envSet(EK.CACHE_KEY_OF_ENV_KEYS, optionsToUse.cacheKeyOfEnvKeys);
   }
   if (optionsToUse.cacheKeyOfFilePaths) {
-    process.env[EK_CACHE_KEY_OF_FILE_PATHS] = JSON.stringify(optionsToUse.cacheKeyOfFilePaths);
+    envSet(EK.CACHE_KEY_OF_FILE_PATHS, optionsToUse.cacheKeyOfFilePaths);
   }
 
   const webpackConfigNewSnapshot = stringify(webpackConfig, stringifyOpts);
@@ -122,7 +110,7 @@ export function applyJest(jestConfig: JestConfig, jestInfo: JestInfo): JestConfi
     try {
       const jestConfigToMerge = optionsToUse.jest(jestConfig, jestInfo, wuzzleModifyOptions);
       if (jestConfigToMerge) {
-        Object.assign(jestConfig, merge(jestConfig, jestConfigToMerge));
+        Object.assign(jestConfig, wMerge(jestConfig, jestConfigToMerge));
       }
     } catch (e) {
       logError(e);
@@ -135,7 +123,7 @@ export function applyJest(jestConfig: JestConfig, jestInfo: JestInfo): JestConfi
 }
 
 export function applyDryRunTweaks(stringifyOpts: InspectOptions): void {
-  if (process.env[EK_DRY_RUN]) {
+  if (envGet(EK.DRY_RUN)) {
     stringifyOpts.colors = process.stdout.isTTY;
     debug.log = stdoutDebugLog;
   } else {
@@ -147,10 +135,10 @@ export function applyDryRunTweaks(stringifyOpts: InspectOptions): void {
 
 export function getWuzzleModifyOptions(): WuzzleModifyOptions {
   return {
-    projectPath: process.env[EK_PROJECT_PATH] ?? process.cwd(),
-    commandName: process.env[EK_COMMAND_NAME] ?? 'unknown',
-    commandArgs: JSON.parse(process.env[EK_COMMAND_ARGS] ?? '[]'),
-    commandType: process.env[EK_COMMAND_TYPE] ?? 'default',
+    projectPath: envGet(EK.PROJECT_PATH),
+    commandName: envGet(EK.COMMAND_NAME),
+    commandArgs: envGet(EK.COMMAND_ARGS),
+    commandType: envGet(EK.COMMAND_TYPE),
   };
 }
 

@@ -1,8 +1,8 @@
 import { logError, logPlain, resolveCommandPath } from '@wuzzle/helpers';
 import { green } from 'chalk';
 import glob from 'glob';
-import { EK_COMMAND_ARGS, EK_COMMAND_NAME, EXIT_CODE_ERROR } from '../../constants';
-import { locateProjectAnchor } from '../../utils';
+import { EK, EXIT_CODE_ERROR } from '../../constants';
+import { envSet, locateProjectAnchor } from '../../utils';
 
 const projectPath = locateProjectAnchor();
 const [, , commandName] = process.argv;
@@ -13,8 +13,8 @@ if (!commandName) {
 }
 
 // Set command same env variables as 'wuzzle unregister'
-process.env[EK_COMMAND_NAME] = 'unregister';
-process.env[EK_COMMAND_ARGS] = JSON.stringify(process.argv.slice(2));
+envSet(EK.COMMAND_NAME, 'unregister');
+envSet(EK.COMMAND_ARGS, process.argv.slice(2));
 
 const specialModules = ['cypress', 'jest', 'razzle', 'razzle', 'react-scripts', 'vue-cli-service'];
 const targetPrefix = specialModules.includes(commandName) ? commandName : 'webpack';

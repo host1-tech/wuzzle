@@ -1,6 +1,7 @@
 import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
+import { envSet } from './env-get-set';
 import { doFileRegistering, FileRegisteringOptions } from './file-registering';
 
 const commandPath = '/path/to/command';
@@ -18,6 +19,8 @@ const mockedRegisterWebpack4 = require('../registers/webpack__4.x').register;
 jest.mock('../registers/webpack__5.x', () => ({ register: jest.fn() }), { virtual: true });
 const mockedRegisterWebpack5 = require('../registers/webpack__5.x').register;
 
+jest.mock('./env-get-set');
+
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -26,13 +29,12 @@ describe('doFileRegistering', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mocked(resolveRequire).mockImplementation(id => id);
-    delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
   it('functions silently if the first attempt succeeds', () => {
     doFileRegistering(options);
     expect(mockedRegisterWebpack5).toBeCalledWith({ commandPath });
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toContain('pre-config');
+    expect(envSet).toBeCalledWith(EK.INTERNAL_PRE_CONFIG, expect.stringContaining('pre-config'));
     expect(logPlain).not.toBeCalled();
   });
 
@@ -42,7 +44,7 @@ describe('doFileRegistering', () => {
     });
     doFileRegistering(options);
     expect(mockedRegisterWebpack4).toBeCalledWith({ commandPath });
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toContain('pre-config');
+    expect(envSet).toBeCalledWith(EK.INTERNAL_PRE_CONFIG, expect.stringContaining('pre-config'));
     expect(logPlain).toBeCalled();
   });
 
@@ -53,7 +55,7 @@ describe('doFileRegistering', () => {
     });
     doFileRegistering(options);
     expect(mockedRegisterWebpack5).toBeCalledWith({ commandPath });
-    expect(process.env[EK_INTERNAL_PRE_CONFIG]).toBeUndefined();
+    expect(envSet).not.toBeCalled();
     expect(logPlain).not.toBeCalled();
   });
 

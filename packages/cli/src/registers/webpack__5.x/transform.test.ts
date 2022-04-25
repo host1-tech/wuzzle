@@ -2,7 +2,7 @@ import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
-import { EK_DRY_RUN } from '../../constants';
+import { EK } from '../../constants';
 import { transform } from './transform';
 
 const applyConfigPaths: Record<string, string> = {
@@ -36,7 +36,7 @@ describe('transform', () => {
       expect(transformedCode).toEqual(
         expect.stringContaining(applyConfigPath.replace(/\\/g, '\\\\'))
       );
-      expect(transformedCode).toEqual(expect.stringContaining(EK_DRY_RUN));
+      expect(transformedCode).toEqual(expect.stringContaining(EK.DRY_RUN));
     });
   });
 

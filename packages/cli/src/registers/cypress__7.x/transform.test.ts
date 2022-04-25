@@ -4,7 +4,8 @@ import path from 'path';
 import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
 import applyConfig from '../../apply-config';
-import { EK_DRY_RUN, EK_PROJECT_PATH, EXIT_CODE_ERROR } from '../../constants';
+import { EK, EXIT_CODE_ERROR } from '../../constants';
+import { envGet, envGetDefault } from '../../utils';
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 import { register as registerWebpack5, unregister as unregisterWebpack5 } from '../webpack__5.x';
 import { register, unregister } from './transform';
@@ -22,22 +23,27 @@ jest.mock(
 );
 jest.mock('@wuzzle/helpers');
 jest.mock('../../apply-config');
+jest.mock('../../utils', () => ({ ...jest.requireActual('../../utils'), envGet: jest.fn() }));
 jest.mock('../webpack__4.x');
 jest.mock('../webpack__5.x');
+
+const envGetDryRun = jest.fn(envGet).mockReturnValue(envGetDefault(EK.DRY_RUN));
+mocked(envGet).mockImplementation(ek => {
+  if (ek === EK.PROJECT_PATH) {
+    return projectPath;
+  } else if (ek === EK.DRY_RUN) {
+    return envGetDryRun(ek);
+  }
+});
 
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 
 describe('register/unregister', () => {
-  beforeAll(() => {
-    process.env[EK_PROJECT_PATH] = projectPath;
-  });
-
   beforeEach(() => {
     mocked(resolveRequire).mockImplementation(id => id);
     jest.clearAllMocks();
-    delete process.env[EK_DRY_RUN];
   });
 
   it('uses webpack 4 register on registering', () => {
@@ -72,7 +78,7 @@ describe('register/unregister', () => {
   });
 
   it('prints config info and terminates process in dry-run mode', () => {
-    process.env[EK_DRY_RUN] = 'true';
+    mocked(envGetDryRun).mockReturnValueOnce('true');
     try {
       register({ commandPath });
     } catch {}

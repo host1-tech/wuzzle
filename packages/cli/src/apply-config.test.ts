@@ -2,7 +2,6 @@ import * as JestTypes from '@jest/types';
 import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
-import { uniqueId } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 import { InspectOptions } from 'util';
 import webpack from 'webpack';
@@ -12,32 +11,15 @@ import applyConfig, {
   getWuzzleModifyOptions,
   loadWuzzleConfig,
   WuzzleConfig,
-  WuzzleModifyOptions,
 } from './apply-config';
-import {
-  DN_APPLY_CONFIG,
-  EK_CACHE_KEY_OF_ENV_KEYS,
-  EK_CACHE_KEY_OF_FILE_PATHS,
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_COMMAND_TYPE,
-  EK_DRY_RUN,
-  EK_INTERNAL_PRE_CONFIG,
-  EK_PROJECT_PATH,
-  EXIT_CODE_ERROR,
-} from './constants';
-import { stderrDebugLog, stdoutDebugLog } from './utils';
+import { DN_APPLY_CONFIG, EK, EXIT_CODE_ERROR } from './constants';
+import { envGet, envGetDefault, envSet, stderrDebugLog, stdoutDebugLog } from './utils';
 
 jest.mock('cosmiconfig');
 const cosmiconfigSync$mockedSearch = jest.fn();
 mocked(cosmiconfigSync).mockReturnValue({ search: cosmiconfigSync$mockedSearch } as never);
 
-const defaultModifyOptions: WuzzleModifyOptions = {
-  projectPath: process.cwd(),
-  commandName: 'unknown',
-  commandArgs: [],
-  commandType: 'default',
-};
+const defaultModifyOptions = expect.anything();
 
 const internalPreConfigPath = '@internal-pre-config';
 jest.mock(
@@ -63,6 +45,23 @@ jest.mock('debug', () => {
 });
 const mockedDebug = mocked(debugFty(DN_APPLY_CONFIG));
 
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  envGet: jest.fn(),
+  envSet: jest.fn(),
+}));
+const envGetInternalPreConfig = jest
+  .fn(envGet)
+  .mockReturnValue(envGetDefault(EK.INTERNAL_PRE_CONFIG));
+const envGetDryRun = jest.fn(envGet).mockReturnValue(envGetDefault(EK.DRY_RUN));
+mocked(envGet).mockImplementation(ek => {
+  if (ek === EK.INTERNAL_PRE_CONFIG) {
+    return envGetInternalPreConfig(ek);
+  } else if (ek === EK.DRY_RUN) {
+    return envGetDryRun(ek);
+  }
+});
+
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
@@ -70,11 +69,6 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 describe('applyConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
-    delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
   });
 
   it('does nothing if no config found', () => {
@@ -125,7 +119,7 @@ describe('applyConfig', () => {
 
   it('uses side effect of internal pre config', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
+    envGetInternalPreConfig.mockReturnValueOnce(internalPreConfigPath);
     mockedInternalPreConfig.mockImplementationOnce((webpackConfig: webpack.Configuration) => {
       webpackConfig.resolve = {};
     });
@@ -137,7 +131,7 @@ describe('applyConfig', () => {
 
   it('uses returned value of internal pre config', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
+    envGetInternalPreConfig.mockReturnValueOnce(internalPreConfigPath);
     mockedInternalPreConfig.mockImplementationOnce((webpackConfig: webpack.Configuration) => {
       return { ...webpackConfig, resolve: {} };
     });
@@ -149,7 +143,7 @@ describe('applyConfig', () => {
 
   it('reports error if internal pre config fails', () => {
     cosmiconfigSync$mockedSearch.mockReturnValueOnce(null);
-    process.env[EK_INTERNAL_PRE_CONFIG] = internalPreConfigPath;
+    envGetInternalPreConfig.mockReturnValueOnce(internalPreConfigPath);
     mockedInternalPreConfig.mockImplementationOnce(() => {
       throw 0;
     });
@@ -164,12 +158,8 @@ describe('applyConfig', () => {
     };
     cosmiconfigSync$mockedSearch.mockReturnValueOnce({ config: wuzzleConfig });
     applyConfig({}, webpack);
-    expect(process.env[EK_CACHE_KEY_OF_ENV_KEYS]).toBe(
-      JSON.stringify(wuzzleConfig.cacheKeyOfEnvKeys)
-    );
-    expect(process.env[EK_CACHE_KEY_OF_FILE_PATHS]).toBe(
-      JSON.stringify(wuzzleConfig.cacheKeyOfFilePaths)
-    );
+    expect(envSet).toBeCalledWith(EK.CACHE_KEY_OF_ENV_KEYS, wuzzleConfig.cacheKeyOfEnvKeys);
+    expect(envSet).toBeCalledWith(EK.CACHE_KEY_OF_FILE_PATHS, wuzzleConfig.cacheKeyOfFilePaths);
   });
 
   it('collects and prints debug info', () => {
@@ -283,7 +273,6 @@ describe('applyDryRunTweaks', () => {
   afterEach(() => {
     process.stdout.isTTY = originalStdoutIsTTY;
     process.stderr.isTTY = originalStderrIsTTY;
-    delete process.env[EK_DRY_RUN];
   });
 
   it('reads tty info from stderr and logs to it by default', () => {
@@ -294,7 +283,7 @@ describe('applyDryRunTweaks', () => {
   });
 
   it('reads tty info from stdout and logs to it in dry-run mode', () => {
-    process.env[EK_DRY_RUN] = 'true';
+    envGetDryRun.mockReturnValueOnce('true');
     const stringifyOpts: InspectOptions = {};
     applyDryRunTweaks(stringifyOpts);
     expect(stringifyOpts.colors).toBe(process.stdout.isTTY);
@@ -303,32 +292,8 @@ describe('applyDryRunTweaks', () => {
 });
 
 describe('getWuzzleModifyOptions', () => {
-  afterEach(() => {
-    delete process.env[EK_PROJECT_PATH];
-    delete process.env[EK_COMMAND_NAME];
-    delete process.env[EK_COMMAND_ARGS];
-    delete process.env[EK_COMMAND_TYPE];
-  });
-
-  it('parses values from envs', () => {
-    const projectPath = 'projectPath';
-    const commandName = 'commandName';
-    const commandArgs = [uniqueId()];
-    const commandType = 'commandType';
-    process.env[EK_PROJECT_PATH] = projectPath;
-    process.env[EK_COMMAND_NAME] = commandName;
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(commandArgs);
-    process.env[EK_COMMAND_TYPE] = commandType;
-    expect(getWuzzleModifyOptions()).toEqual({
-      projectPath,
-      commandName,
-      commandArgs,
-      commandType,
-    });
-  });
-
-  it('returns default values if no envs given', () => {
-    expect(getWuzzleModifyOptions()).toEqual(defaultModifyOptions);
+  it('works', () => {
+    expect(getWuzzleModifyOptions()).toBeTruthy();
   });
 });
 

@@ -3,8 +3,8 @@ import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import { resolveRequire } from '@wuzzle/helpers';
-import { EK_DRY_RUN } from '../../constants';
-import { createRegisterUnregister, getCurrentJestExtraOptions } from '../../utils';
+import { EK } from '../../constants';
+import { createRegisterUnregister, envGet } from '../../utils';
 
 export const [register, unregister] = createRegisterUnregister({
   moduleName: 'jest',
@@ -35,7 +35,7 @@ export function transform(code: string): string {
         );
 
         if (targetPath) {
-          const { webpack } = getCurrentJestExtraOptions();
+          const { webpack } = envGet(EK.JEST_EXTRA_OPTIONS);
           const toInsert = [
             // Register webpack based transformer
             webpack
@@ -48,7 +48,7 @@ export function transform(code: string): string {
               '\\\\'
             )}').applyJest(config,require('../..')));`,
             // Register dry-run mode handler
-            `if(process.env.${EK_DRY_RUN}){` +
+            `if(process.env.${EK.DRY_RUN}){` +
               (webpack
                 ? `require('${resolveRequire('../node/transform').replace(
                     /\\/g,

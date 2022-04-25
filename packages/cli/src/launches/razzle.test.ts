@@ -1,9 +1,10 @@
 import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { EK_COMMAND_ARGS, EK_INTERNAL_PRE_CONFIG, EXIT_CODE_ERROR } from '../constants';
+import { EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
+  envGet,
   execNode,
   FileRegisteringOptions,
   LaunchOptions,
@@ -32,6 +33,7 @@ jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+mocked(envGet).mockReturnValue([]);
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
 mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
@@ -39,8 +41,6 @@ mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 describe('launchRazzle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env[EK_COMMAND_ARGS] = '[]';
-    delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
   it('executes with razzle register attached if command resolved', () => {
@@ -72,7 +72,7 @@ describe('launchRazzle', () => {
   });
 
   it('prepares jest extra options on testing command', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    mocked(envGet).mockReturnValueOnce(['test']);
     launchRazzle(launchOptions);
     expect(applyJestExtraOptions).toBeCalled();
   });

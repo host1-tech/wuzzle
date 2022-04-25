@@ -1,13 +1,15 @@
 import debugFty from 'debug';
-import { DN_APPLY_CONFIG, EK_DEBUG, EK_DRY_RUN } from '../constants';
+import { mocked } from 'ts-jest/utils';
+import { DN_APPLY_CONFIG, EK } from '../constants';
 import { checkToUseDryRunMode, dryRunModeCommandOptionName } from './check-to-use-dry-run-mode';
+import { envGet, envSet } from './env-get-set';
+
+jest.mock('./env-get-set');
 
 jest.spyOn(debugFty, 'enable');
 
 describe('checkToUseDryRunMode', () => {
   beforeEach(() => {
-    delete process.env[EK_DRY_RUN];
-    delete process.env[EK_DEBUG];
     jest.clearAllMocks();
   });
 
@@ -15,8 +17,8 @@ describe('checkToUseDryRunMode', () => {
     const args = [dryRunModeCommandOptionName];
     expect(checkToUseDryRunMode(args)).toBe(true);
     expect(args).not.toContain(dryRunModeCommandOptionName);
-    expect(process.env[EK_DRY_RUN]).toBeTruthy();
-    expect(process.env[EK_DEBUG]).toBe(DN_APPLY_CONFIG);
+    expect(envSet).toBeCalledWith(EK.DRY_RUN, 'true');
+    expect(envSet).toBeCalledWith(EK.TP_DEBUG, DN_APPLY_CONFIG);
     expect(debugFty.enable).toBeCalledWith(DN_APPLY_CONFIG);
   });
 
@@ -25,8 +27,7 @@ describe('checkToUseDryRunMode', () => {
     const args = [extraArg];
     expect(checkToUseDryRunMode(args)).toBe(false);
     expect(args).toContain(extraArg);
-    expect(process.env[EK_DRY_RUN]).toBeFalsy();
-    expect(process.env[EK_DEBUG]).not.toBe(DN_APPLY_CONFIG);
+    expect(envSet).not.toBeCalled();
     expect(debugFty.enable).not.toBeCalled();
   });
 
@@ -34,9 +35,9 @@ describe('checkToUseDryRunMode', () => {
     const args = [dryRunModeCommandOptionName];
     const oldDebugEnv = 'd671700';
     const newDebugEnv = `${oldDebugEnv},${DN_APPLY_CONFIG}`;
-    process.env[EK_DEBUG] = oldDebugEnv;
+    mocked(envGet).mockReturnValueOnce(oldDebugEnv);
     expect(checkToUseDryRunMode(args)).toBe(true);
-    expect(process.env[EK_DEBUG]).toBe(newDebugEnv);
+    expect(envSet).toBeCalledWith(EK.TP_DEBUG, newDebugEnv);
     expect(debugFty.enable).toBeCalledWith(newDebugEnv);
   });
 });

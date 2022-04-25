@@ -1,11 +1,12 @@
 import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { EK_JEST_EXTRA_OPTIONS, EXIT_CODE_ERROR } from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   doFileRegistering,
+  envGetDefault,
+  envSet,
   execNode,
   FileRegisteringOptions,
-  getDefaultJestExtraOptions,
   LaunchOptions,
   tmplLogForGlobalResolving,
 } from '../utils';
@@ -32,6 +33,7 @@ jest.mock('@wuzzle/helpers');
 jest.mock('../utils', () => ({
   ...jest.requireActual('../utils'),
   doFileRegistering: jest.fn(),
+  envSet: jest.fn(),
   execNode: jest.fn(),
   tmplLogForGlobalResolving: jest.fn(),
 }));
@@ -46,7 +48,6 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 describe('launchTest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env[EK_JEST_EXTRA_OPTIONS];
   });
 
   it('executes with jest register attached if command resolved', () => {
@@ -135,13 +136,12 @@ describe('launchTest', () => {
 
   it('passes on certian extra options as envs', () => {
     launchJest(launchOptions);
-    expect(process.env[EK_JEST_EXTRA_OPTIONS]).toEqual(
-      JSON.stringify(getDefaultJestExtraOptions())
-    );
+    expect(envSet).toBeCalledWith(EK.JEST_EXTRA_OPTIONS, envGetDefault(EK.JEST_EXTRA_OPTIONS));
 
     launchJest({ ...launchOptions, args: ['--no-webpack'] });
-    expect(process.env[EK_JEST_EXTRA_OPTIONS]).toEqual(
-      JSON.stringify({ ...getDefaultJestExtraOptions(), webpack: false })
-    );
+    expect(envSet).toBeCalledWith(EK.JEST_EXTRA_OPTIONS, {
+      ...envGetDefault(EK.JEST_EXTRA_OPTIONS),
+      webpack: false,
+    });
   });
 });

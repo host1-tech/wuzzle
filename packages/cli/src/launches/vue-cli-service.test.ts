@@ -5,15 +5,12 @@ import {
   resolveRequire,
 } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import {
-  EK_COMMAND_ARGS,
-  EK_COMMAND_TYPE,
-  EK_INTERNAL_PRE_CONFIG,
-  EXIT_CODE_ERROR,
-} from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
+  envGet,
+  envSet,
   execNode,
   FileRegisteringOptions,
   LaunchOptions,
@@ -47,6 +44,8 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 
+mocked(envGet).mockReturnValue([]);
+mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 const resolveVueCliPluginUnitJest = jest
   .fn(resolveRequire)
   .mockReturnValue(vueCliPluginUnitJestPath);
@@ -66,15 +65,12 @@ mocked(resolveRequire).mockImplementation(id => {
   }
   return id;
 });
-mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
 mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchVueCliService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env[EK_COMMAND_ARGS] = '[]';
-    delete process.env[EK_INTERNAL_PRE_CONFIG];
   });
 
   it('executes with vue-cli-register register attached if command resolved', () => {
@@ -105,28 +101,28 @@ describe('launchVueCliService', () => {
   });
 
   it('prepares jest env and its extra options on test:unit/jest', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test:unit']);
+    mocked(envGet).mockReturnValueOnce(['test:unit']);
     resolveVueCliPluginUnitMocha.mockImplementationOnce(() => {
       throw 0;
     });
     launchVueCliService(launchOptions);
-    expect(process.env[EK_COMMAND_TYPE]).toBe('jest');
+    expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'jest');
     expect(applyJestExtraOptions).toBeCalled();
   });
 
   it('prepares mocha env on test:unit/mocha', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test:unit']);
+    mocked(envGet).mockReturnValueOnce(['test:unit']);
     resolveVueCliPluginUnitJest.mockImplementationOnce(() => {
       throw 0;
     });
     launchVueCliService(launchOptions);
-    expect(process.env[EK_COMMAND_TYPE]).toBe('mocha');
+    expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'mocha');
   });
 
   it('prepares cypress env on test:e2e/cypress', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test:e2e']);
+    mocked(envGet).mockReturnValueOnce(['test:e2e']);
     launchVueCliService(launchOptions);
-    expect(process.env[EK_COMMAND_TYPE]).toBe('cypress');
+    expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'cypress');
   });
 
   it('exits with error code and error message if command not resolved', () => {

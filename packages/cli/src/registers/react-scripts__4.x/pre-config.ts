@@ -1,7 +1,8 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import { WuzzleModifyOptions } from '../../apply-config';
-import { EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM } from '../../constants';
+import { EK } from '../../constants';
+import { envGet } from '../../utils';
 
 export default (
   arg0: unknown,
@@ -83,7 +84,7 @@ export default (
 };
 
 function hasNewJsxRuntime(projectPath: string) {
-  if (process.env[EK_REACT_SCRIPTS_DISABLE_NEW_JSX_TRANSFORM] === 'true') {
+  if (envGet(EK.TP_DISABLE_NEW_JSX_TRANSFORM)) {
     return false;
   }
 

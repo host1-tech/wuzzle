@@ -10,23 +10,16 @@ import pMap from 'p-map';
 import path from 'path';
 import rimraf from 'rimraf';
 import type webpack from 'webpack';
-import {
-  CHAR_CTRL_D,
-  EK_COMMAND_ARGS,
-  EK_COMMAND_NAME,
-  EK_DRY_RUN,
-  EXIT_CODE_ERROR,
-  EXIT_CODE_USER_TERMINATION,
-} from '../../constants';
+import { CHAR_CTRL_D, EK, EXIT_CODE_ERROR, EXIT_CODE_USER_TERMINATION } from '../../constants';
 import { transpile } from '../../transpile';
-import { checkToUseDryRunMode, locateProjectAnchor } from '../../utils';
+import { checkToUseDryRunMode, envGet, envSet, locateProjectAnchor } from '../../utils';
 
 const projectPath = locateProjectAnchor();
 checkToUseDryRunMode(process.argv);
 
 // Set command same env variables as 'wuzzle transpile'
-process.env[EK_COMMAND_NAME] = 'transpile';
-process.env[EK_COMMAND_ARGS] = JSON.stringify(process.argv.slice(2));
+envSet(EK.COMMAND_NAME, 'transpile');
+envSet(EK.COMMAND_ARGS, process.argv.slice(2));
 
 const program = new Command('wuzzle-transpile');
 const version = require('../../../package.json').version;
@@ -157,7 +150,7 @@ async function launchExec() {
     devtool: webpackDevtool,
   };
 
-  if (process.env[EK_DRY_RUN]) {
+  if (envGet(EK.DRY_RUN)) {
     return await transpile({ webpackConfig });
   }
 

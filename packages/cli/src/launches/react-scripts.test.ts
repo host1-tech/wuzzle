@@ -1,14 +1,11 @@
 import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import {
-  EK_COMMAND_ARGS,
-  EK_INTERNAL_PRE_CONFIG,
-  EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK,
-  EXIT_CODE_ERROR,
-} from '../constants';
+import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
   doFileRegistering,
+  envGet,
+  envSet,
   execNode,
   FileRegisteringOptions,
   LaunchOptions,
@@ -37,6 +34,7 @@ jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+mocked(envGet).mockReturnValue([]);
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
 mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
@@ -44,9 +42,6 @@ mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 describe('launchReactScripts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env[EK_COMMAND_ARGS] = '[]';
-    delete process.env[EK_INTERNAL_PRE_CONFIG];
-    delete process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK];
   });
 
   it('executes with register attached and envs set if command resolved', () => {
@@ -59,7 +54,7 @@ describe('launchReactScripts', () => {
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
+    expect(envSet).toBeCalledWith(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
   });
 
   it('resolves react-scripts global if command not resolved from locals', () => {
@@ -76,11 +71,11 @@ describe('launchReactScripts', () => {
         execArgs: expect.arrayContaining([commandPath]),
       })
     );
-    expect(process.env[EK_REACT_SCRIPTS_SKIP_PREFLIGHT_CHECK]).toBe('true');
+    expect(envSet).toBeCalledWith(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
   });
 
   it('prepares jest extra options on testing command', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    mocked(envGet).mockReturnValue(['test']);
     launchReactScripts(launchOptions);
     expect(applyJestExtraOptions).toBeCalled();
   });

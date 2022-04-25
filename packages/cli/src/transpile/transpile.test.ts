@@ -1,17 +1,12 @@
 import cacache from 'cacache';
+import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
-import {
-  EK_CACHE_KEY_OF_ENV_KEYS,
-  EK_CACHE_KEY_OF_FILE_PATHS,
-  EK_DRY_RUN,
-  EK_PROJECT_PATH,
-  ENCODING_TEXT,
-} from '../constants';
-import { cachePath, transpile, generateCacheKey } from './transpile';
-import fs from 'fs';
+import { EK, ENCODING_TEXT } from '../constants';
+import { envGet, envGetDefault } from '../utils';
+import { cachePath, generateCacheKey, transpile } from './transpile';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const outputDir = 'lib';
@@ -32,8 +27,6 @@ const changingJs = {
 };
 const babelConfPath = path.join(fixturePath, '.babelrc');
 
-process.env[EK_PROJECT_PATH] = fixturePath;
-
 jest.spyOn(cacache.get, 'info');
 
 jest.mock('webpack', () => {
@@ -45,6 +38,27 @@ jest.mock('webpack', () => {
 });
 
 jest.mock('../apply-config');
+
+jest.mock('../utils', () => ({ ...jest.requireActual('../utils'), envGet: jest.fn() }));
+
+const envGetCacheKeyOfEnvKeys = jest
+  .fn(envGet)
+  .mockReturnValue(envGetDefault(EK.CACHE_KEY_OF_ENV_KEYS));
+const envGetCacheKeyOfFilePaths = jest
+  .fn(envGet)
+  .mockReturnValue(envGetDefault(EK.CACHE_KEY_OF_FILE_PATHS));
+const envGetDryRun = jest.fn(envGet).mockReturnValue(envGetDefault(EK.DRY_RUN));
+mocked(envGet).mockImplementation(ek => {
+  if (ek === EK.PROJECT_PATH) {
+    return fixturePath;
+  } else if (ek === EK.CACHE_KEY_OF_ENV_KEYS) {
+    return envGetCacheKeyOfEnvKeys(ek);
+  } else if (ek === EK.CACHE_KEY_OF_FILE_PATHS) {
+    return envGetCacheKeyOfFilePaths(ek);
+  } else if (ek === EK.DRY_RUN) {
+    return envGetDryRun(ek);
+  }
+});
 
 jest.mock('../constants', () => {
   const constants = jest.requireActual('../constants');
@@ -66,7 +80,6 @@ describe('transpile', () => {
   beforeEach(() => {
     shelljs.rm('-fr', outputDir);
     jest.clearAllMocks();
-    delete process.env[EK_DRY_RUN];
   });
 
   it('converts code to code', async () => {
@@ -237,7 +250,7 @@ describe('transpile', () => {
   });
 
   it('skips actual processing and returns empty text in dry run mode', async () => {
-    process.env[EK_DRY_RUN] = 'true';
+    mocked(envGet).mockReturnValueOnce('true');
     const outputContent = await transpile();
     expect(webpack).not.toBeCalled();
     expect(outputContent).toBeFalsy();
@@ -262,8 +275,6 @@ describe('transpile', () => {
 
 describe('generateCacheKey', () => {
   beforeEach(() => {
-    delete process.env[EK_CACHE_KEY_OF_ENV_KEYS];
-    delete process.env[EK_CACHE_KEY_OF_FILE_PATHS];
     delete process.env.BABEL_ENV;
   });
 
@@ -297,8 +308,8 @@ describe('generateCacheKey', () => {
     expect(hash1).not.toBe(hash2);
   });
 
-  it(`sets inspected envs by "${EK_CACHE_KEY_OF_ENV_KEYS}"`, async () => {
-    process.env[EK_CACHE_KEY_OF_ENV_KEYS] = JSON.stringify([]);
+  it(`sets inspected envs by "${EK.CACHE_KEY_OF_ENV_KEYS}"`, async () => {
+    envGetCacheKeyOfEnvKeys.mockReturnValue([]);
     process.env.BABEL_ENV = 'production';
     const hash1 = await generateCacheKey({});
     process.env.BABEL_ENV = 'development';
@@ -306,8 +317,8 @@ describe('generateCacheKey', () => {
     expect(hash1).toBe(hash2);
   });
 
-  it(`sets inspected files by "${EK_CACHE_KEY_OF_FILE_PATHS}"`, async () => {
-    process.env[EK_CACHE_KEY_OF_FILE_PATHS] = JSON.stringify([]);
+  it(`sets inspected files by "${EK.CACHE_KEY_OF_FILE_PATHS}"`, async () => {
+    envGetCacheKeyOfFilePaths.mockReturnValue([]);
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 1 }));
     const hash1 = await generateCacheKey({});
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 2 }));

@@ -1,4 +1,5 @@
-import { EK_COMMAND_ARGS } from '../../constants';
+import { mocked } from 'ts-jest/utils';
+import { envGet } from '../../utils';
 import { register as registerJest26, unregister as unregisterJest26 } from '../jest__26.x';
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 import { register, unregister } from './transform';
@@ -6,23 +7,25 @@ import { register, unregister } from './transform';
 const commandPath = '/path/to/command';
 
 jest.mock('@wuzzle/helpers');
+jest.mock('../../utils', () => ({ ...jest.requireActual('../../utils'), envGet: jest.fn() }));
 jest.mock('../jest__26.x');
 jest.mock('../webpack__4.x');
+
+mocked(envGet).mockReturnValue([]);
 
 describe('register/unregister', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env[EK_COMMAND_ARGS];
   });
 
   it('uses webpack register on default registering', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['build']);
+    mocked(envGet).mockReturnValueOnce(['build']);
     register({ commandPath });
     expect(registerWebpack4).toBeCalledWith({ commandPath });
   });
 
   it('uses jest register on testing registering', () => {
-    process.env[EK_COMMAND_ARGS] = JSON.stringify(['test']);
+    mocked(envGet).mockReturnValueOnce(['test']);
     register({ commandPath });
     expect(registerJest26).toBeCalledWith({ commandPath });
   });

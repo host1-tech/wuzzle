@@ -1,10 +1,10 @@
-import { EK_COMMAND_ARGS } from '../../constants';
-import { RegisterFunction, UnregisterFunction } from '../../utils';
+import { EK } from '../../constants';
+import { envGet, RegisterFunction, UnregisterFunction } from '../../utils';
 import { register as registerJest24, unregister as unregisterJest24 } from '../jest__24.x';
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';
 
 export const register: RegisterFunction = options => {
-  const razzleSubCommand = JSON.parse(process.env[EK_COMMAND_ARGS]!)[0];
+  const razzleSubCommand = envGet(EK.COMMAND_ARGS)[0];
   if (razzleSubCommand === 'test') {
     registerJest24(options);
   } else {
