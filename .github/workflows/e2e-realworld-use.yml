@@ -2,13 +2,13 @@ name: E2E - Realworld Use
 
 on:
   push:
-    branches: [master]
+    branches: [master, publish]
   pull_request:
-    branches: [master]
+    branches: [master, publish]
 
 jobs:
   main:
     name: Main
     uses: ./.github/workflows/e2e.yml
     with:
-      test_dirs: e2e/realworld-use
+      target_dirs: e2e/realworld-use

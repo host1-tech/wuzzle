@@ -1,29 +1,30 @@
-name: Lint
+name: Publish
 
 on:
   push:
     branches: [master, publish]
-  pull_request:
-    branches: [master, publish]
 
 jobs:
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   main:
     name: Main
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14
       - name: Install and build
         run: yarn
-      - name: Lint commits
-        uses: wagoid/commitlint-github-action@v2
+      - name: Publish
+        run: yarn autopublish
         env:
-          NODE_PATH: ${{ github.workspace }}/node_modules
-      - name: Lint sources
-        run: yarn lint
+          GH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

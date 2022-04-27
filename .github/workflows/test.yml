@@ -1,25 +1,18 @@
-name: Coverage
+name: Test
 
 on:
-  push:
-    branches: [master]
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
   pull_request:
-    branches: [master]
+    branches: [master, publish]
 
 jobs:
-  cancel-prev:
-    name: Cancel Prev
-    runs-on: ubuntu-20.04
-    timeout-minutes: 3
-    steps:
-      - name: Cancel Prev
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          access_token: ${{ github.token }}
   main:
     name: Main
-    needs: cancel-prev
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019]

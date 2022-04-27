@@ -32,11 +32,9 @@
     "fix:prettier": "yarn prettier --write",
     "eslint": "eslint \"**/*.@([jt]s?(x)|json)\"",
     "prettier": "prettier \"**/*.@([jt]s?(x)|json)\"",
-    "release": "lerna version",
-    "release:pre": "lerna version --conventional-prerelease",
-    "publish:npm": "lerna publish from-package --registry https://registry.npmjs.org",
     "postinstall": "yarn build",
-    "fixtures": "ts-node scripts/fixtures/index.ts"
+    "fixtures": "ts-node scripts/fixtures/index.ts",
+    "autopublish": "ts-node scripts/autopublish.ts"
   },
   "lint-staged": {
     "*.@([jt]s?(x)|json)": [
