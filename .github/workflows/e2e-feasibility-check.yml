@@ -2,13 +2,13 @@ name: E2E - Feasibility Check
 
 on:
   push:
-    branches: [master]
+    branches: [master, publish]
   pull_request:
-    branches: [master]
+    branches: [master, publish]
 
 jobs:
   main:
     name: Main
     uses: ./.github/workflows/e2e.yml
     with:
-      test_dirs: e2e/feasibility-check
+      target_dirs: e2e/feasibility-check
