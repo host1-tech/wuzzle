@@ -22,7 +22,7 @@ jobs:
     name: E2E
     needs: cancel-prev
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019]

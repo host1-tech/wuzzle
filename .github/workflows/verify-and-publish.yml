@@ -23,15 +23,19 @@ jobs:
       - test
       - lint
     runs-on: ubuntu-20.04
+    env:
+      NPM_REGISTRY_URL: https://registry.npmjs.org
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_AUTOMATION }}
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14
+          registry-url: ${{ env.NPM_REGISTRY_URL }}
       - name: Install and build
         run: yarn
       - name: Publish

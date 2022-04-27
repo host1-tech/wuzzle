@@ -2,8 +2,8 @@
 
 import execa from 'execa';
 
-const { GH_TOKEN, NODE_AUTH_TOKEN } = process.env;
-if (!GH_TOKEN || !NODE_AUTH_TOKEN) {
+const { NPM_REGISTRY_URL, GH_TOKEN, NODE_AUTH_TOKEN } = process.env;
+if (!NPM_REGISTRY_URL || !GH_TOKEN || !NODE_AUTH_TOKEN) {
   throw new Error('Required envs are not found');
 }
 
@@ -25,6 +25,6 @@ const constantArgs = [
   '--create-release',
   'github',
   '--registry',
-  'https://registry.npmjs.org',
+  NPM_REGISTRY_URL,
 ];
 execa.sync('yarn', [...constantArgs, ...changingArgs], { stdio: 'inherit' });
