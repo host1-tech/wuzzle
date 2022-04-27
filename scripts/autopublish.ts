@@ -4,7 +4,7 @@ import execa from 'execa';
 
 const { NPM_REGISTRY_URL, GH_TOKEN, NODE_AUTH_TOKEN } = process.env;
 if (!NPM_REGISTRY_URL || !GH_TOKEN || !NODE_AUTH_TOKEN) {
-  throw new Error('Required envs are not found');
+  throw new Error('Required envs are not prepared');
 }
 
 const branchToArgs: Record<string, string[]> = {
