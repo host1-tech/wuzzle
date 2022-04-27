@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.0-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.4.1...v0.5.0-alpha.0) (2022-04-27)
+
+
+### Features
+
+* support cypress ([821008d](https://github.com/host1-tech/wuzzle/commit/821008de60d55a0744fe180e79a16f98b5848969))
+
+
+### Bug Fixes
+
+* improve error and warning logging ([24ea9b7](https://github.com/host1-tech/wuzzle/commit/24ea9b773c2583b18e95341b13c8527564fc54c8))
+
+
+
 ## [0.4.1](https://github.com/host1-tech/wuzzle/compare/v0.4.1-alpha.1...v0.4.1) (2022-04-04)
 
 **Note:** Version bump only for package @wuzzle/cli

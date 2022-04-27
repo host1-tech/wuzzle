@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.0-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.4.1...v0.5.0-alpha.0) (2022-04-27)
+
+
+### Bug Fixes
+
+* improve error and warning logging ([24ea9b7](https://github.com/host1-tech/wuzzle/commit/24ea9b773c2583b18e95341b13c8527564fc54c8))
+
+
+
 ## [0.4.0](https://github.com/host1-tech/wuzzle/compare/v0.3.2...v0.4.0) (2022-04-04)
 
 
