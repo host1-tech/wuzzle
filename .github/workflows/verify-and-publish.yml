@@ -1,4 +1,4 @@
-name: Publish
+name: Verify and Publish
 
 on:
   push:
@@ -38,5 +38,5 @@ jobs:
           git config user.email "licg9999@126.com"
           yarn autopublish
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_AUTOMATION }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
