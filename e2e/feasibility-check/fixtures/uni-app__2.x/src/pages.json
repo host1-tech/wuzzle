@@ -1,3 +1,7 @@
 {
-  "pages": [{ "path": "pages/index/index" }]
+  "pages": [
+    {
+      "path": "pages/index/index"
+    }
+  ]
 }
