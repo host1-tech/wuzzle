@@ -2,7 +2,9 @@ name: Publish
 
 on:
   push:
-    branches: [master, publish]
+    branches:
+      - master
+      - publish
 
 jobs:
   test:
@@ -11,9 +13,15 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+
   publish:
     name: Publish
-    needs: test
+    needs:
+      - test
+      - lint
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -25,7 +33,10 @@ jobs:
       - name: Install and build
         run: yarn
       - name: Publish
-        run: yarn autopublish
+        run: |
+          git config user.name "uno"
+          git config user.email "licg9999@126.com"
+          yarn autopublish
         env:
           GH_TOKEN: ${{ github.token }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

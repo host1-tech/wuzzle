@@ -1,10 +1,11 @@
 name: Lint
 
 on:
-  push:
-    branches: [master, publish]
+  workflow_call:
   pull_request:
-    branches: [master, publish]
+    branches:
+      - master
+      - publish
 
 jobs:
   main:

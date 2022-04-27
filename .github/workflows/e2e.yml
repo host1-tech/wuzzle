@@ -18,8 +18,8 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  main:
-    name: Main
+  e2e:
+    name: E2E
     needs: cancel-prev
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

@@ -2,9 +2,13 @@ name: E2E - Realworld Use
 
 on:
   push:
-    branches: [master, publish]
+    branches:
+      - master
+      - publish
   pull_request:
-    branches: [master, publish]
+    branches:
+      - master
+      - publish
 
 jobs:
   main:
