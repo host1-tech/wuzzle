@@ -21,6 +21,7 @@ if (!GH_TOKEN || !NODE_AUTH_TOKEN) {
 const constantArgs = [
   'lerna',
   'publish',
+  '--yes',
   '--create-release',
   'github',
   '--registry',

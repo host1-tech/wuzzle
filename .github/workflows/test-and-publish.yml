@@ -11,8 +11,9 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  main:
-    name: Main
+  publish:
+    name: Publish
+    needs: test
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
