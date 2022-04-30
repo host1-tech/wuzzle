@@ -7,7 +7,7 @@
       "message": "chore: publish %s",
       "allowBranch": [
         "master",
-        "publish"
+        "release"
       ],
       "exact": true,
       "conventionalCommits": true,
