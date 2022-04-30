@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - master
-      - publish
+      - release
   pull_request:
     branches:
       - master
-      - publish
+      - release
 
 jobs:
   main:
