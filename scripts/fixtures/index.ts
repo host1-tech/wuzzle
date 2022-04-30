@@ -11,6 +11,7 @@ import shelljs from 'shelljs';
 program.command('install [dirs...]').action(async dirs => {
   await pMap(getFixtureDirs(dirs), action, {
     concurrency: process.platform === 'linux' ? os.cpus().length : 1,
+    stopOnError: true,
   });
   async function action(fixtureDir: string) {
     const installPath = require.resolve('./install');

@@ -18,7 +18,7 @@
     "clean:cache": "rimraf \"**/node_modules/.cache\"",
     "clean:installed": "run-s clean:installed:*",
     "clean:installed:packages": "lerna clean --yes",
-    "clean:installed:toplevel": "rimraf node_modules",
+    "clean:installed:toplevel": "rimraf node_modules yarn.lock",
     "test": "jest --testPathIgnorePatterns e2e --cache",
     "test:watch": "yarn test --watch",
     "coverage": "yarn test --coverage",
