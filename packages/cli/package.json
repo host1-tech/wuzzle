@@ -43,7 +43,7 @@
     "commander": "^6.1.0",
     "cosmiconfig": "^7.0.0",
     "debug": "^4.1.1",
-    "execa": "^4.0.3",
+    "execa": "^4.1.0",
     "find-cache-dir": "^3.3.2",
     "find-up": "^5.0.0",
     "get-stream": "^6.0.0",

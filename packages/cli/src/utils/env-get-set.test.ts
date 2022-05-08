@@ -188,7 +188,7 @@ describe(EK.RPOJECT_ANCHOR, () => {
 });
 
 describe(EK.NODE_LIKE_EXTRA_OPTIONS, () => {
-  const edv = { verbose: true, exts: ['.js'] };
+  const edv = { verbose: true, ext: ['.js'] };
 
   it('gets default', () => {
     expect(envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS)).toEqual(edv);
@@ -196,9 +196,9 @@ describe(EK.NODE_LIKE_EXTRA_OPTIONS, () => {
   });
 
   it('modifies env', () => {
-    const ev = { verbose: false, exts: ['.ts'] };
+    const ev = { verbose: false, ext: ['.ts'] };
     envSet(EK.NODE_LIKE_EXTRA_OPTIONS, ev);
-    expect(envGet(EK.NODE_LIKE_EXTRA_OPTIONS)).toEqual({ ...ev, exts: [...edv.exts, ...ev.exts] });
+    expect(envGet(EK.NODE_LIKE_EXTRA_OPTIONS)).toEqual({ ...ev, ext: [...edv.ext, ...ev.ext] });
   });
 });
 

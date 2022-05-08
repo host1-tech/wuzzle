@@ -5,7 +5,7 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { InspectOptions } from 'util';
 import type webpackType from 'webpack';
-import { DN_APPLY_CONFIG, EK, EXIT_CODE_ERROR } from './constants';
+import { CONFIG_FILENAME, DN_APPLY_CONFIG, EK, EXIT_CODE_ERROR } from './constants';
 import { envGet, envSet, stderrDebugLog, stdoutDebugLog, wMerge } from './utils';
 
 const debug = debugFty(DN_APPLY_CONFIG);
@@ -146,7 +146,9 @@ export function loadWuzzleConfig(): {
   optionsToUse: WuzzleConfigOptions;
   configLoaded: WuzzleConfig;
 } {
-  const wuzzleConfigExplorer = cosmiconfigSync('wuzzle');
+  const wuzzleConfigExplorer = cosmiconfigSync('wuzzle', {
+    searchPlaces: [CONFIG_FILENAME],
+  });
 
   const optionsToUse: WuzzleConfigOptions = {};
   const configLoaded: WuzzleConfig = wuzzleConfigExplorer.search()?.config || {};

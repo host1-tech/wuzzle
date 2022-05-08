@@ -3,4 +3,5 @@ export {
   transpileDefaultOptions,
   TranspileInternalOptions,
   TranspileOptions,
+  transpileSyncFromCacheOnly,
 } from './transpile';

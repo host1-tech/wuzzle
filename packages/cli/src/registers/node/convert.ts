@@ -1,17 +1,13 @@
+import { logError } from '@wuzzle/helpers';
 import getStream from 'get-stream';
-import { transpile } from '../../transpile';
-
-const [, , inputCodePath, inputCodeEncoding] = process.argv;
+import { EXIT_CODE_ERROR } from '../../constants';
+import { transpile, TranspileOptions } from '../../transpile';
 
 (async () => {
-  const inputCode = await getStream(process.stdin);
-  const outputCode = await transpile({
-    inputCode,
-    inputCodePath,
-    inputCodeEncoding,
-    webpackConfig: {
-      devtool: 'inline-cheap-module-source-map',
-    },
-  });
+  const transpileOptions: TranspileOptions = JSON.parse(await getStream(process.stdin));
+  const outputCode = await transpile(transpileOptions);
   process.stdout.write(outputCode);
-})();
+})().catch(e => {
+  logError(e);
+  process.exit(EXIT_CODE_ERROR);
+});

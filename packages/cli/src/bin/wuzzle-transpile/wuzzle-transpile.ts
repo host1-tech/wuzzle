@@ -29,8 +29,8 @@ program
   .requiredOption('-d, --out-dir <dir>', 'Compile input files into output directory.')
   .option('-w, --watch', 'Recompile files on changes.')
   .option(
-    '--ignore <globs...>',
-    `List of globs not to compile. (default: '**/node_modules/**' '<absoluteOutDir>/**')`
+    '--ignore <string>',
+    `List of globs not to compile, split by ",". (default: "**/node_modules/**,<absoluteOutDir>/**,**/*.d.ts?(x)")`
   )
   .option(
     '-b, --base-path <path>',
@@ -55,7 +55,7 @@ program
       '"file" if specified without value)'
   )
   .option('--no-clean', 'Prevent cleaning out directory.')
-  .option('-F, --follow', `Follow symlinked directories when expanding '**' patterns.`)
+  .option('-F, --follow', `Follow symlinked directories when expanding "**" patterns.`)
   .option('-V, --verbose', 'Show more details.')
   .helpOption('-h, --help', 'Output usage information.')
   .version(version, '-v, --version', 'Output the version number.');
@@ -72,7 +72,7 @@ function ensureArgs() {
   }
 
   if (!program.ignore) {
-    program.ignore = ['**/node_modules/**', `${path.resolve(program.outDir)}/**`];
+    program.ignore = `**/node_modules/**,${path.resolve(program.outDir)}/**,**/*.d.ts?(x)`;
   }
 
   if (
@@ -102,16 +102,16 @@ function ensureArgs() {
 }
 async function launchExec() {
   // Calculate input options
-  const { verbose, clean, watch, ignore, follow, args: inputGlobs } = program;
+  const { verbose, clean, watch, follow, args: inputGlobs } = program;
+  const ignore = program.ignore.split(',');
 
   const verboseLog = verbose ? logPlain : noop;
   const forceLog = logPlain;
 
   const inputPaths = uniq(
     inputGlobs
-      .map(g => glob.sync(g, { absolute: true, ignore, follow }))
+      .map(g => glob.sync(g, { cwd: projectPath, absolute: true, nodir: true, ignore, follow }))
       .reduce((m, p) => (m.push(...p), m), [])
-      .filter(p => fs.statSync(p).isFile())
   );
 
   if (!inputPaths.length) {
@@ -147,7 +147,7 @@ async function launchExec() {
   const webpackConfig: webpack.Configuration = {
     mode: webpackMode,
     target: webpackTarget,
-    devtool: webpackDevtool,
+    ...(webpackDevtool ? { devtool: webpackDevtool } : {}),
   };
 
   if (envGet(EK.DRY_RUN)) {

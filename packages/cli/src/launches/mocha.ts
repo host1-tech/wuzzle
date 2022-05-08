@@ -7,7 +7,7 @@ import {
   tmplLogForGlobalResolving,
 } from '../utils';
 
-export const launchMocha: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
+export const launchMocha: LaunchFunction = async ({ nodePath, args, projectPath, commandName }) => {
   let mochaCommandPath: string;
   try {
     try {
@@ -21,7 +21,7 @@ export const launchMocha: LaunchFunction = ({ nodePath, args, projectPath, comma
     process.exit(EXIT_CODE_ERROR);
   }
 
-  applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args });
+  await applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args });
 
   const nodeRegisterPath = resolveRequire('../registers/node');
 

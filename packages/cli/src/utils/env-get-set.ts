@@ -87,7 +87,7 @@ export const envGetSetMap = {
   [EK.PROJECT_PATH]: requiredStringEnvGetSet(EK.PROJECT_PATH, process.cwd()),
   [EK.NODE_LIKE_EXTRA_OPTIONS]: requiredObjectEnvGetSetWithCustomMerge<NodeLikeExtraOptions>(
     EK.NODE_LIKE_EXTRA_OPTIONS,
-    { verbose: true, exts: ['.js'] },
+    { verbose: true, ext: ['.js'] },
     (a, b) =>
       mergeWith({}, a, b, (a, b) => {
         if (Array.isArray(a) && Array.isArray(b)) {
