@@ -6,7 +6,13 @@ import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
 import { EK, ENCODING_TEXT } from '../constants';
 import { envGet, envGetDefault } from '../utils';
-import { cachePath, generateCacheKey, transpile } from './transpile';
+import {
+  cachePath,
+  generateCacheKey,
+  generateCacheKeySync,
+  transpile,
+  transpileSyncFromCacheOnly,
+} from './transpile';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const outputDir = 'lib';
@@ -33,7 +39,7 @@ jest.mock('webpack', () => {
   const webpack = jest.requireActual('webpack');
   return {
     __esModule: true,
-    default: jest.fn((...params) => webpack(...params)),
+    default: jest.fn(webpack),
   };
 });
 
@@ -73,12 +79,8 @@ beforeAll(() => {
 });
 
 describe('transpile', () => {
-  beforeAll(() => {
-    shelljs.rm('-fr', cachePath);
-  });
-
   beforeEach(() => {
-    shelljs.rm('-fr', outputDir);
+    shelljs.rm('-fr', outputDir, cachePath);
     jest.clearAllMocks();
   });
 
@@ -122,23 +124,13 @@ describe('transpile', () => {
 
   it('throws error on input path not found', async () => {
     const inputPath = '/path/not/found';
-    let error: any;
-    try {
-      await transpile({ inputPath });
-    } catch (e) {
-      error = e;
-    }
-    expect(error.message).toEqual(expect.stringContaining(inputPath));
+    await expect(transpile({ inputPath })).rejects.toThrow(inputPath);
   });
 
   it('throws error on compilation failure', async () => {
-    let error: any;
-    try {
-      await transpile({ inputPath: throwJs.inputPath });
-    } catch (e) {
-      error = e;
-    }
-    expect(error.message).toContain(`Compilation failed with messages:`);
+    await expect(transpile({ inputPath: throwJs.inputPath })).rejects.toThrow(
+      'Compilation failed with messages:'
+    );
   });
 
   it('auto resolves output ext by default', async () => {
@@ -205,13 +197,45 @@ describe('transpile', () => {
   });
 
   it('reads cache to output code if cached', async () => {
-    const outputContent = await transpile({ inputCode: shelljs.cat(printJs.inputPath).stdout });
+    const inputCode = shelljs.cat(printJs.inputPath).stdout;
+    await transpile({ inputCode });
+    jest.clearAllMocks();
+    const outputContent = await transpile({ inputCode });
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+  });
+
+  it('outputs code correctly in sync-from-cache-only mode if cached', async () => {
+    const inputCode = shelljs.cat(printJs.inputPath).stdout;
+    await transpile({ inputCode });
+    jest.clearAllMocks();
+    const outputContent = transpileSyncFromCacheOnly({ inputCode });
     expect(webpack).not.toBeCalled();
     expectPrintJsOutputContentToBeGood(outputContent);
   });
 
   it('reads cache to output bundle file if cached', async () => {
     await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+    });
+    jest.clearAllMocks();
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+    });
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+  });
+
+  it('outputs bundle file correctly in sync-from-cache-only mode if cached', async () => {
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+    });
+    jest.clearAllMocks();
+    transpileSyncFromCacheOnly({
       inputPath: printJs.inputPath,
       outputPath: printJs.outputPath,
     });
@@ -226,6 +250,32 @@ describe('transpile', () => {
       outputPath: printJs.outputPath,
       webpackConfig: { devtool: 'source-map' },
     });
+    jest.clearAllMocks();
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
+    const outputContent = shelljs.cat(printJs.outputPath).stdout;
+    expect(webpack).not.toBeCalled();
+    expectPrintJsOutputContentToBeGood(outputContent);
+    expect(JSON.parse(shelljs.cat(printJs.outputPath + '.map').stdout).sources).toEqual([
+      path.resolve(printJs.inputPath),
+    ]);
+  });
+
+  it('outputs bundle file and its source map correctly in sync-from-cache-only mode if all cached', async () => {
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
+    jest.clearAllMocks();
+    transpileSyncFromCacheOnly({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
     const outputContent = shelljs.cat(printJs.outputPath).stdout;
     expect(webpack).not.toBeCalled();
     expectPrintJsOutputContentToBeGood(outputContent);
@@ -235,6 +285,12 @@ describe('transpile', () => {
   });
 
   it('compiles to output bundle file and its source map if source map not cached', async () => {
+    await transpile({
+      inputPath: printJs.inputPath,
+      outputPath: printJs.outputPath,
+      webpackConfig: { devtool: 'source-map' },
+    });
+    jest.clearAllMocks();
     [{}, null].forEach(o => mocked(cacache.get.info).mockResolvedValueOnce(o as never));
     await transpile({
       inputPath: printJs.inputPath,
@@ -249,8 +305,16 @@ describe('transpile', () => {
     ]);
   });
 
+  it('throws error in sync-from-cache-only mode if not cached', () => {
+    expect(() =>
+      transpileSyncFromCacheOnly({
+        inputCode: shelljs.cat(printJs.inputPath).stdout,
+      })
+    ).toThrow();
+  });
+
   it('skips actual processing and returns empty text in dry run mode', async () => {
-    mocked(envGet).mockReturnValueOnce('true');
+    mocked(envGetDryRun).mockReturnValueOnce('true');
     const outputContent = await transpile();
     expect(webpack).not.toBeCalled();
     expect(outputContent).toBeFalsy();
@@ -309,20 +373,33 @@ describe('generateCacheKey', () => {
   });
 
   it(`sets inspected envs by "${EK.CACHE_KEY_OF_ENV_KEYS}"`, async () => {
-    envGetCacheKeyOfEnvKeys.mockReturnValue([]);
+    envGetCacheKeyOfEnvKeys.mockReturnValueOnce([]);
     process.env.BABEL_ENV = 'production';
     const hash1 = await generateCacheKey({});
+    envGetCacheKeyOfEnvKeys.mockReturnValueOnce([]);
     process.env.BABEL_ENV = 'development';
     const hash2 = await generateCacheKey({});
     expect(hash1).toBe(hash2);
   });
 
   it(`sets inspected files by "${EK.CACHE_KEY_OF_FILE_PATHS}"`, async () => {
-    envGetCacheKeyOfFilePaths.mockReturnValue([]);
+    envGetCacheKeyOfFilePaths.mockReturnValueOnce([]);
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 1 }));
     const hash1 = await generateCacheKey({});
+    envGetCacheKeyOfFilePaths.mockReturnValueOnce([]);
     fs.writeFileSync(babelConfPath, JSON.stringify({ v: 2 }));
     const hash2 = await generateCacheKey({});
     expect(hash1).toBe(hash2);
+  });
+
+  it('outputs correctly in sync mode', async () => {
+    const hash1 = generateCacheKeySync({ inputPath: printJs.inputPath });
+    const hash2 = await generateCacheKey({ inputPath: printJs.inputPath });
+    expect(hash1).toBe(hash2);
+  });
+
+  it('throws error in sync mode on input path not found', () => {
+    const inputPath = '/path/not/found';
+    expect(() => generateCacheKeySync({ inputPath })).toThrow();
   });
 });

@@ -15,7 +15,7 @@ import { promisify } from 'util';
 import webpack from 'webpack';
 import applyConfig from '../apply-config';
 import { CACHE_BASE_PATH, EK, ENCODING_TEXT } from '../constants';
-import { envGet, waitForStream, wMerge } from '../utils';
+import { envGet, SyncMode, waitForStream, wMerge } from '../utils';
 
 const thisFileContent = fs.readFileSync(__filename);
 const packageJsonContent = fs.readFileSync(path.join(__dirname, '../../package.json'));
@@ -29,6 +29,7 @@ export interface TranspileInternalOptions {
   inputCodeEncoding: string;
   outputPath?: string;
   outputCodePath: string;
+  outputCodeEncoding: string;
   autoResolveOutputExt: boolean;
   webpackConfig: webpack.Configuration;
 }
@@ -38,6 +39,7 @@ export const transpileDefaultOptions: TranspileInternalOptions = {
   inputCodePath: 'index.js',
   inputCodeEncoding: ENCODING_TEXT,
   outputCodePath: 'index.js',
+  outputCodeEncoding: ENCODING_TEXT,
   autoResolveOutputExt: true,
   webpackConfig: {
     output: {
@@ -55,6 +57,8 @@ export const transpileDefaultOptions: TranspileInternalOptions = {
 export const cachePath = path.join(CACHE_BASE_PATH, 'transpile');
 
 export async function transpile(options: TranspileOptions = {}): Promise<string> {
+  const { syncFromCacheOnlyMode } = transpile;
+
   const internalOptions: TranspileInternalOptions = {
     ...transpileDefaultOptions,
     ...options,
@@ -123,11 +127,38 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   }
 
   // Get output from cache
+
+  if (syncFromCacheOnlyMode.enabled) {
+    try {
+      const outputCacheKey = generateCacheKeySync(internalOptions);
+      if (omfs) {
+        return syncFromCacheOnlyMode.saveRet(
+          cacache.get
+            .sync(cachePath, outputCacheKey)
+            .data.toString(internalOptions.outputCodeEncoding)
+        );
+      } else {
+        const outputCode = cacache.get.sync(cachePath, outputCacheKey).data;
+        mkdirp.sync(path.dirname(outputPath));
+        fs.writeFileSync(outputPath, outputCode);
+        if (doesProduceFileSourceMap(webpackConfig.devtool)) {
+          fs.writeFileSync(
+            addSourceMapPathExt(outputPath),
+            cacache.get.sync(cachePath, addSourceMapPathExt(outputCacheKey)).data
+          );
+        }
+        return syncFromCacheOnlyMode.saveRet('');
+      }
+    } catch (e) {
+      return syncFromCacheOnlyMode.makeErr(e);
+    }
+  }
+
   const outputCacheKey = await generateCacheKey(internalOptions);
   try {
     if (omfs) {
       return (await cacache.get(cachePath, outputCacheKey)).data.toString(
-        internalOptions.inputCodeEncoding
+        internalOptions.outputCodeEncoding
       );
     } else {
       if (!(await cacache.get.info(cachePath, outputCacheKey))) throw 0;
@@ -267,6 +298,11 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
 
   return outputCode;
 }
+transpile.syncFromCacheOnlyMode = new SyncMode('');
+
+export function transpileSyncFromCacheOnly(options: TranspileOptions): string {
+  return transpile.syncFromCacheOnlyMode.apply(() => transpile(options));
+}
 
 export function correctInputMemoryFileSystem(
   imfs: MemoryFileSystem,
@@ -287,9 +323,19 @@ export function addSourceMapPathExt(name: string): string {
 }
 
 export async function generateCacheKey(options: TranspileOptions): Promise<string> {
+  const { syncMode } = generateCacheKey;
+
   let inputFileContent: string = '';
   if (options.inputPath) {
-    inputFileContent = await promisify(fs.readFile)(options.inputPath, ENCODING_TEXT);
+    if (syncMode.enabled) {
+      try {
+        inputFileContent = fs.readFileSync(options.inputPath, ENCODING_TEXT);
+      } catch (e) {
+        return syncMode.makeErr(e);
+      }
+    } else {
+      inputFileContent = await promisify(fs.readFile)(options.inputPath, ENCODING_TEXT);
+    }
   }
 
   const cacheKeyOfEnvKeys = envGet(EK.CACHE_KEY_OF_ENV_KEYS);
@@ -299,42 +345,61 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
   const envVals = envKeys.map(k => process.env[k]);
 
   const cacheKeyOfFilePaths = envGet(EK.CACHE_KEY_OF_FILE_PATHS);
-  const filePaths = uniq(
-    flatten(
-      await pMap(
-        cacheKeyOfFilePaths,
-        g =>
-          promisify(glob)(g, {
-            cwd: envGet(EK.PROJECT_PATH),
-            dot: true,
-            nodir: true,
-            absolute: true,
-          }),
-        { stopOnError: true }
+  const filePaths: string[] = [];
+  const filePathsGlobOpts: glob.IOptions = {
+    cwd: envGet(EK.PROJECT_PATH),
+    dot: true,
+    nodir: true,
+    absolute: true,
+  };
+  if (syncMode.enabled) {
+    filePaths.push(...uniq(flatten(cacheKeyOfFilePaths.map(g => glob.sync(g, filePathsGlobOpts)))));
+  } else {
+    filePaths.push(
+      ...uniq(
+        flatten(
+          await pMap(cacheKeyOfFilePaths, g => promisify(glob)(g, filePathsGlobOpts), {
+            stopOnError: true,
+          })
+        )
       )
-    )
-  );
-  const fileContents = await pMap(filePaths, f => promisify(fs.readFile)(f, ENCODING_TEXT), {
-    stopOnError: true,
-  });
+    );
+  }
+  const fileContents: string[] = [];
+  if (syncMode.enabled) {
+    fileContents.push(...filePaths.map(f => fs.readFileSync(f, ENCODING_TEXT)));
+  } else {
+    fileContents.push(
+      ...(await pMap(filePaths, f => promisify(fs.readFile)(f, ENCODING_TEXT), {
+        stopOnError: true,
+      }))
+    );
+  }
 
-  return createHash('md5')
-    .update(thisFileContent)
-    .update('\0', ENCODING_TEXT)
-    .update(packageJsonContent)
-    .update('\0', ENCODING_TEXT)
-    .update(inputFileContent)
-    .update('\0', ENCODING_TEXT)
-    .update(serialize(options))
-    .update('\0', ENCODING_TEXT)
-    .update(serialize(envKeys))
-    .update('\0', ENCODING_TEXT)
-    .update(serialize(envVals))
-    .update('\0', ENCODING_TEXT)
-    .update(serialize(filePaths))
-    .update('\0', ENCODING_TEXT)
-    .update(serialize(fileContents))
-    .digest('hex');
+  return syncMode.saveRet(
+    createHash('md5')
+      .update(thisFileContent)
+      .update('\0', ENCODING_TEXT)
+      .update(packageJsonContent)
+      .update('\0', ENCODING_TEXT)
+      .update(inputFileContent)
+      .update('\0', ENCODING_TEXT)
+      .update(serialize(options))
+      .update('\0', ENCODING_TEXT)
+      .update(serialize(envKeys))
+      .update('\0', ENCODING_TEXT)
+      .update(serialize(envVals))
+      .update('\0', ENCODING_TEXT)
+      .update(serialize(filePaths))
+      .update('\0', ENCODING_TEXT)
+      .update(serialize(fileContents))
+      .digest('hex')
+  );
+}
+generateCacheKey.syncMode = new SyncMode('');
+
+export function generateCacheKeySync(options: TranspileOptions): string {
+  return generateCacheKey.syncMode.apply(() => generateCacheKey(options));
 }
 
 export function doesProduceSourceMap(devtool?: webpack.Options.Devtool): devtool is string {

@@ -1,3 +1,5 @@
+import { MaybePromise } from '@wuzzle/helpers';
+
 export interface LaunchOptions {
   nodePath: string;
   args: string[];
@@ -6,5 +8,5 @@ export interface LaunchOptions {
 }
 
 export interface LaunchFunction {
-  (options: LaunchOptions): void;
+  (options: LaunchOptions): MaybePromise<void>;
 }

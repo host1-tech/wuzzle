@@ -20,9 +20,9 @@ describe('launchMocha', () => {
     jest.clearAllMocks();
   });
 
-  it('executes with node register attached', () => {
+  it('executes with node register attached', async () => {
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
-    launchNode(launchOptions);
+    await launchNode(launchOptions);
     expect(resolveRequire).toBeCalled();
     expect(execNode).toBeCalledWith(
       expect.objectContaining({

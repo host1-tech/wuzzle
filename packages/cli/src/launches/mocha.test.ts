@@ -26,9 +26,9 @@ describe('launchMocha', () => {
     jest.clearAllMocks();
   });
 
-  it('executes with node register attached if command resolved', () => {
+  it('executes with node register attached if command resolved', async () => {
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
-    launchMocha(launchOptions);
+    await launchMocha(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
@@ -37,12 +37,12 @@ describe('launchMocha', () => {
     );
   });
 
-  it('resolves webpack global if command not resolved from locals', () => {
+  it('resolves webpack global if command not resolved from locals', async () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
     mocked(resolveRequire).mockReturnValueOnce(nodeRegisterPath);
-    launchMocha(launchOptions);
+    await launchMocha(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(execNode).toBeCalledWith(
@@ -52,7 +52,7 @@ describe('launchMocha', () => {
     );
   });
 
-  it('exits with error code and error message if command not resolved', () => {
+  it('exits with error code and error message if command not resolved', async () => {
     mocked(resolveCommandPath)
       .mockImplementationOnce(() => {
         throw 0;
@@ -61,7 +61,7 @@ describe('launchMocha', () => {
         throw 0;
       });
     try {
-      launchMocha(launchOptions);
+      await launchMocha(launchOptions);
     } catch {}
     expect(logError).toBeCalledWith(expect.stringContaining(commandName));
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);

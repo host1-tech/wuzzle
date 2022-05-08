@@ -1,7 +1,6 @@
 import { _extensions } from 'module';
 import path from 'path';
 import resolve from 'resolve';
-import { mocked } from 'ts-jest/utils';
 import { resolveRequire } from './resolve-require';
 
 const targetPath = '/path/to/resolve';
@@ -40,14 +39,15 @@ describe('resolveRequire', () => {
 
   it('eliminates duplicated extensions', () => {
     resolveRequire(targetPath, { extensions: ['.js'] });
-    expect(mocked(resolve.sync).mock.calls[0][1]).toMatchObject({
-      extensions: [...builtInExtensions, '.ts'],
-    });
+    expect(resolve.sync).toBeCalledWith(
+      targetPath,
+      expect.objectContaining({ extensions: [...builtInExtensions, '.ts'] })
+    );
   });
 
   it('overrides base dir if provided', () => {
     const basedir = '/path/to/basedir';
     resolveRequire(targetPath, { basedir });
-    expect(mocked(resolve.sync).mock.calls[0][1]).toMatchObject({ basedir });
+    expect(resolve.sync).toBeCalledWith(targetPath, expect.objectContaining({ basedir }));
   });
 });

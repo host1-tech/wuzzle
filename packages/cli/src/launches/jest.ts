@@ -37,7 +37,7 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
     ...getJestExtraCommandOpts(),
     Inspect: ['--inspect [string]', 'Activate inspector.'],
     InspectBrk: ['--inspect-brk [string]', 'Activate inspector and break at start of user script.'],
-    Help: ['-H,--Help', 'Output usage information.'],
+    Help: ['-H,--Help', 'Output extra usage information.'],
   } as const;
 
   if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {

@@ -41,4 +41,6 @@ export const ENCODING_BINARY = 'latin1';
 
 export const PKG_NAME: string = require('../package.json').name;
 
+export const CONFIG_FILENAME = 'wuzzle.config.js';
+
 export const CACHE_BASE_PATH = findCacheDir({ name: PKG_NAME }) ?? path.join(os.tmpdir(), PKG_NAME);

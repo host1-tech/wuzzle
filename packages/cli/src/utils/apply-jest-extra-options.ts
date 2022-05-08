@@ -13,7 +13,7 @@ export function getJestExtraCommandOpts() {
       '--no-webpack',
       'Skip webpack based compilation but use the original jest transforming.',
     ],
-    Help: ['-H,--Help', 'Output usage information.'],
+    Help: ['-H,--Help', 'Output extra usage information.'],
   } as const;
 }
 

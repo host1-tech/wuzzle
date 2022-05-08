@@ -9,6 +9,7 @@ export * from './file-registering';
 export * from './launch-function';
 export * from './locate-project-anchor';
 export * from './register-unregister';
+export * from './sync-mode';
 export * from './tmpl-logs';
 export * from './w-merge';
 export * from './wait-for-stream';

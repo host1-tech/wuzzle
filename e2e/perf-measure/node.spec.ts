@@ -7,7 +7,9 @@ executeTests({
     ['current']: {
       fixtureDir: path.join(__dirname, 'fixtures/node'),
       bareExec: 'node -r @babel/register index.js',
-      wuzzleExec: genEndToEndExec({ command: 'node index.js' }),
+      wuzzleExec: genEndToEndExec({
+        command: 'node -P "src/**/*" --pre-compile-ignore "**/*.test.*" index.js',
+      }),
       tmplContent:
         `<% _.times(lineCount, i => { %>` +
         `export const getGreeting<%= i %> = async () => 'Hi, <%= i %>.';

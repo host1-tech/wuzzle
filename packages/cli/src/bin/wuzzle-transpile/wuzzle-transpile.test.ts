@@ -89,11 +89,15 @@ describe('wuzzle-transpile', () => {
       expect(shelljs.test('-f', outdatedOutputFile)).toBe(false);
       await waitForExpect(() => expect(transpile).toBeCalledTimes(inputPaths.length));
       [constantsJs, printJs, utilsParseJs].forEach(({ inputPath, outputPath }, i) => {
-        expect(mocked(transpile).mock.calls[i][0]).toMatchObject({
-          inputPath: path.resolve(inputPath),
-          outputPath: path.resolve(outputPath),
-          webpackConfig: { mode: 'development', devtool: undefined },
-        });
+        const nth = i + 1;
+        expect(transpile).toHaveBeenNthCalledWith(
+          nth,
+          expect.objectContaining({
+            inputPath: path.resolve(inputPath),
+            outputPath: path.resolve(outputPath),
+            webpackConfig: expect.objectContaining({ mode: 'development' }),
+          })
+        );
         expect(logPlain).toBeCalledWith(expect.stringContaining(`File '${inputPath}' compiled.`));
       });
     }
@@ -103,9 +107,11 @@ describe('wuzzle-transpile', () => {
     process.argv = [...fixedArgs, printJs.inputPath, '-d', outputDir, '-p'];
     jest.isolateModules(() => require('./wuzzle-transpile'));
     await waitForExpect(() => {
-      expect(mocked(transpile).mock.calls[0][0]).toMatchObject({
-        webpackConfig: { mode: 'production' },
-      });
+      expect(transpile).toBeCalledWith(
+        expect.objectContaining({
+          webpackConfig: expect.objectContaining({ mode: 'production' }),
+        })
+      );
     });
   });
 
@@ -121,9 +127,11 @@ describe('wuzzle-transpile', () => {
       process.argv = [...fixedArgs, printJs.inputPath, '-d', outputDir, ...args];
       jest.isolateModules(() => require('./wuzzle-transpile'));
       await waitForExpect(() => {
-        expect(mocked(transpile).mock.calls[0][0]).toMatchObject({
-          webpackConfig: { devtool },
-        });
+        expect(transpile).toBeCalledWith(
+          expect.objectContaining({
+            webpackConfig: expect.objectContaining({ devtool }),
+          })
+        );
       });
     });
   });
@@ -173,13 +181,19 @@ describe('wuzzle-transpile', () => {
       outputDir,
       '-w',
       '--ignore',
-      ...ignoredGlobs,
+      ignoredGlobs.join(','),
     ];
     mocked(process.stdin.on).mockImplementationOnce(noop as never);
     jest.isolateModules(() => require('./wuzzle-transpile'));
     await waitForExpect(() => expect(chokidar.watch).toBeCalled());
-    expect(mocked(glob.sync).mock.calls[0][1]).toMatchObject({ ignore: ignoredGlobs });
-    expect(mocked(chokidar.watch).mock.calls[0][1]).toMatchObject({ ignored: ignoredGlobs });
+    expect(glob.sync).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ignore: ignoredGlobs })
+    );
+    expect(chokidar.watch).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ignored: ignoredGlobs })
+    );
   });
 
   it(

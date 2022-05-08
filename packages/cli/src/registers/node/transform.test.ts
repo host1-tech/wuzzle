@@ -1,13 +1,14 @@
 import { logPlain, resolveRequire } from '@wuzzle/helpers';
-import fs from 'fs';
-import { pick } from 'lodash';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
-import { EK, ENCODING_BINARY } from '../../constants';
-import { envGet, envGetDefault, execNode, NodeLikeExtraOptions } from '../../utils';
+import { CONFIG_FILENAME, EK } from '../../constants';
+import { transpileSyncFromCacheOnly } from '../../transpile';
+import { envGet, envGetDefault, execNode } from '../../utils';
+import { getConvertOptions } from './convert-helpers';
 import { register, transform } from './transform';
 
+const projectPath = '/path/to/project';
 const code = `console.log('Hello, world.')`;
 const file = '/path/to/code';
 const convertPath = '/path/to/convert';
@@ -20,13 +21,15 @@ jest.mock('../../utils', () => ({
   envGet: jest.fn(),
   execNode: jest.fn(),
 }));
+jest.mock('../../transpile');
 
-jest.spyOn(fs, 'readFileSync').mockReturnValue(code);
 mocked(execNode).mockReturnValue({} as never);
+mocked(resolveRequire).mockReturnValue(convertPath);
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 
+const envGetProjectPath = jest.fn(envGet).mockReturnValue(projectPath);
 const envGetDryRun = jest.fn(envGet).mockReturnValue(envGetDefault(EK.DRY_RUN));
 const envGetNodeLikeExtraOptions = jest
   .fn(envGet)
@@ -37,7 +40,7 @@ mocked(envGet).mockImplementation(ek => {
   } else if (ek === EK.NODE_LIKE_EXTRA_OPTIONS) {
     return envGetNodeLikeExtraOptions(ek);
   } else if (ek === EK.PROJECT_PATH) {
-    return '/path/to/project';
+    return envGetProjectPath(ek);
   }
 });
 
@@ -46,15 +49,21 @@ beforeEach(() => {
 });
 
 describe('register', () => {
-  it('extends options', () => {
-    const nodeLikeExtraOptions: NodeLikeExtraOptions = { verbose: false, exts: ['.es'] };
-    envGetNodeLikeExtraOptions.mockReturnValueOnce(nodeLikeExtraOptions);
+  it('sets hooks', () => {
+    const ext = ['.es'];
+    envGetNodeLikeExtraOptions.mockReturnValueOnce({ ext });
     register();
     expect(sourceMapSupport.install).toBeCalled();
-    expect(mocked(addHook)).toBeCalledWith(
-      transform,
-      expect.objectContaining(pick(nodeLikeExtraOptions, ['exts']))
-    );
+    const piratesOptions = mocked(addHook).mock.calls[0][1]!;
+    expect(piratesOptions).toEqual({
+      ext,
+      matcher: expect.any(Function),
+      ignoreNodeModules: true,
+    });
+    const matcher = piratesOptions.matcher!;
+    expect(matcher(`${projectPath}/a.js`)).toBe(true);
+    expect(matcher(`${projectPath}/${CONFIG_FILENAME}`)).toBe(false);
+    expect(matcher('/path/to/somewhere/else')).toBe(false);
   });
 
   it('prints config info and terminates process in dry-run mode', () => {
@@ -68,22 +77,38 @@ describe('register', () => {
 });
 
 describe('transform', () => {
-  it('converts code', () => {
-    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: false, exts: [] });
-    mocked(resolveRequire).mockReturnValueOnce(convertPath);
+  it('does not compile if found in cache', () => {
+    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: false });
     transform(code, file);
-    expect(fs.readFileSync).toBeCalledWith(file, ENCODING_BINARY);
-    expect(resolveRequire).toBeCalled();
+    expect(transpileSyncFromCacheOnly).toBeCalledWith(getConvertOptions({ inputPath: file }));
+    expect(execNode).not.toBeCalled();
+  });
+
+  it('compiles if not found in cache', () => {
+    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: false });
+    mocked(transpileSyncFromCacheOnly).mockImplementationOnce(() => {
+      throw 0;
+    });
+    transform(code, file);
+    expect(transpileSyncFromCacheOnly).toBeCalledWith(getConvertOptions({ inputPath: file }));
     expect(execNode).toBeCalledWith({
-      execArgs: [convertPath, file, ENCODING_BINARY],
-      execOpts: { input: code, stdin: 'pipe', stdout: 'pipe' },
+      execArgs: [convertPath],
+      execOpts: expect.objectContaining({
+        input: JSON.stringify(getConvertOptions({ inputPath: file })),
+      }),
     });
   });
 
-  it('prints detail', () => {
-    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: true, exts: [] });
-    mocked(resolveRequire).mockReturnValueOnce(convertPath);
+  it('prints detail if verbose', () => {
+    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: true });
     transform(code, file);
-    expect(logPlain).toBeCalledWith(expect.stringContaining('compiled'));
+    expect(logPlain).toHaveBeenLastCalledWith(expect.stringContaining('from cache'));
+
+    mocked(transpileSyncFromCacheOnly).mockImplementationOnce(() => {
+      throw 0;
+    });
+    envGetNodeLikeExtraOptions.mockReturnValueOnce({ verbose: true });
+    transform(code, file);
+    expect(logPlain).toHaveBeenLastCalledWith(expect.stringContaining('compiled'));
   });
 });
