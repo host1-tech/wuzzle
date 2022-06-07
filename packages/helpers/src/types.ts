@@ -5,3 +5,5 @@ export type MaybePromise<T> = T | Promise<T>;
 export type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
+
+export type SimpleAsyncCall = () => Promise<void>;

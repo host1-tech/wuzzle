@@ -1,62 +1,36 @@
-import { logError, logPlain } from '@wuzzle/helpers';
-import { grey, yellow } from 'chalk';
+import { SimpleAsyncCall } from '@wuzzle/helpers';
 import { Command } from 'commander';
-import glob from 'glob';
-import { cloneDeep, noop, uniq } from 'lodash';
-import os from 'os';
-import pMap from 'p-map';
-import path from 'path';
 import { EK } from '../constants';
-import { getConvertOptions } from '../registers/node/convert-helpers';
 import { areArgsParsableByFlags } from './are-args-parsable-by-flags';
-import { envGet, envGetDefault, envSet } from './env-get-set';
+import { envGetDefault, envSet } from './env-get-set';
+import {
+  getDefaultPreCompileOptions,
+  getPreCompileCommandOpts,
+  preCompile,
+  PreCompileOptions,
+  setPreCompileOptionsByCommandProg,
+} from './pre-compile';
 
 export interface NodeLikeExtraOptions {
   ext: string[];
   verbose: boolean;
 }
 
-export interface NodeLikePreCompileOptions {
-  inputGlobs: string[];
-  ignore: string[];
-  concurrency: number;
-  follow: boolean;
-}
-
-export const DefaultNodeLikePreCompileOptions: NodeLikePreCompileOptions = {
-  inputGlobs: [],
-  ignore: ['**/node_modules/**', '**/*.d.ts?(x)'],
-  concurrency: os.cpus().length,
-  follow: false,
-};
-
 export function getNodeLikeExtraCommandOpts() {
   const { ext } = envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS);
+  const { PreCompile, PreCompileIgnore, PreCompileConcurrency, PreCompileFollow } =
+    getPreCompileCommandOpts();
+
   return {
     Ext: [
       '-E,--ext <string>',
       `Specify file extensions for resolving, split by ",". (default: "${ext.join(',')}")`,
     ],
     NoVerbose: ['--no-verbose', 'Prevent printing compilation details.'],
-    PreCompile: [
-      '-P,--pre-compile <string>',
-      'Specify globs to be pre-compiled for faster overall execution, split by ",". ' +
-        `Only files matching '-E,--ext' get proceeded.`,
-    ],
-    PreCompileIgnore: [
-      '--pre-compile-ignore <string>',
-      `List of globs not to pre-compile, split by ",". ` +
-        `(default: "${DefaultNodeLikePreCompileOptions.ignore.join(',')}")`,
-    ],
-    PreCompileConcurrency: [
-      '--pre-compile-concurrency <number>',
-      'Prevent pre-compiling more than specific amount of files at the same time. ' +
-        '(default: os.cpus().length)',
-    ],
-    PreCompileFollow: [
-      '--pre-compile-follow',
-      `Follow symlinked directories to pre-compile when expanding "**" patterns.`,
-    ],
+    PreCompile: [PreCompile[0], `${PreCompile[1]} Only files matching '-E,--ext' get proceeded.`],
+    PreCompileIgnore,
+    PreCompileConcurrency,
+    PreCompileFollow,
     Help: ['-H,--Help', 'Output extra usage information.'],
   } as const;
 }
@@ -67,83 +41,61 @@ export interface ApplyNodeLikeExtraOptionsParams {
   args: string[];
 }
 
-export async function applyNodeLikeExtraOptions({
+export interface ApplyNodeLikeExtraOptionsResult {
+  applyPreCompilation: SimpleAsyncCall;
+}
+
+export function applyNodeLikeExtraOptions({
   nodePath = process.argv[0],
   name,
   args,
-}: ApplyNodeLikeExtraOptionsParams): Promise<void> {
-  const { transpile } = require('../transpile'); // Breaks circular require resolving
-
+}: ApplyNodeLikeExtraOptionsParams): ApplyNodeLikeExtraOptionsResult {
   const nodeLikeExtraOptions = envGetDefault(EK.NODE_LIKE_EXTRA_OPTIONS);
-  const nodeLikePreCompileOptions = cloneDeep(DefaultNodeLikePreCompileOptions);
-  const extraCommandOpts = getNodeLikeExtraCommandOpts();
+  const nodeLikeExtraCommandOpts = getNodeLikeExtraCommandOpts();
+  const preCompileOptions = getDefaultPreCompileOptions({ verbose: nodeLikeExtraOptions.verbose });
 
-  if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {
+  if (
+    areArgsParsableByFlags({
+      args,
+      flags: Object.values(nodeLikeExtraCommandOpts).map(o => o[0]),
+    })
+  ) {
     const extraCommandProg = new Command();
-
     extraCommandProg
-      .option(...extraCommandOpts.Ext)
-      .option(...extraCommandOpts.NoVerbose)
-      .option(...extraCommandOpts.PreCompile)
-      .option(...extraCommandOpts.PreCompileIgnore)
-      .option(...extraCommandOpts.PreCompileConcurrency)
-      .option(...extraCommandOpts.PreCompileFollow)
-      .helpOption(...extraCommandOpts.Help)
+      .option(...nodeLikeExtraCommandOpts.Ext)
+      .option(...nodeLikeExtraCommandOpts.NoVerbose)
+      .option(...nodeLikeExtraCommandOpts.PreCompile)
+      .option(...nodeLikeExtraCommandOpts.PreCompileIgnore)
+      .option(...nodeLikeExtraCommandOpts.PreCompileConcurrency)
+      .option(...nodeLikeExtraCommandOpts.PreCompileFollow)
+      .helpOption(...nodeLikeExtraCommandOpts.Help)
       .allowUnknownOption();
-
     extraCommandProg.parse([nodePath, name, ...args]);
 
-    if (extraCommandProg.ext) {
-      const ext = (extraCommandProg.ext as string).split(',').filter(e => e.includes('.'));
+    if (extraCommandProg.ext !== undefined) {
+      const ext = (extraCommandProg.ext as string).split(',').filter(e => e.startsWith('.'));
       if (ext.length) {
         nodeLikeExtraOptions.ext = ext;
       }
     }
-    nodeLikeExtraOptions.verbose = extraCommandProg.verbose;
+    if (extraCommandProg.verbose !== undefined) {
+      nodeLikeExtraOptions.verbose = extraCommandProg.verbose;
+    }
 
-    if (extraCommandProg.preCompile) {
-      nodeLikePreCompileOptions.inputGlobs = (extraCommandProg.preCompile as string).split(',');
-    }
-    if (extraCommandProg.preCompileIgnore) {
-      nodeLikePreCompileOptions.ignore = (extraCommandProg.preCompileIgnore as string).split(',');
-    }
-    if (extraCommandProg.preCompileConcurrency) {
-      nodeLikePreCompileOptions.concurrency = parseInt(extraCommandProg.preCompileConcurrency);
-    }
-    nodeLikePreCompileOptions.follow = extraCommandProg.preCompileFollow;
+    extraCommandProg.preCompileVerbose = extraCommandProg.verbose;
+    setPreCompileOptionsByCommandProg(preCompileOptions, extraCommandProg);
 
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 
   envSet(EK.NODE_LIKE_EXTRA_OPTIONS, nodeLikeExtraOptions);
 
-  const projectPath = envGet(EK.PROJECT_PATH);
-  const verboseLog = nodeLikeExtraOptions.verbose ? logPlain : noop;
-  const forceLog = logPlain;
+  const preCompileOptionsToUse: PreCompileOptions = {
+    ...preCompileOptions,
+    filter: file => nodeLikeExtraOptions.ext.some(e => file.endsWith(e)),
+  };
 
-  const preCompileInputPaths = uniq(
-    nodeLikePreCompileOptions.inputGlobs
-      .map(g =>
-        glob.sync(g, {
-          cwd: projectPath,
-          absolute: true,
-          nodir: true,
-          ...nodeLikePreCompileOptions,
-        })
-      )
-      .reduce((m, p) => (m.push(...p), m), [])
-      .filter(p => nodeLikeExtraOptions.ext.some(e => p.includes(e)))
-  );
-
-  await pMap(preCompileInputPaths, preCompileAction, nodeLikePreCompileOptions);
-
-  async function preCompileAction(inputPath: string) {
-    try {
-      await transpile(getConvertOptions({ inputPath }));
-      verboseLog(grey(`File '${path.relative(projectPath, inputPath)}' pre-compiled.`));
-    } catch (e) {
-      forceLog(yellow(`File '${path.relative(projectPath, inputPath)}' pre-compilation failed.`));
-      logError(e);
-    }
-  }
+  return {
+    applyPreCompilation: () => preCompile(preCompileOptionsToUse),
+  };
 }

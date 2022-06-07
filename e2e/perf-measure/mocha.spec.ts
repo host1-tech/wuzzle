@@ -12,7 +12,9 @@ executeTests({
         'fixtures/mocha__8.x/node_modules/.bin',
         `mocha -r @babel/register -j 1 "src/**/*"`
       ),
-      wuzzleExec: genEndToEndExec({ command: `mocha -j 1 -P "src/**/*" "src/**/*"` }),
+      wuzzleExec: genEndToEndExec({
+        command: `mocha -j 1 -P "src/**/*.js" "src/**/*.test.js"`,
+      }),
       cleanup() {
         execa.commandSync(genEndToEndExec({ command: 'unregister mocha' }));
       },

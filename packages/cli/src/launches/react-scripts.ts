@@ -1,4 +1,10 @@
-import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+import {
+  logError,
+  logPlain,
+  resolveCommandPath,
+  resolveCommandSemVer,
+  SimpleAsyncCall,
+} from '@wuzzle/helpers';
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
@@ -10,15 +16,22 @@ import {
   tmplLogForGlobalResolving,
 } from '../utils';
 
-export const launchReactScripts: LaunchFunction = ({
+export const launchReactScripts: LaunchFunction = async ({
   nodePath,
   args,
   projectPath,
   commandName,
 }) => {
   const reactScriptSubCommand = envGet(EK.COMMAND_ARGS)[0];
+  const optInCalls: SimpleAsyncCall[] = [];
+
   if (reactScriptSubCommand === 'test') {
-    applyJestExtraOptions({ nodePath, name: 'wuzzle-react-scripts-test', args });
+    const { applyPreCompilation } = applyJestExtraOptions({
+      nodePath,
+      name: 'wuzzle-react-scripts-test',
+      args,
+    });
+    optInCalls.push(applyPreCompilation);
   }
 
   let reactScriptsCommandPath: string;
@@ -41,11 +54,15 @@ export const launchReactScripts: LaunchFunction = ({
   }
 
   envSet(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
+
   doFileRegistering({
     registerName: 'react-scripts',
     majorVersion: reactScriptsMajorVersion,
     commandPath: reactScriptsCommandPath,
   });
+
+  for (const call of optInCalls) await call();
+
   execNode({
     nodePath,
     execArgs: [reactScriptsCommandPath, ...args],

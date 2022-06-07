@@ -1,4 +1,10 @@
-import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+import {
+  logError,
+  logPlain,
+  resolveCommandPath,
+  resolveCommandSemVer,
+  SimpleAsyncCall,
+} from '@wuzzle/helpers';
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   applyJestExtraOptions,
@@ -9,10 +15,22 @@ import {
   tmplLogForGlobalResolving,
 } from '../utils';
 
-export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
+export const launchRazzle: LaunchFunction = async ({
+  nodePath,
+  args,
+  projectPath,
+  commandName,
+}) => {
   const razzleSubCommand = envGet(EK.COMMAND_ARGS)[0];
+  const optInCalls: SimpleAsyncCall[] = [];
+
   if (razzleSubCommand === 'test') {
-    applyJestExtraOptions({ nodePath, name: 'wuzzle-razzle-test', args });
+    const { applyPreCompilation } = applyJestExtraOptions({
+      nodePath,
+      name: 'wuzzle-razzle-test',
+      args,
+    });
+    optInCalls.push(applyPreCompilation);
   }
 
   let razzleCommandPath: string;
@@ -35,6 +53,9 @@ export const launchRazzle: LaunchFunction = ({ nodePath, args, projectPath, comm
     majorVersion: razzleMajorVersion,
     commandPath: razzleCommandPath,
   });
+
+  for (const call of optInCalls) await call();
+
   execNode({
     nodePath,
     execArgs: [razzleCommandPath, ...args],

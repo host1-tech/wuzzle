@@ -1,7 +1,12 @@
 import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
 import { EXIT_CODE_ERROR } from '../constants';
-import { execNode, LaunchOptions, tmplLogForGlobalResolving } from '../utils';
+import {
+  applyNodeLikeExtraOptions,
+  execNode,
+  LaunchOptions,
+  tmplLogForGlobalResolving,
+} from '../utils';
 import { launchMocha } from './mocha';
 
 const commandName = 'commandName';
@@ -18,6 +23,10 @@ jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
+});
+
+mocked(applyNodeLikeExtraOptions).mockReturnValue({
+  applyPreCompilation: jest.fn(),
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 

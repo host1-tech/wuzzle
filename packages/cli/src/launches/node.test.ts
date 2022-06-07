@@ -1,6 +1,6 @@
 import { resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
-import { execNode, LaunchOptions } from '../utils';
+import { applyNodeLikeExtraOptions, execNode, LaunchOptions } from '../utils';
 import { launchNode } from './node';
 
 const commandName = 'commandName';
@@ -15,7 +15,11 @@ const nodeRegisterPath = '/path/to/register/node';
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
 
-describe('launchMocha', () => {
+mocked(applyNodeLikeExtraOptions).mockReturnValue({
+  applyPreCompilation: jest.fn(),
+});
+
+describe('launchNode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

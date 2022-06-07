@@ -21,7 +21,7 @@ export const launchMocha: LaunchFunction = async ({ nodePath, args, projectPath,
     process.exit(EXIT_CODE_ERROR);
   }
 
-  await applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args });
+  await applyNodeLikeExtraOptions({ nodePath, name: 'wuzzle-mocha', args }).applyPreCompilation();
 
   const nodeRegisterPath = resolveRequire('../registers/node');
 

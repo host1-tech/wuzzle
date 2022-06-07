@@ -8,7 +8,7 @@ executeTests({
     ['26.x']: {
       fixtureDir: path.join(__dirname, 'fixtures/jest__26.x'),
       bareExec: path.join(__dirname, 'fixtures/jest__26.x/node_modules/.bin', 'jest -i'),
-      wuzzleExec: genEndToEndExec({ command: 'jest -i' }),
+      wuzzleExec: genEndToEndExec({ command: 'jest -i -P "src/**/*.js"' }),
       cleanup() {
         execa.commandSync(genEndToEndExec({ command: 'unregister jest' }));
       },

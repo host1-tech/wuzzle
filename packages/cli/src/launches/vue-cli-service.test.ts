@@ -44,6 +44,8 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 
+const applyPreCompilation = jest.fn();
+mocked(applyJestExtraOptions).mockReturnValue({ applyPreCompilation });
 mocked(envGet).mockReturnValue([]);
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 const resolveVueCliPluginUnitJest = jest
@@ -73,8 +75,8 @@ describe('launchVueCliService', () => {
     jest.clearAllMocks();
   });
 
-  it('executes with vue-cli-register register attached if command resolved', () => {
-    launchVueCliService(launchOptions);
+  it('executes with vue-cli-register register attached if command resolved', async () => {
+    await launchVueCliService(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
     expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
@@ -85,11 +87,11 @@ describe('launchVueCliService', () => {
     );
   });
 
-  it('resolves vue-cli-service global if command not resolved from locals', () => {
+  it('resolves vue-cli-service global if command not resolved from locals', async () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    launchVueCliService(launchOptions);
+    await launchVueCliService(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
     expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
@@ -100,32 +102,33 @@ describe('launchVueCliService', () => {
     );
   });
 
-  it('prepares jest env and its extra options on test:unit/jest', () => {
+  it('sets jest env, prepares its extra options, pre-compiles on test:unit/jest', async () => {
     mocked(envGet).mockReturnValueOnce(['test:unit']);
     resolveVueCliPluginUnitMocha.mockImplementationOnce(() => {
       throw 0;
     });
-    launchVueCliService(launchOptions);
+    await launchVueCliService(launchOptions);
     expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'jest');
     expect(applyJestExtraOptions).toBeCalled();
+    expect(applyPreCompilation).toBeCalled();
   });
 
-  it('prepares mocha env on test:unit/mocha', () => {
+  it('sets mocha env on test:unit/mocha', async () => {
     mocked(envGet).mockReturnValueOnce(['test:unit']);
     resolveVueCliPluginUnitJest.mockImplementationOnce(() => {
       throw 0;
     });
-    launchVueCliService(launchOptions);
+    await launchVueCliService(launchOptions);
     expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'mocha');
   });
 
-  it('prepares cypress env on test:e2e/cypress', () => {
+  it('prepares cypress env on test:e2e/cypress', async () => {
     mocked(envGet).mockReturnValueOnce(['test:e2e']);
-    launchVueCliService(launchOptions);
+    await launchVueCliService(launchOptions);
     expect(envSet).toBeCalledWith(EK.COMMAND_TYPE, 'cypress');
   });
 
-  it('exits with error code and error message if command not resolved', () => {
+  it('exits with error code and error message if command not resolved', async () => {
     mocked(resolveCommandPath)
       .mockImplementationOnce(() => {
         throw 0;
@@ -134,7 +137,7 @@ describe('launchVueCliService', () => {
         throw 0;
       });
     try {
-      launchVueCliService(launchOptions);
+      await launchVueCliService(launchOptions);
     } catch {}
     expect(logError).toBeCalledWith(expect.stringContaining(commandName));
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);

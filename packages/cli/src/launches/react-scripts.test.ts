@@ -34,6 +34,9 @@ jest.mock('../utils');
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
+
+const applyPreCompilation = jest.fn();
+mocked(applyJestExtraOptions).mockReturnValue({ applyPreCompilation });
 mocked(envGet).mockReturnValue([]);
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
 mocked(resolveCommandPath).mockReturnValue(commandPath);
@@ -44,8 +47,8 @@ describe('launchReactScripts', () => {
     jest.clearAllMocks();
   });
 
-  it('executes with register attached and envs set if command resolved', () => {
-    launchReactScripts(launchOptions);
+  it('executes with register attached and envs set if command resolved', async () => {
+    await launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalled();
     expect(resolveCommandSemVer).toBeCalled();
     expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
@@ -57,11 +60,11 @@ describe('launchReactScripts', () => {
     expect(envSet).toBeCalledWith(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
   });
 
-  it('resolves react-scripts global if command not resolved from locals', () => {
+  it('resolves react-scripts global if command not resolved from locals', async () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
-    launchReactScripts(launchOptions);
+    await launchReactScripts(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
     expect(resolveCommandSemVer).toBeCalled();
@@ -74,13 +77,14 @@ describe('launchReactScripts', () => {
     expect(envSet).toBeCalledWith(EK.TP_SKIP_PREFLIGHT_CHECK, 'true');
   });
 
-  it('prepares jest extra options on testing command', () => {
+  it('prepares jest extra options and pre-compiles on testing command', async () => {
     mocked(envGet).mockReturnValue(['test']);
-    launchReactScripts(launchOptions);
+    await launchReactScripts(launchOptions);
     expect(applyJestExtraOptions).toBeCalled();
+    expect(applyPreCompilation).toBeCalled();
   });
 
-  it('exits with error code and error message if command not resolved', () => {
+  it('exits with error code and error message if command not resolved', async () => {
     mocked(resolveCommandPath)
       .mockImplementationOnce(() => {
         throw 0;
@@ -89,7 +93,7 @@ describe('launchReactScripts', () => {
         throw 0;
       });
     try {
-      launchReactScripts(launchOptions);
+      await launchReactScripts(launchOptions);
     } catch {}
     expect(logError).toBeCalledWith(expect.stringContaining(commandName));
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
