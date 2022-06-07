@@ -3,7 +3,7 @@ import { EK } from '../constants';
 import type { JestExtraOptions } from './apply-jest-extra-options';
 import type { NodeLikeExtraOptions } from './apply-node-like-extra-options';
 
-export type EnvKey = typeof EK[keyof typeof EK];
+export type EnvKey = typeof EK[keyof typeof EK] | 'NODE_ENV';
 
 export interface EnvGetSet<T> {
   get(): T;
@@ -16,7 +16,7 @@ export function optionalStringEnvGetSet(envKey: EnvKey): EnvGetSet<string | unde
     return process.env[envKey];
   }
   function set(envVal: string | undefined): void {
-    process.env[envKey] = envVal;
+    Object.assign(process.env, { [envKey]: envVal });
   }
   return { get, set, envDefaultVal: undefined };
 }
@@ -38,7 +38,7 @@ export function optionalObjectEnvGetSet<T>(envKey: EnvKey): EnvGetSet<T | undefi
     return envVal;
   }
   function set(envVal: T | undefined): void {
-    process.env[envKey] = JSON.stringify(envVal);
+    Object.assign(process.env, { [envKey]: JSON.stringify(envVal) });
   }
   return { get, set, envDefaultVal: undefined };
 }
@@ -118,6 +118,8 @@ export const envGetSetMap = {
   [EK.TP_DEBUG]: optionalStringEnvGetSet(EK.TP_DEBUG),
   [EK.TP_SKIP_PREFLIGHT_CHECK]: optionalStringEnvGetSet(EK.TP_SKIP_PREFLIGHT_CHECK),
   [EK.TP_DISABLE_NEW_JSX_TRANSFORM]: optionalStringEnvGetSet(EK.TP_DISABLE_NEW_JSX_TRANSFORM),
+
+  ['NODE_ENV']: optionalStringEnvGetSet('NODE_ENV'),
 } as const;
 
 export type EnvGetVal<T extends EnvKey> = ReturnType<typeof envGetSetMap[T]['get']>;

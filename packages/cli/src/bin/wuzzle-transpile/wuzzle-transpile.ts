@@ -71,7 +71,7 @@ function ensureArgs() {
     process.exit(EXIT_CODE_ERROR);
   }
 
-  if (!program.ignore) {
+  if (program.ignore === undefined) {
     program.ignore = `**/node_modules/**,${path.resolve(program.outDir)}/**,**/*.d.ts?(x)`;
   }
 
@@ -119,7 +119,7 @@ async function launchExec() {
     return;
   }
 
-  let basePath = path.resolve(program.basePath || longestCommonPrefix(inputPaths));
+  let basePath = path.resolve(program.basePath ?? longestCommonPrefix(inputPaths));
   try {
     if (!fs.statSync(basePath).isDirectory()) {
       throw 0;
@@ -190,7 +190,7 @@ async function launchExec() {
   }
 
   forceLog(blue(`Start compiling '${inputGlobs.join(`' '`)}'.`));
-  await pMap(inputPaths, action, { concurrency, stopOnError: true });
+  await pMap(inputPaths, action, { concurrency });
   forceLog(green('All files compiled.'));
 
   // Create watcher for recompiling

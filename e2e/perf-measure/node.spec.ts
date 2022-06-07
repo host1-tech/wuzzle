@@ -8,7 +8,7 @@ executeTests({
       fixtureDir: path.join(__dirname, 'fixtures/node'),
       bareExec: 'node -r @babel/register index.js',
       wuzzleExec: genEndToEndExec({
-        command: 'node -P "src/**/*" --pre-compile-ignore "**/*.test.*" index.js',
+        command: 'node -P "index.js,src/**/*.js" --pre-compile-ignore "**/*.test.js" index.js',
       }),
       tmplContent:
         `<% _.times(lineCount, i => { %>` +

@@ -8,6 +8,7 @@ export * from './exec-node';
 export * from './file-registering';
 export * from './launch-function';
 export * from './locate-project-anchor';
+export * from './pre-compile';
 export * from './register-unregister';
 export * from './sync-mode';
 export * from './tmpl-logs';

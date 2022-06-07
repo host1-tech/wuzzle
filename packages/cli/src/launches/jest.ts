@@ -4,15 +4,19 @@ import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,
   doFileRegistering,
+  envGet,
   envGetDefault,
   envSet,
   execNode,
+  getDefaultPreCompileOptions,
   getJestExtraCommandOpts,
   LaunchFunction,
+  preCompile,
+  setPreCompileOptionsByCommandProg,
   tmplLogForGlobalResolving,
 } from '../utils';
 
-export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, commandName }) => {
+export const launchJest: LaunchFunction = async ({ nodePath, args, projectPath, commandName }) => {
   let jestCommandPath: string;
   let jestMajorVersion: number;
   try {
@@ -29,25 +33,30 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
   }
 
   const jestExtraOptions = envGetDefault(EK.JEST_EXTRA_OPTIONS);
-
-  const inspectNodeArgs: string[] = [];
-  const inspectJestArgs: string[] = [];
-
-  const extraCommandOpts = {
+  const jestExtraCommandOpts = {
     ...getJestExtraCommandOpts(),
     Inspect: ['--inspect [string]', 'Activate inspector.'],
     InspectBrk: ['--inspect-brk [string]', 'Activate inspector and break at start of user script.'],
     Help: ['-H,--Help', 'Output extra usage information.'],
   } as const;
+  const preCompileOptions = getDefaultPreCompileOptions();
 
-  if (areArgsParsableByFlags({ args, flags: Object.values(extraCommandOpts).map(o => o[0]) })) {
+  const inspectNodeArgs: string[] = [];
+  const inspectJestArgs: string[] = [];
+
+  if (areArgsParsableByFlags({ args, flags: Object.values(jestExtraCommandOpts).map(o => o[0]) })) {
     const extraCommandProg = new Command();
 
     extraCommandProg
-      .option(...extraCommandOpts.NoWebpack)
-      .option(...extraCommandOpts.Inspect)
-      .option(...extraCommandOpts.InspectBrk)
-      .helpOption(...extraCommandOpts.Help)
+      .option(...jestExtraCommandOpts.NoWebpack)
+      .option(...jestExtraCommandOpts.Inspect)
+      .option(...jestExtraCommandOpts.InspectBrk)
+      .option(...jestExtraCommandOpts.PreCompile)
+      .option(...jestExtraCommandOpts.PreCompileIgnore)
+      .option(...jestExtraCommandOpts.PreCompileConcurrency)
+      .option(...jestExtraCommandOpts.PreCompileFollow)
+      .option(...jestExtraCommandOpts.NoPreCompileVerbose)
+      .helpOption(...jestExtraCommandOpts.Help)
       .allowUnknownOption();
 
     extraCommandProg.parse([nodePath, 'wuzzle-jest', ...args]);
@@ -80,17 +89,30 @@ export const launchJest: LaunchFunction = ({ nodePath, args, projectPath, comman
       inspectJestArgs.splice(0, inspectJestArgs.length, '--runInBand');
     }
 
-    jestExtraOptions.webpack = extraCommandProg.webpack;
+    if (extraCommandProg.webpack !== undefined) {
+      jestExtraOptions.webpack = extraCommandProg.webpack;
+    }
+
+    if (jestExtraOptions.webpack) {
+      setPreCompileOptionsByCommandProg(preCompileOptions, extraCommandProg);
+    }
 
     args.splice(0, args.length, ...extraCommandProg.args);
   }
 
   envSet(EK.JEST_EXTRA_OPTIONS, jestExtraOptions);
+  if (!envGet('NODE_ENV')) {
+    envSet('NODE_ENV', 'test');
+  }
+
   doFileRegistering({
     registerName: 'jest',
     majorVersion: jestMajorVersion,
     commandPath: jestCommandPath,
   });
+
+  await preCompile(preCompileOptions);
+
   execNode({
     nodePath,
     execArgs: [...inspectNodeArgs, jestCommandPath, ...inspectJestArgs, ...args],

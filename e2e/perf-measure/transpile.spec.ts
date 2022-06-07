@@ -13,7 +13,7 @@ executeTests({
         `babel "src" --ignore "**/*.test.js" -d out`
       ),
       wuzzleExec: genEndToEndExec({
-        command: `transpile "src/**/*" --ignore "**/*.test.js" --no-clean -d out`,
+        command: `transpile "src/**/*.js" --ignore "**/*.test.js" --no-clean -d out`,
       }),
       cleanup() {
         shelljs.rm('-fr', 'out');

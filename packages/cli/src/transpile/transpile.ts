@@ -356,45 +356,36 @@ export async function generateCacheKey(options: TranspileOptions): Promise<strin
     filePaths.push(...uniq(flatten(cacheKeyOfFilePaths.map(g => glob.sync(g, filePathsGlobOpts)))));
   } else {
     filePaths.push(
-      ...uniq(
-        flatten(
-          await pMap(cacheKeyOfFilePaths, g => promisify(glob)(g, filePathsGlobOpts), {
-            stopOnError: true,
-          })
-        )
-      )
+      ...uniq(flatten(await pMap(cacheKeyOfFilePaths, g => promisify(glob)(g, filePathsGlobOpts))))
     );
   }
+
   const fileContents: string[] = [];
   if (syncMode.enabled) {
     fileContents.push(...filePaths.map(f => fs.readFileSync(f, ENCODING_TEXT)));
   } else {
-    fileContents.push(
-      ...(await pMap(filePaths, f => promisify(fs.readFile)(f, ENCODING_TEXT), {
-        stopOnError: true,
-      }))
-    );
+    fileContents.push(...(await pMap(filePaths, f => promisify(fs.readFile)(f, ENCODING_TEXT))));
   }
 
-  return syncMode.saveRet(
-    createHash('md5')
-      .update(thisFileContent)
-      .update('\0', ENCODING_TEXT)
-      .update(packageJsonContent)
-      .update('\0', ENCODING_TEXT)
-      .update(inputFileContent)
-      .update('\0', ENCODING_TEXT)
-      .update(serialize(options))
-      .update('\0', ENCODING_TEXT)
-      .update(serialize(envKeys))
-      .update('\0', ENCODING_TEXT)
-      .update(serialize(envVals))
-      .update('\0', ENCODING_TEXT)
-      .update(serialize(filePaths))
-      .update('\0', ENCODING_TEXT)
-      .update(serialize(fileContents))
-      .digest('hex')
-  );
+  const cacheKey = createHash('md5')
+    .update(thisFileContent)
+    .update('\0', ENCODING_TEXT)
+    .update(packageJsonContent)
+    .update('\0', ENCODING_TEXT)
+    .update(inputFileContent)
+    .update('\0', ENCODING_TEXT)
+    .update(serialize(options))
+    .update('\0', ENCODING_TEXT)
+    .update(serialize(envKeys))
+    .update('\0', ENCODING_TEXT)
+    .update(serialize(envVals))
+    .update('\0', ENCODING_TEXT)
+    .update(serialize(filePaths))
+    .update('\0', ENCODING_TEXT)
+    .update(serialize(fileContents))
+    .digest('hex');
+
+  return syncMode.saveRet(cacheKey);
 }
 generateCacheKey.syncMode = new SyncMode('');
 
