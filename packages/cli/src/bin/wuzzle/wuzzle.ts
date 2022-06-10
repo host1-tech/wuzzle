@@ -8,6 +8,7 @@ import {
   launchNode,
   launchRazzle,
   launchReactScripts,
+  launchStorybook,
   launchVueCliService,
 } from '../../launches';
 import { checkToUseDryRunMode, envSet, LaunchFunction, locateProjectAnchor } from '../../utils';
@@ -41,6 +42,9 @@ const entries: Record<string, LaunchFunction> = {
   ['node']: launchNode,
   ['razzle']: launchRazzle,
   ['react-scripts']: launchReactScripts,
+  ['build-storybook']: launchStorybook,
+  ['start-storybook']: launchStorybook,
+  ['storybook-server']: launchStorybook,
   ['vue-cli-service']: launchVueCliService,
 };
-(entries[commandName] || launchDefault)({ nodePath, args, projectPath, commandName });
+(entries[commandName] ?? launchDefault)({ nodePath, args, projectPath, commandName });
