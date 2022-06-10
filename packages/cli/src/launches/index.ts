@@ -5,4 +5,5 @@ export * from './mocha';
 export * from './node';
 export * from './razzle';
 export * from './react-scripts';
+export * from './storybook';
 export * from './vue-cli-service';

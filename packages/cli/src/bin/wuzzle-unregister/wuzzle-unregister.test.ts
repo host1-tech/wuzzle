@@ -12,25 +12,21 @@ import { envSet, locateProjectAnchor } from '../../utils';
 
 const fixturePath = path.join(__dirname, 'fixtures');
 const originalProcessArgv = process.argv;
-const fixedArgs = [process.argv[0], resolveRequire('./wuzzle-unregister')];
+const fixedArgs = [process.argv[0], require.resolve('./wuzzle-unregister')];
 
 const extraArgs = ['extraArg'];
 const projectPath = fixturePath;
 
+jest.mock('@wuzzle/helpers');
 jest.mock('../../utils');
-mocked(locateProjectAnchor).mockReturnValue(projectPath);
-
 jest.mock('../../registers/jest__24.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/jest__25.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/webpack__4.x', () => ({ unregister: jest.fn() }));
 jest.mock('../../registers/webpack__5.x', () => ({ unregister: jest.fn() }));
 
-jest.mock('@wuzzle/helpers', () => ({
-  ...jest.requireActual('@wuzzle/helpers'),
-  logError: jest.fn(),
-  logPlain: jest.fn(),
-  resolveCommandPath: jest.fn(),
-}));
+mocked(locateProjectAnchor).mockReturnValue(projectPath);
+mocked(resolveCommandPath).mockImplementation(({ commandName }) => commandName);
+mocked(resolveRequire).mockImplementation(id => id);
 
 jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
@@ -46,29 +42,50 @@ describe('wuzzle-unregister', () => {
     process.argv = originalProcessArgv;
   });
 
-  it('unregisters webpack by default', () => {
+  it('unregisters by webpack runner if not matched', () => {
     const commandName = 'some-workable-command';
+    const commandPath = commandName;
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle-unregister'));
     expect(locateProjectAnchor).toBeCalled();
     expect(envSet).toBeCalledWith(EK.COMMAND_NAME, 'unregister');
     expect(envSet).toBeCalledWith(EK.COMMAND_ARGS, [commandName, ...extraArgs]);
-    expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ commandName }));
-    expect(unregisterWebpack4).toBeCalled();
-    expect(unregisterWebpack5).toBeCalled();
+    expect(resolveCommandPath).toBeCalledWith(
+      expect.objectContaining({ cwd: projectPath, commandName })
+    );
+    expect(unregisterWebpack4).toBeCalledWith(expect.objectContaining({ commandPath }));
+    expect(unregisterWebpack5).toBeCalledWith(expect.objectContaining({ commandPath }));
   });
 
-  it('unregisters special module if matched', () => {
+  it('unregisters by special runner if any matched', () => {
     const commandName = 'jest';
+    const commandPath = commandName;
     process.argv = [...fixedArgs, commandName, ...extraArgs];
     jest.isolateModules(() => require('./wuzzle-unregister'));
     expect(locateProjectAnchor).toBeCalled();
     expect(envSet).toBeCalledWith(EK.COMMAND_NAME, 'unregister');
     expect(envSet).toBeCalledWith(EK.COMMAND_ARGS, [commandName, ...extraArgs]);
-    expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ commandName }));
-    expect(unregisterJest24).toBeCalled();
-    expect(unregisterJest25).toBeCalled();
-    expect(unregisterJest26).toBeCalled();
+    expect(resolveCommandPath).toBeCalledWith(
+      expect.objectContaining({ cwd: projectPath, commandName })
+    );
+    expect(unregisterJest24).toBeCalledWith(expect.objectContaining({ commandPath }));
+    expect(unregisterJest25).toBeCalledWith(expect.objectContaining({ commandPath }));
+    expect(unregisterJest26).toBeCalledWith(expect.objectContaining({ commandPath }));
+  });
+
+  it('unregisters by webpack runner with storybook resolver', () => {
+    const commandName = 'build-storybook';
+    const commandPath = expect.stringContaining('@storybook/manager-webpack');
+    process.argv = [...fixedArgs, commandName, ...extraArgs];
+    jest.isolateModules(() => require('./wuzzle-unregister'));
+    expect(locateProjectAnchor).toBeCalled();
+    expect(envSet).toBeCalledWith(EK.COMMAND_NAME, 'unregister');
+    expect(envSet).toBeCalledWith(EK.COMMAND_ARGS, [commandName, ...extraArgs]);
+    expect(resolveCommandPath).toBeCalledWith(
+      expect.objectContaining({ cwd: projectPath, commandName })
+    );
+    expect(unregisterWebpack4).toBeCalledWith(expect.objectContaining({ commandPath }));
+    expect(unregisterWebpack5).toBeCalledWith(expect.objectContaining({ commandPath }));
   });
 
   it('reports error if command not specified', () => {

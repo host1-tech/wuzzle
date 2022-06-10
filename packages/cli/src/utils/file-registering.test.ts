@@ -38,7 +38,7 @@ describe('doFileRegistering', () => {
     expect(logPlain).not.toBeCalled();
   });
 
-  it('functions with warning if the second attempt succeeds', () => {
+  it('functions with warning if the non-first attempt succeeds', () => {
     mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
       throw 0;
     });
@@ -59,7 +59,7 @@ describe('doFileRegistering', () => {
     expect(logPlain).not.toBeCalled();
   });
 
-  it('reports error and terminates process if all tries fail', () => {
+  it('reports error and terminates process if all tries fail by default', () => {
     mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
       throw 0;
     });
@@ -71,6 +71,16 @@ describe('doFileRegistering', () => {
     } catch {}
     expect(logError).toBeCalled();
     expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
+  });
+
+  it(`throws error if all tries fail but 'throwErr' specified`, () => {
+    mocked(mockedRegisterWebpack5).mockImplementationOnce(() => {
+      throw 0;
+    });
+    mocked(mockedRegisterWebpack4).mockImplementationOnce(() => {
+      throw 0;
+    });
+    expect(() => doFileRegistering({ ...options, throwErr: true })).toThrow(options.registerName);
   });
 
   it('specifies the maximum number of attemps', () => {

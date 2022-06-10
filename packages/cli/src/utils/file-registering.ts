@@ -13,6 +13,7 @@ export interface FileRegisteringOptions extends RegisterOptions {
   registerName: string;
   majorVersion: number;
   attempts?: 1 | 2 | 3;
+  throwErr?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export function doFileRegistering({
   registerName,
   majorVersion,
   attempts = FILE_REGISTERING_DEFAULT_ATTEMPTS,
+  throwErr,
   ...registerOptions
 }: FileRegisteringOptions): void {
   let error: unknown;
@@ -48,8 +50,8 @@ export function doFileRegistering({
       if (i > 0) {
         logPlain(
           yellow(
-            `Did registering on ${registerName}@${majorVersion}.x ` +
-              `with register for ${registerName}@${attemptingMajorVersion}.x.`
+            `Registered for '${registerName}@${majorVersion}.x' ` +
+              `with the register for '${registerName}@${attemptingMajorVersion}.x'.`
           )
         );
       }
@@ -58,7 +60,12 @@ export function doFileRegistering({
       error = e;
     }
   }
-  logError(`error: failed to do registering on ${registerName}@${majorVersion}.x`);
-  logError(error);
-  process.exit(EXIT_CODE_ERROR);
+
+  if (throwErr) {
+    throw new Error(`Failed to register for '${registerName}@${majorVersion}.x'`);
+  } else {
+    logError(`error: failed to register for '${registerName}@${majorVersion}.x'.`);
+    logError(error);
+    process.exit(EXIT_CODE_ERROR);
+  }
 }
