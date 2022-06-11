@@ -1,4 +1,5 @@
 import { cloneDeep, mergeWith, uniq } from 'lodash';
+
 import { EK } from '../constants';
 import type { JestExtraOptions } from './apply-jest-extra-options';
 import type { NodeLikeExtraOptions } from './apply-node-like-extra-options';

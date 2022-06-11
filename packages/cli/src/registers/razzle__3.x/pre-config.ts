@@ -1,6 +1,8 @@
-import { resolveRequire } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import path from 'path';
+
+import { resolveRequire } from '@wuzzle/helpers';
+
 import { WuzzleModifyOptions } from '../../apply-config';
 
 const babelConfigExplorer = cosmiconfigSync('babel');

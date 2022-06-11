@@ -1,5 +1,7 @@
-import { logError, Mutable } from '@wuzzle/helpers';
 import execa, { ExecaSyncReturnValue } from 'execa';
+
+import { logError, Mutable } from '@wuzzle/helpers';
+
 import { EXIT_CODE_ERROR } from '../constants';
 
 export interface ExecNodeOptions {

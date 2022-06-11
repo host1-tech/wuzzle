@@ -11,5 +11,9 @@
         "parser": "json-stringify"
       }
     }
-  ]
+  ],
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^@wuzzle", "^@/", "^\\."],
+  "importOrderCaseInsensitive": true,
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
 }

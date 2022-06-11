@@ -1,4 +1,3 @@
-import { serialize } from '@wuzzle/helpers';
 import cacache from 'cacache';
 import { createHash } from 'crypto';
 import fs from 'fs';
@@ -13,6 +12,9 @@ import pify from 'pify';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
 import { promisify } from 'util';
 import webpack from 'webpack';
+
+import { serialize } from '@wuzzle/helpers';
+
 import applyConfig from '../apply-config';
 import { CACHE_BASE_PATH, EK, ENCODING_TEXT } from '../constants';
 import { envGet, SyncMode, waitForStream, wMerge } from '../utils';

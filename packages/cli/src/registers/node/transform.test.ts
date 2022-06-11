@@ -1,7 +1,9 @@
-import { logPlain, resolveRequire } from '@wuzzle/helpers';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
 import { mocked } from 'ts-jest/utils';
+
+import { logPlain, resolveRequire } from '@wuzzle/helpers';
+
 import { CONFIG_FILENAME, EK } from '../../constants';
 import { transpileSyncFromCacheOnly } from '../../transpile';
 import { envGet, envGetDefault, execNode } from '../../utils';

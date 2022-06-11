@@ -1,5 +1,6 @@
 import { cloneDeep, repeat, times } from 'lodash';
 import { inspect } from 'util';
+
 import { stringify, stringifyDefaultOptions, StringifyOptions } from './stringify';
 
 describe('stringify', () => {

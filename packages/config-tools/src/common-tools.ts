@@ -1,5 +1,6 @@
 import { pick } from 'lodash';
 import type webpackType from 'webpack';
+
 import { normalizeRuleSetCondition } from './webpack-internal';
 
 export function createRuleSetConditionTest(rule: webpackType.RuleSetRule): (s: string) => boolean {

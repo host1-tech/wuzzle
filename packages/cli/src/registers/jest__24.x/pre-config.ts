@@ -1,4 +1,5 @@
 import { resolveRequire } from '@wuzzle/helpers';
+
 import { WuzzleModifyOptions } from '../../apply-config';
 
 export default (arg0: unknown, arg1: unknown, { commandName }: WuzzleModifyOptions) => {

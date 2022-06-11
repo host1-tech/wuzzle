@@ -1,7 +1,9 @@
-import type { MaybeArray } from '@wuzzle/helpers';
 import { flatten, isEmpty, omit } from 'lodash';
 import path from 'path';
 import type webpackType from 'webpack';
+
+import type { MaybeArray } from '@wuzzle/helpers';
+
 import { createRuleSetConditionTest, doesLoaderMatch } from './common-tools';
 
 export type RuleOpInput =

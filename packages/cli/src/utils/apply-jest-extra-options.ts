@@ -1,5 +1,7 @@
-import { SimpleAsyncCall } from '@wuzzle/helpers';
 import { Command } from 'commander';
+
+import { SimpleAsyncCall } from '@wuzzle/helpers';
+
 import { areArgsParsableByFlags } from '.';
 import { EK } from '../constants';
 import { envGet, envGetDefault, envSet } from './env-get-set';

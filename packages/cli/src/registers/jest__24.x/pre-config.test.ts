@@ -1,5 +1,7 @@
-import { resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
+
+import { resolveRequire } from '@wuzzle/helpers';
+
 import { getWuzzleModifyOptions, WuzzleModifyOptions } from '../../apply-config';
 import preConfig from './pre-config';
 

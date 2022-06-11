@@ -1,6 +1,8 @@
-import { logError } from '@wuzzle/helpers';
 import findUp from 'find-up';
 import path from 'path';
+
+import { logError } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import { envGet, envSet } from './env-get-set';
 

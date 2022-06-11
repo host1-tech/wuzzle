@@ -2,6 +2,7 @@ import findUp from 'find-up';
 import fs from 'fs';
 import path from 'path';
 import semver, { SemVer } from 'semver';
+
 import { resolveRequire } from './resolve-require';
 
 export function resolveCommandSemVer(commandPath: string): SemVer {

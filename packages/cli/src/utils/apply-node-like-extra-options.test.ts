@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { uniqueId } from 'lodash';
 import { mocked } from 'ts-jest/utils';
+
 import { EK } from '../constants';
 import {
   applyNodeLikeExtraOptions,

@@ -7,7 +7,6 @@
 // You can read more here:
 // https://on.cypress.io/plugins-guide
 // ***********************************************************
-
 import webpackPreprocessor from '@cypress/webpack-preprocessor';
 
 // This function is called when a project is opened or re-opened (e.g. due to

@@ -1,7 +1,9 @@
-import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
+
+import { resolveRequire } from '@wuzzle/helpers';
+
 import { envGet } from '../../utils';
 import { transform } from './transform';
 

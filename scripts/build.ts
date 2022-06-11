@@ -1,5 +1,8 @@
 #!/usr/bin/env ts-node
 
+/**
+ * Build packages in the specified sequence.
+ */
 import execa from 'execa';
 import path from 'path';
 

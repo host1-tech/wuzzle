@@ -1,3 +1,6 @@
+import path from 'path';
+import type webpackType from 'webpack';
+
 import {
   createRuleSetConditionTest,
   deleteUseItem,
@@ -5,8 +8,7 @@ import {
   firstUseItem,
 } from '@wuzzle/config-tools';
 import { resolveRequire } from '@wuzzle/helpers';
-import path from 'path';
-import type webpackType from 'webpack';
+
 import { WuzzleModifyOptions } from '../../apply-config';
 
 export default (

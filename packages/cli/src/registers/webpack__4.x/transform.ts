@@ -2,7 +2,9 @@ import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
+
 import { resolveRequire } from '@wuzzle/helpers';
+
 import { EK } from '../../constants';
 import { createRegisterUnregister } from '../../utils';
 

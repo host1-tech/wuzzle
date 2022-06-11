@@ -1,4 +1,3 @@
-import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
 import chokidar from 'chokidar';
 import glob from 'glob';
 import { noop } from 'lodash';
@@ -6,6 +5,9 @@ import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import waitForExpect from 'wait-for-expect';
+
+import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
+
 import { CHAR_CTRL_D, EK, EXIT_CODE_ERROR, EXIT_CODE_USER_TERMINATION } from '../../constants';
 import { transpile } from '../../transpile';
 import { dryRunModeCommandOptionName, envGet, envSet, locateProjectAnchor } from '../../utils';

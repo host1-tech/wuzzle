@@ -1,5 +1,9 @@
 {
   "printWidth": 100,
+  "singleQuote": true,
   "tabWidth": 2,
-  "singleQuote": true
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^\\."],
+  "importOrderCaseInsensitive": true,
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
 }

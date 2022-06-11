@@ -4,7 +4,6 @@
  * On master branch, publishes prerelease versions. On release branch, publishes release versions,
  * then merges generated commits back into master branch in a fast-forward manner.
  */
-
 import execa from 'execa';
 
 const { NPM_REGISTRY_URL, GH_TOKEN, NODE_AUTH_TOKEN } = process.env;

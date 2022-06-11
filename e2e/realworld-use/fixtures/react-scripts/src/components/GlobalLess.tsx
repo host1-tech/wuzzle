@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import './GlobalLess.less';
 
 export const GlobalLess: FC = () => {

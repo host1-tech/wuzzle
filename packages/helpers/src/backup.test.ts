@@ -1,8 +1,9 @@
 import fs from 'fs';
 import { mocked } from 'ts-jest/utils';
+
 import {
-  backupWithRestore,
   BACKUP_FILE_EXT,
+  backupWithRestore,
   restoreWithRemove,
   tryRestoreWithRemove,
 } from './backup';

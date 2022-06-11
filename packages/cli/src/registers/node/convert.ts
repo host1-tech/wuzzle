@@ -1,5 +1,7 @@
-import { logError } from '@wuzzle/helpers';
 import getStream from 'get-stream';
+
+import { logError } from '@wuzzle/helpers';
+
 import { EXIT_CODE_ERROR } from '../../constants';
 import { transpile, TranspileOptions } from '../../transpile';
 

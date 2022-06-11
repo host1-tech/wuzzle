@@ -1,5 +1,7 @@
-import { resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
+
+import { resolveRequire } from '@wuzzle/helpers';
+
 import { applyNodeLikeExtraOptions, execNode, LaunchOptions } from '../utils';
 import { launchNode } from './node';
 

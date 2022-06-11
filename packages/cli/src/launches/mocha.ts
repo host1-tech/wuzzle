@@ -1,4 +1,5 @@
 import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+
 import { EXIT_CODE_ERROR } from '../constants';
 import {
   applyNodeLikeExtraOptions,

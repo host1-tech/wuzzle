@@ -1,4 +1,5 @@
 import { bgRgb, rgb } from 'chalk';
+
 import { logImmediately } from './log-immediately';
 
 const bgBlueDark = bgRgb(0, 32, 128);

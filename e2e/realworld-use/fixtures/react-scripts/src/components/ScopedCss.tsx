@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import styles from './ScopedCss.module.css';
 
 export const ScopedCss: FC = () => {

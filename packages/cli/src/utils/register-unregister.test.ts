@@ -1,6 +1,8 @@
-import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
 import fs from 'fs';
 import { mocked } from 'ts-jest/utils';
+
+import { backupWithRestore, resolveRequire, tryRestoreWithRemove } from '@wuzzle/helpers';
+
 import { createRegisterUnregister } from './register-unregister';
 
 const moduleName = 'module-name';
