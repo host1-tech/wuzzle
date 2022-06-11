@@ -1,6 +1,6 @@
 {
   "name": "@wuzzle/config-tools",
-  "version": "0.6.0-alpha.0",
+  "version": "0.6.0-alpha.1",
   "description": "Collection of tools for modifying wuzzle exposed configs.",
   "license": "MIT",
   "files": [
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@types/webpack": "^4.0.0",
-    "@wuzzle/helpers": "0.6.0-alpha.0",
+    "@wuzzle/helpers": "0.6.0-alpha.1",
     "lodash": "^4.17.20",
     "webpack": "^4.0.0"
   }
