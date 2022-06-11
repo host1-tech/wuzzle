@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import serializeJavascript from 'serialize-javascript';
-import { serialize, purifiedNative } from './serialize';
+
+import { purifiedNative, serialize } from './serialize';
 
 describe('serialize', () => {
   it('replaces native functions w/o side effects', () => {

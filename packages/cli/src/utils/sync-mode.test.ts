@@ -1,4 +1,5 @@
 import { uniqueId } from 'lodash';
+
 import { SyncMode } from './sync-mode';
 
 describe('SyncMode', () => {

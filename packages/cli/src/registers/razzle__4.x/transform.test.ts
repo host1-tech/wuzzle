@@ -1,4 +1,5 @@
 import { mocked } from 'ts-jest/utils';
+
 import { envGet } from '../../utils';
 import { register as registerJest26, unregister as unregisterJest26 } from '../jest__26.x';
 import { register as registerWebpack4, unregister as unregisterWebpack4 } from '../webpack__4.x';

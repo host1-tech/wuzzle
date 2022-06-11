@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import styles from './ScopedLess.module.less';
 
 export const ScopedLess: FC = () => {

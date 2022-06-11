@@ -1,7 +1,9 @@
-import { logError, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
+
+import { logError, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../../constants';
 import { unregister as unregisterJest24 } from '../../registers/jest__24.x';
 import { unregister as unregisterJest25 } from '../../registers/jest__25.x';

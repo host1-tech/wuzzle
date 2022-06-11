@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import reactLogoUrl, { ReactComponent as ReactLogo } from '../assets/react-logo.svg';
 
 export const Svg: FC = () => {

@@ -1,12 +1,14 @@
+import fs from 'fs';
+import { flatten } from 'lodash';
+import path from 'path';
+
 import {
   backupWithRestore,
   MaybeArray,
   resolveRequire,
   tryRestoreWithRemove,
 } from '@wuzzle/helpers';
-import fs from 'fs';
-import { flatten } from 'lodash';
-import path from 'path';
+
 import { ENCODING_TEXT } from '../constants';
 
 export interface RegisterOptions {

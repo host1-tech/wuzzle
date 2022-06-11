@@ -3,6 +3,7 @@ import path from 'path';
 import readCmdShim from 'read-cmd-shim';
 import { mocked } from 'ts-jest/utils';
 import which from 'which';
+
 import { resolveCommandPath } from './resolve-command-path';
 
 const commandName = 'commandName';

@@ -32,6 +32,7 @@
     "@testing-library/jest-dom": "5.16.1",
     "@testing-library/react": "12.1.2",
     "@testing-library/user-event": "13.5.0",
+    "@trivago/prettier-plugin-sort-imports": "3.2.0",
     "@types/cheerio": "0.22.31",
     "@types/express": "4.17.13",
     "@types/jest": "27.0.3",

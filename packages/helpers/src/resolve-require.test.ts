@@ -1,6 +1,7 @@
 import { _extensions } from 'module';
 import path from 'path';
 import resolve from 'resolve';
+
 import { resolveRequire } from './resolve-require';
 
 const targetPath = '/path/to/resolve';

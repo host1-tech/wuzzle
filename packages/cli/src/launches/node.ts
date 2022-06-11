@@ -1,4 +1,5 @@
 import { resolveRequire } from '@wuzzle/helpers';
+
 import { applyNodeLikeExtraOptions, execNode, LaunchFunction } from '../utils';
 
 export const launchNode: LaunchFunction = async ({ nodePath, args }) => {

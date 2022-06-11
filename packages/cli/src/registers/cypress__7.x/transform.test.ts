@@ -1,8 +1,10 @@
-import { logError, resolveRequire } from '@wuzzle/helpers';
 import { times } from 'lodash';
 import path from 'path';
 import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
+
+import { logError, resolveRequire } from '@wuzzle/helpers';
+
 import applyConfig from '../../apply-config';
 import { EK, EXIT_CODE_ERROR } from '../../constants';
 import { envGet, envGetDefault } from '../../utils';

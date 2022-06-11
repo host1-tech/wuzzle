@@ -1,5 +1,6 @@
 import path from 'path';
 import type webpackType from 'webpack';
+
 import { RULE_SET_USE_KEYS } from './constants';
 import {
   alterRule,

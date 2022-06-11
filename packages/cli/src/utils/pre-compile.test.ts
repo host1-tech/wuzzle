@@ -1,8 +1,10 @@
-import { logError, logPlain } from '@wuzzle/helpers';
 import glob from 'glob';
 import { uniqueId } from 'lodash';
 import pMap from 'p-map';
 import { mocked } from 'ts-jest/utils';
+
+import { logError, logPlain } from '@wuzzle/helpers';
+
 import { getConvertOptions } from '../registers/node/convert-helpers';
 import { transpile } from '../transpile';
 import {

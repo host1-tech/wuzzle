@@ -1,5 +1,7 @@
-import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
+
+import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+
 import { EXIT_CODE_ERROR } from '../constants';
 import { doFileRegistering, execNode, LaunchFunction, tmplLogForGlobalResolving } from '../utils';
 

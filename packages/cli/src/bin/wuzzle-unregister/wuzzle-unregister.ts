@@ -1,7 +1,9 @@
-import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
 import { green } from 'chalk';
-import path from 'path';
 import glob from 'glob';
+import path from 'path';
+
+import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../../constants';
 import { envSet, locateProjectAnchor } from '../../utils';
 

@@ -3,6 +3,7 @@ import fs from 'fs';
 import { forEach, template, times } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
+
 import { logImmediately } from '../utils';
 
 export interface TestCase {

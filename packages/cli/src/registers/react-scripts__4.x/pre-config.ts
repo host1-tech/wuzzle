@@ -1,5 +1,7 @@
-import { resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
+
+import { resolveRequire } from '@wuzzle/helpers';
+
 import { WuzzleModifyOptions } from '../../apply-config';
 import { EK } from '../../constants';
 import { envGet } from '../../utils';

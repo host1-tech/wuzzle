@@ -1,9 +1,11 @@
-import { logPlain, resolveRequire } from '@wuzzle/helpers';
 import { grey } from 'chalk';
 import { noop } from 'lodash';
 import path from 'path';
 import { addHook } from 'pirates';
 import sourceMapSupport from 'source-map-support';
+
+import { logPlain, resolveRequire } from '@wuzzle/helpers';
+
 import { CONFIG_FILENAME, EK } from '../../constants';
 import { transpileSyncFromCacheOnly } from '../../transpile';
 import { envGet, execNode } from '../../utils';

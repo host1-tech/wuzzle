@@ -1,5 +1,8 @@
 #!/usr/bin/env ts-node
 
+/**
+ * Command helpers for fixtures managing
+ */
 import { program } from 'commander';
 import execa from 'execa';
 import glob from 'glob';

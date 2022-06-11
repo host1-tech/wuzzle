@@ -1,4 +1,5 @@
 import { noop } from 'lodash';
+
 import { logError, logPlain } from './logger';
 
 jest.spyOn(console, 'error').mockImplementation(noop);

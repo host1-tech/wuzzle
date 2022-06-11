@@ -1,6 +1,8 @@
-import type { MaybeArray } from '@wuzzle/helpers';
 import { flatten } from 'lodash';
 import type webpackType from 'webpack';
+
+import type { MaybeArray } from '@wuzzle/helpers';
+
 import { doesLoaderMatch } from './common-tools';
 import { RULE_SET_USE_KEYS } from './constants';
 

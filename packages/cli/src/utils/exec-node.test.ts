@@ -1,7 +1,9 @@
-import { logError } from '@wuzzle/helpers';
 import execa from 'execa';
 import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
+
+import { logError } from '@wuzzle/helpers';
+
 import { EXIT_CODE_ERROR } from '../constants';
 import { execNode } from './exec-node';
 

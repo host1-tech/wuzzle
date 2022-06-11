@@ -24,7 +24,7 @@
     "coverage": "yarn test --coverage",
     "e2e": "jest --testPathIgnorePatterns packages --no-cache --maxWorkers 75%",
     "lint": "run-p lint:*",
-    "lint:tsc": "tsc --noEmit --project tsconfig.lint.json",
+    "lint:tsc": "tsc",
     "lint:eslint": "yarn eslint",
     "lint:prettier": "yarn prettier --check",
     "fix": "run-s fix:*",
@@ -54,6 +54,7 @@
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.2",
+    "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/cheerio": "^0.22.31",
     "@types/glob": "^7.1.3",
     "@types/jest": "^26.0.10",

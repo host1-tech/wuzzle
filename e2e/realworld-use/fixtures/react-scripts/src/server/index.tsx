@@ -5,6 +5,7 @@ import path from 'path';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import * as appPaths from 'react-scripts/config/paths';
+
 import { App } from '../App';
 
 const port = process.env.PORT ?? '5000';

@@ -1,5 +1,7 @@
-import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
 import { mocked } from 'ts-jest/utils';
+
+import { logError, logPlain, resolveRequire } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import { envSet } from './env-get-set';
 import { doFileRegistering, FileRegisteringOptions } from './file-registering';

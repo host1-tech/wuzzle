@@ -1,10 +1,12 @@
 import * as JestTypes from '@jest/types';
-import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { mocked } from 'ts-jest/utils';
 import { InspectOptions } from 'util';
 import webpack from 'webpack';
+
+import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
+
 import applyConfig, {
   applyDryRunTweaks,
   applyJest,

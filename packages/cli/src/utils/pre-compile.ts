@@ -1,4 +1,3 @@
-import { logError, logPlain } from '@wuzzle/helpers';
 import { grey, yellow } from 'chalk';
 import commander from 'commander';
 import glob from 'glob';
@@ -6,6 +5,9 @@ import { noop, uniq } from 'lodash';
 import os from 'os';
 import pMap from 'p-map';
 import path from 'path';
+
+import { logError, logPlain } from '@wuzzle/helpers';
+
 import { EK } from '../constants';
 import { getConvertOptions } from '../registers/node/convert-helpers';
 import { envGet } from './env-get-set';

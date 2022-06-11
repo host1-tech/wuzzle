@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { SemVer } from 'semver';
 import { mocked } from 'ts-jest/utils';
+
 import { resolveRequire } from './resolve-require';
 import { resolveCommandSemVer, resolveWebpackSemVer } from './resolve-sem-ver';
 

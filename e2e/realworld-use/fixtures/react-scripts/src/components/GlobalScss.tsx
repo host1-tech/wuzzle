@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import './GlobalScss.scss';
 
 export const GlobalScss: FC = () => {

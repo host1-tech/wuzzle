@@ -1,5 +1,7 @@
-import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 import { Command } from 'commander';
+
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import {
   areArgsParsableByFlags,

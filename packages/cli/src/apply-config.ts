@@ -1,10 +1,12 @@
 import * as JestTypes from '@jest/types';
-import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
 import { yellow } from 'chalk';
 import { cosmiconfigSync } from 'cosmiconfig';
 import debugFty from 'debug';
 import { InspectOptions } from 'util';
 import type webpackType from 'webpack';
+
+import { diff, logError, logPlain, stringify } from '@wuzzle/helpers';
+
 import { CONFIG_FILENAME, DN_APPLY_CONFIG, EK, EXIT_CODE_ERROR } from './constants';
 import { envGet, envSet, stderrDebugLog, stdoutDebugLog, wMerge } from './utils';
 

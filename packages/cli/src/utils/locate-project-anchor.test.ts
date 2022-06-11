@@ -1,7 +1,9 @@
-import { logError } from '@wuzzle/helpers';
 import findUp from 'find-up';
 import path from 'path';
 import { mocked } from 'ts-jest/utils';
+
+import { logError } from '@wuzzle/helpers';
+
 import { EK, EXIT_CODE_ERROR } from '../constants';
 import { envSet } from './env-get-set';
 import { locateProjectAnchor } from './locate-project-anchor';

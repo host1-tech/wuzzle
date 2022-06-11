@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import ghOctocatPng from '../assets/gh-octocat.png';
 
 export const Img: FC = () => {

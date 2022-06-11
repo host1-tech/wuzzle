@@ -4,6 +4,7 @@ import path from 'path';
 import shelljs from 'shelljs';
 import { mocked } from 'ts-jest/utils';
 import webpack from 'webpack';
+
 import { EK, ENCODING_TEXT } from '../constants';
 import { envGet, envGetDefault } from '../utils';
 import {

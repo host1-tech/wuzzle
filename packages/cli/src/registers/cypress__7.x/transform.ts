@@ -1,5 +1,7 @@
-import { logError, resolveRequire } from '@wuzzle/helpers';
 import path from 'path';
+
+import { logError, resolveRequire } from '@wuzzle/helpers';
+
 import applyConfig from '../../apply-config';
 import { EK, EXIT_CODE_ERROR } from '../../constants';
 import { envGet, RegisterFunction, RegisterOptions, UnregisterFunction } from '../../utils';
