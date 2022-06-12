@@ -210,7 +210,10 @@ export function replaceUseItem(
     const use = rule[useKey];
     if (Array.isArray(use)) {
       use.splice(useItemIdx, 1, ...newUseItems);
-    } else if (typeof use === 'string' || typeof use === 'object') {
+    } else if (typeof use === 'string') {
+      rule[useKey] = newUseItems;
+      delete rule.options;
+    } else if (typeof use === 'object') {
       rule[useKey] = newUseItems;
     }
   });
@@ -224,7 +227,10 @@ export function deleteUseItem(input: UseItemOpInput, query: UseItemOpQuery): boo
     const use = rule[useKey];
     if (Array.isArray(use)) {
       use.splice(useItemIdx, 1);
-    } else if (typeof use === 'string' || typeof use === 'object') {
+    } else if (typeof use === 'string') {
+      delete rule[useKey];
+      delete rule.options;
+    } else if (typeof use === 'object') {
       delete rule[useKey];
     }
   });

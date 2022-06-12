@@ -95,7 +95,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
   } else {
     outputPath = path.resolve(internalOptions.outputPath!);
   }
-  Object.assign(webpackConfig.output, {
+  Object.assign(webpackConfig.output!, {
     libraryTarget: 'umd',
     path: path.dirname(outputPath),
     filename: path.basename(outputPath),
@@ -120,7 +120,7 @@ export async function transpile(options: TranspileOptions = {}): Promise<string>
       outputPathParsed.ext = '.js';
       outputPathParsed.base = `${outputPathParsed.name}${outputPathParsed.ext}`;
       outputPath = path.format(outputPathParsed);
-      Object.assign(webpackConfig.output, { filename: outputPathParsed.base });
+      Object.assign(webpackConfig.output!, { filename: outputPathParsed.base });
     }
   }
 
