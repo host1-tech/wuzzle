@@ -18,12 +18,26 @@ type Webpack = typeof webpackType;
 type JestConfig = JestTypes.Config.ProjectConfig;
 type JestInfo = {};
 
+/**
+ * The data structure of param `wuzzleContext` in the `wuzzle.config.js`. Notice that,
+ * from the view of wuzzle maintainers, the `wuzzleContext` is also called
+ * `wuzzleModifyOptions` or just `modifyOptions`.
+ */
 export interface WuzzleModifyOptions {
+  // the absolute root path of the current project
   projectPath: string;
+  // the name of the original command
   commandName: string;
+  // the arguments of the original command
   commandArgs: string[];
+  // the extra information of the original command
   commandType: string;
 }
+
+/**
+ * The data structure of the exports of the `wuzzle.config.js`.
+ */
+export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
 export type WuzzleConfigModify = (
   webpackConfig: WebpackConfig,
@@ -41,8 +55,6 @@ export interface WuzzleConfigOptions {
     modifyOptions: WuzzleModifyOptions
   ) => JestConfig | void;
 }
-
-export type WuzzleConfig = WuzzleConfigModify | WuzzleConfigOptions;
 
 export function applyConfig(webpackConfig: WebpackConfig, webpack: Webpack): WebpackConfig {
   const stringifyOpts: InspectOptions = {};
