@@ -1,6 +1,6 @@
 {
   "name": "wuzzle",
-  "version": "0.6.1-alpha.0",
+  "version": "0.6.1-alpha.1",
   "description": "Wuzzle command line interface.",
   "keywords": [],
   "license": "MIT",
@@ -30,6 +30,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@wuzzle/cli": "0.6.1-alpha.0"
+    "@wuzzle/cli": "0.6.1-alpha.1"
   }
 }
