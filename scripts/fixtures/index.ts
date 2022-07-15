@@ -12,8 +12,10 @@ import path from 'path';
 import shelljs from 'shelljs';
 
 program.command('install [dirs...]').action(async dirs => {
+  const doesYarnSupportParallel = process.platform === 'linux';
+  const cpuUsage = 0.75;
   await pMap(getFixtureDirs(dirs), action, {
-    concurrency: process.platform === 'linux' ? os.cpus().length : 1,
+    concurrency: doesYarnSupportParallel ? Math.max(1, Math.round(os.cpus().length * cpuUsage)) : 1,
   });
   async function action(fixtureDir: string) {
     const installPath = require.resolve('./install');
