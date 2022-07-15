@@ -4,7 +4,7 @@ import { forEach, template, times } from 'lodash';
 import path from 'path';
 import shelljs from 'shelljs';
 
-import { logImmediately } from '../utils';
+import { expectExecSuccess, logImmediately } from '../utils';
 
 export interface TestCase {
   fixtureDir: string;
@@ -147,7 +147,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               const bareTimeStart = Date.now();
               const bareResult = shelljs.exec(bareExec, { silent });
               const bareTimeClose = Date.now();
-              expect(bareResult.code).toBe(0);
+              expectExecSuccess(bareResult.code, bareResult.stderr);
               const bareMsElapsed = bareTimeClose - bareTimeStart;
 
               // measures wuzzle execution
@@ -156,7 +156,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
               const wuzzleTimeStart = Date.now();
               const wuzzleResult = shelljs.exec(wuzzleExec, { silent });
               const wuzzleTimeClose = Date.now();
-              expect(wuzzleResult.code).toBe(0);
+              expectExecSuccess(wuzzleResult.code, wuzzleResult.stderr);
               const wuzzleMsElapsed = wuzzleTimeClose - wuzzleTimeStart;
 
               // Prints individual report and collects overview report

@@ -6,7 +6,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import shelljs from 'shelljs';
 import waitForExpect from 'wait-for-expect';
 
-import { itSection, tKill, waitForStreamText } from '../utils';
+import { expectExecSuccess, itSection, tKill, waitForStreamText } from '../utils';
 
 const testTimeout = 8 * 60 * 1000;
 
@@ -59,7 +59,8 @@ describe('realworld use of wuzzle on react-scripts', () => {
     'works in prod mode',
     async () => {
       itSection('builds app', () => {
-        expect(execa.sync('yarn', ['build']).exitCode).toBe(0);
+        const result = execa.sync('yarn', ['build']);
+        expectExecSuccess(result.exitCode, result.stderr);
       });
 
       const ssrPage = await browser.newPage();
@@ -105,7 +106,8 @@ describe('realworld use of wuzzle on react-scripts', () => {
   it(
     'works with regular testing',
     () => {
-      expect(execa.sync('yarn', ['test', '--watchAll=false']).exitCode).toBe(0);
+      const result = execa.sync('yarn', ['test', '--watchAll=false']);
+      expectExecSuccess(result.exitCode, result.stderr);
     },
     testTimeout
   );
@@ -114,7 +116,8 @@ describe('realworld use of wuzzle on react-scripts', () => {
     'works with end-to-end testing',
     async () => {
       itSection('builds app', () => {
-        expect(execa.sync('yarn', ['build']).exitCode).toBe(0);
+        const result = execa.sync('yarn', ['build']);
+        expectExecSuccess(result.exitCode, result.stderr);
       });
 
       const serverProc = execa('yarn', ['start']);
@@ -124,7 +127,8 @@ describe('realworld use of wuzzle on react-scripts', () => {
         });
 
         itSection('runs e2e specs', () => {
-          expect(execa.sync('yarn', ['e2e']).exitCode).toBe(0);
+          const result = execa.sync('yarn', ['e2e']);
+          expectExecSuccess(result.exitCode, result.stderr);
         });
       } finally {
         await tKill(serverProc.pid);

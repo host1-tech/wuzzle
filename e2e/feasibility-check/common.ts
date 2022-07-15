@@ -2,7 +2,7 @@ import glob from 'glob';
 import path from 'path';
 import shelljs from 'shelljs';
 
-import { concatEnvPath, genEndToEndExec } from '../utils';
+import { concatEnvPath, expectExecSuccess, genEndToEndExec } from '../utils';
 
 export interface TestCase {
   fixtureDir: string;
@@ -124,17 +124,16 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           it(
             `unregisters ${commandName}`,
             () => {
-              expect(
-                shelljs.exec(
-                  genEndToEndExec({ command: `unregister ${commandName}`, envOverrides }),
-                  { silent }
-                ).code
-              ).toBe(0);
-              const result = shelljs.exec(
+              const unregisterResult = shelljs.exec(
+                genEndToEndExec({ command: `unregister ${commandName}`, envOverrides }),
+                { silent }
+              );
+              expectExecSuccess(unregisterResult.code, unregisterResult.stderr);
+              const unregisteredExecResult = shelljs.exec(
                 genEndToEndExec({ envOverrides: yarnEnvOverrides, wrapper: 'yarn', command }),
                 { silent }
               );
-              verifyUnregisteredExecResult(result);
+              verifyUnregisteredExecResult(unregisteredExecResult);
             },
             testTimeout
           );
@@ -145,7 +144,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           stderr,
           code: exitCode,
         }: shelljs.ExecOutputReturnValue) {
-          expect(exitCode).toBe(0);
+          expectExecSuccess(exitCode, stderr);
           debugTextsOnMounted.forEach(text => {
             expect(stderr).toEqual(expect.stringContaining(text));
           });
@@ -174,7 +173,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           stderr,
           code: exitCode,
         }: shelljs.ExecOutputReturnValue) {
-          expect(exitCode).toBe(0);
+          expectExecSuccess(exitCode, stderr);
           debugTextsOnMounted.forEach(text => {
             expect(stdout).toEqual(expect.stringContaining(text));
           });
@@ -199,7 +198,7 @@ export function executeTests(testCasesInGroups: TestCasesInGroups): void {
           stderr,
           code: exitCode,
         }: shelljs.ExecOutputReturnValue) {
-          expect(exitCode).toBe(0);
+          expectExecSuccess(exitCode, stderr);
           debugTextsOnMounted.forEach(text => {
             expect(stderr).toEqual(expect.not.stringContaining(text));
           });
