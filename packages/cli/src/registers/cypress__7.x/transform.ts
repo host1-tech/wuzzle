@@ -29,11 +29,8 @@ export const register: RegisterFunction = options => {
 };
 
 export const unregister: UnregisterFunction = options => {
-  try {
-    unregisterWebpack4(options);
-  } catch {
-    unregisterWebpack5(options);
-  }
+  unregisterWebpack4(options);
+  unregisterWebpack5(options);
 };
 
 export function printDryRunLog({ commandPath }: RegisterOptions): void {

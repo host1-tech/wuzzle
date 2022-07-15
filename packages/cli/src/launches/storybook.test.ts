@@ -1,7 +1,6 @@
-import { noop } from 'lodash';
 import { mocked } from 'ts-jest/utils';
 
-import { logError, logPlain, resolveCommandPath, resolveRequire } from '@wuzzle/helpers';
+import { logError, logPlain, resolveCommandPath, resolveCommandSemVer } from '@wuzzle/helpers';
 
 import { EXIT_CODE_ERROR } from '../constants';
 import {
@@ -22,13 +21,12 @@ const launchOptions: LaunchOptions = {
   commandName,
 };
 const logForGlobalResolving = 'log for global resolving';
-const frOptionsList: FileRegisteringOptions[] = [4, 5].map(majorVersion => ({
-  registerName: 'webpack',
+const majorVersion = 6;
+const fileRegisteringOptions: FileRegisteringOptions = {
+  registerName: 'storybook',
   majorVersion,
-  attempts: 1,
-  throwErr: true,
-  commandPath: `@storybook/manager-webpack${majorVersion}`,
-}));
+  commandPath,
+};
 
 jest.mock('@wuzzle/helpers');
 jest.mock('../utils');
@@ -36,22 +34,19 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
   throw 0;
 });
 mocked(tmplLogForGlobalResolving).mockReturnValue(logForGlobalResolving);
-mocked(resolveRequire).mockImplementation(id => id);
+mocked(resolveCommandPath).mockReturnValue(commandPath);
+mocked(resolveCommandSemVer).mockReturnValue({ major: majorVersion } as never);
 
 describe('launchStorybook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mocked(doFileRegistering).mockImplementation(noop);
-    mocked(resolveCommandPath).mockReturnValue(commandPath);
   });
 
-  it('executes with webpack register attached if command resolved', () => {
+  it('executes with storybook register attached if command resolved', () => {
     launchStorybook(launchOptions);
     expect(resolveCommandPath).toBeCalled();
-    frOptionsList.forEach((frOpt, i) => {
-      const nth = i + 1;
-      expect(doFileRegistering).toHaveBeenNthCalledWith(nth, frOpt);
-    });
+    expect(resolveCommandSemVer).toBeCalled();
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
@@ -59,17 +54,15 @@ describe('launchStorybook', () => {
     );
   });
 
-  it('resolves webpack global if command not resolved from locals', () => {
+  it('resolves storybook global if command not resolved from locals', () => {
     mocked(resolveCommandPath).mockImplementationOnce(() => {
       throw 0;
     });
     launchStorybook(launchOptions);
     expect(resolveCommandPath).toBeCalledWith(expect.objectContaining({ fromGlobals: true }));
     expect(logPlain).toBeCalledWith(logForGlobalResolving);
-    frOptionsList.forEach((frOpt, i) => {
-      const nth = i + 1;
-      expect(doFileRegistering).toHaveBeenNthCalledWith(nth, frOpt);
-    });
+    expect(resolveCommandSemVer).toBeCalled();
+    expect(doFileRegistering).toBeCalledWith(fileRegisteringOptions);
     expect(execNode).toBeCalledWith(
       expect.objectContaining({
         execArgs: expect.arrayContaining([commandPath]),
@@ -77,22 +70,14 @@ describe('launchStorybook', () => {
     );
   });
 
-  it('reports error and termiates process if command not resolved', () => {
-    mocked(resolveCommandPath).mockImplementation(() => {
-      throw 0;
-    });
-    try {
-      launchStorybook(launchOptions);
-    } catch {}
-    expect(logError).toBeCalledWith(expect.stringContaining(commandName));
-    expect(process.exit).toBeCalledWith(EXIT_CODE_ERROR);
-    expect(execNode).not.toBeCalled();
-  });
-
-  it('reports error and termiates process if all file registering tries fail', () => {
-    mocked(doFileRegistering).mockImplementation(() => {
-      throw 0;
-    });
+  it('exits with error code and error message if command not resolved', () => {
+    mocked(resolveCommandPath)
+      .mockImplementationOnce(() => {
+        throw 0;
+      })
+      .mockImplementationOnce(() => {
+        throw 0;
+      });
     try {
       launchStorybook(launchOptions);
     } catch {}

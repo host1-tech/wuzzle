@@ -42,17 +42,9 @@ describe('register/unregister', () => {
     expect(registerJest26).toBeCalledWith({ commandPath });
   });
 
-  it('uses webpack 4 and jest unregister on unregistering', () => {
+  it('uses webpack 4, webpack 5 and jest unregisters on unregistering', () => {
     unregister({ commandPath });
     expect(unregisterWebpack4).toBeCalledWith({ commandPath });
-    expect(unregisterJest26).toBeCalledWith({ commandPath });
-  });
-
-  it('uses webpack 5 and jest unregister on unregistering if webpack 4 unregistering fails', () => {
-    mocked(unregisterWebpack4).mockImplementationOnce(() => {
-      throw 0;
-    });
-    unregister({ commandPath });
     expect(unregisterWebpack5).toBeCalledWith({ commandPath });
     expect(unregisterJest26).toBeCalledWith({ commandPath });
   });
