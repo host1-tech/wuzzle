@@ -94,16 +94,9 @@ describe('register/unregister', () => {
     expect(process.exit).toBeCalled();
   });
 
-  it('uses webpack 4 unregister on unregistering', () => {
+  it('uses webpack 4 and webpack 5 unregisters on unregistering', () => {
     unregister({ commandPath });
     expect(unregisterWebpack4).toBeCalledWith({ commandPath });
-  });
-
-  it('uses webpack 5 unregister on unregistering if webpack 4 unregistering fails', () => {
-    mocked(unregisterWebpack4).mockImplementationOnce(() => {
-      throw 0;
-    });
-    unregister({ commandPath });
     expect(unregisterWebpack5).toBeCalledWith({ commandPath });
   });
 });
