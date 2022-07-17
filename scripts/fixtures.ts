@@ -3,30 +3,22 @@
 /**
  * Command helpers for fixtures managing
  */
+import { blue, grey } from 'chalk';
 import { program } from 'commander';
-import execa from 'execa';
 import glob from 'glob';
-import os from 'os';
-import pMap from 'p-map';
 import path from 'path';
 import shelljs from 'shelljs';
 
 program.command('install [dirs...]').action(async dirs => {
-  const doesYarnSupportParallel = process.platform === 'linux';
-  const cpuUsage = 0.75;
-  await pMap(getFixtureDirs(dirs), action, {
-    concurrency: doesYarnSupportParallel ? Math.max(1, Math.round(os.cpus().length * cpuUsage)) : 1,
-  });
-  async function action(fixtureDir: string) {
-    const installPath = require.resolve('./install');
-    const nodePath = process.argv[0];
-    const childProc = execa(nodePath, [installPath, fixtureDir], { stdio: 'inherit' });
-    await new Promise((resolve, reject) => {
-      childProc.on('exit', code => {
-        code === 0 ? resolve(0) : reject();
-      });
-      childProc.on('error', () => reject());
-    });
+  for (const fixtureDir of getFixtureDirs(dirs)) {
+    const subDir = path.relative(process.cwd(), fixtureDir);
+    shelljs.cd(fixtureDir);
+    console.log(blue(`Install deps in '${subDir}'`));
+    if (shelljs.test('-f', 'package.json')) {
+      shelljs.exec('yarn');
+    } else {
+      console.log(grey(`No 'package.json' found, skip '${subDir}'`));
+    }
   }
 });
 
