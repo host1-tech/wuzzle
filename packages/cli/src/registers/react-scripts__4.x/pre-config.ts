@@ -86,7 +86,7 @@ export default (
 };
 
 function hasNewJsxRuntime(projectPath: string) {
-  if (envGet(EK.TP_DISABLE_NEW_JSX_TRANSFORM)) {
+  if (envGet(EK.TP_DISABLE_NEW_JSX_TRANSFORM) === 'true') {
     return false;
   }
 
