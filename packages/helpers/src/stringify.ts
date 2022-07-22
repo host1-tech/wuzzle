@@ -21,7 +21,7 @@ export function stringify(o: any, options: StringifyOptions = {}): string {
 }
 
 function prepareStringifiable(o: any, options: StringifyInternalOptions): any {
-  return reduceOverlong(cloneDeep(o), options);
+  return reduceOverlong(typeof o === 'function' ? o : cloneDeep(o), options);
 }
 
 function reduceOverlong(o: any, options: StringifyInternalOptions): any {

@@ -19,6 +19,11 @@ describe('stringify', () => {
     expect(stringify(input, options)).toBe(inspect(input, options));
   });
 
+  it('works with function value', () => {
+    const input = () => {};
+    expect(stringify(input)).toEqual(expect.stringContaining('[Function'));
+  });
+
   it('reduces overlong w/o side effects', () => {
     const { overlongThreshold } = stringifyDefaultOptions;
     const normlong = [

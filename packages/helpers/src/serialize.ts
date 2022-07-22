@@ -6,7 +6,7 @@ export function serialize(o: any): string {
 }
 
 function prepareSerializable(o: any): any {
-  return purifyNative(cloneDeep(o));
+  return purifyNative(typeof o === 'function' ? o : cloneDeep(o));
 }
 
 function purifyNative(o: any): any {
