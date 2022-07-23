@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.3-alpha.0](https://github.com/host1-tech/wuzzle/compare/v0.6.2...v0.6.3-alpha.0) (2022-07-23)
+
+**Note:** Version bump only for package @wuzzle/config-tools
+
+
+
+
+
 ## [0.6.1](https://github.com/host1-tech/wuzzle/compare/v0.6.1-alpha.2...v0.6.1) (2022-07-16)
 
 **Note:** Version bump only for package @wuzzle/config-tools
